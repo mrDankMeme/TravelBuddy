@@ -23,7 +23,18 @@ public final class DIContainer {
         container.register(AnalyticsServiceProtocol.self) { _ in AnalyticsService() }
         container.register(IAPServiceProtocol.self) { _ in IAPService() }
         container.register(NotificationServiceProtocol.self) { _ in NotificationService() }
-
+      
+        //MARK: - Feature: Onboarding
+        container.register((any OnboardingViewModelProtocol).self) { _ in
+          OnboardingViewModel()
+        }
+        container.register(AnyOnboardingViewModel.self) { r in
+             AnyOnboardingViewModel(
+                 r.resolve((any OnboardingViewModelProtocol).self)!
+             )
+         }
+     
+       
         // MARK: — Feature: POIList
         container.register(POIServiceProtocol.self) { r in
             POIService(httpClient: r.resolve(HTTPClientProtocol.self)!)

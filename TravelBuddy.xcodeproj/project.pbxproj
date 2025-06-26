@@ -35,6 +35,12 @@
 		A3166E922E09A2A600E6E1C2 /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E912E09A2A600E6E1C2 /* AppCoordinator.swift */; };
 		A3166E932E09A9EE00E6E1C2 /* RealmSwift in Embed Frameworks */ = {isa = PBXBuildFile; productRef = A3166E112E0561DB00E6E1C2 /* RealmSwift */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		A3166E962E0AFDB100E6E1C2 /* AnySettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E952E0AFDB100E6E1C2 /* AnySettingsViewModel.swift */; };
+		A3166E9C2E0D5BE600E6E1C2 /* OnboardingPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E9B2E0D5BE600E6E1C2 /* OnboardingPage.swift */; };
+		A3166EA22E0D5C3700E6E1C2 /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166EA02E0D5C3700E6E1C2 /* OnboardingViewModel.swift */; };
+		A3166EA82E0D609F00E6E1C2 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166EA62E0D609F00E6E1C2 /* OnboardingView.swift */; };
+		A3166EAA2E0D61AB00E6E1C2 /* AnyOnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166EA92E0D61AB00E6E1C2 /* AnyOnboardingViewModel.swift */; };
+		A3166F032E0D6E0F00E6E1C2 /* Scalable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166F012E0D6E0F00E6E1C2 /* Scalable.swift */; };
+		A3166F052E0D6E1800E6E1C2 /* ScreenSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166F042E0D6E1800E6E1C2 /* ScreenSize.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -76,6 +82,12 @@
 		A3166E8E2E096B4100E6E1C2 /* DIContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIContainer.swift; sourceTree = "<group>"; };
 		A3166E912E09A2A600E6E1C2 /* AppCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
 		A3166E952E0AFDB100E6E1C2 /* AnySettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnySettingsViewModel.swift; sourceTree = "<group>"; };
+		A3166E9B2E0D5BE600E6E1C2 /* OnboardingPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPage.swift; sourceTree = "<group>"; };
+		A3166EA02E0D5C3700E6E1C2 /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
+		A3166EA62E0D609F00E6E1C2 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		A3166EA92E0D61AB00E6E1C2 /* AnyOnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnyOnboardingViewModel.swift; sourceTree = "<group>"; };
+		A3166F012E0D6E0F00E6E1C2 /* Scalable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scalable.swift; sourceTree = "<group>"; };
+		A3166F042E0D6E1800E6E1C2 /* ScreenSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenSize.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +134,7 @@
 		A3166E402E0589B600E6E1C2 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				A3166F022E0D6E0F00E6E1C2 /* Utils */,
 				A3166E3E2E0589B600E6E1C2 /* Extensions */,
 				A3166E3F2E0589B600E6E1C2 /* HTTPClient.swift */,
 			);
@@ -184,17 +197,18 @@
 			path = Settings;
 			sourceTree = "<group>";
 		};
-		A3166E482E0589B600E6E1C2 /* Features */ = {
+		A3166E482E0589B600E6E1C2 /* Scenes */ = {
 			isa = PBXGroup;
 			children = (
+				A3166E982E0D5BC400E6E1C2 /* Onboarding */,
+				A3166E472E0589B600E6E1C2 /* Settings */,
 				A3166E422E0589B600E6E1C2 /* AudioGuide */,
 				A3166E432E0589B600E6E1C2 /* BLEScanner */,
 				A3166E442E0589B600E6E1C2 /* Map */,
 				A3166E452E0589B600E6E1C2 /* Photo */,
 				A3166E462E0589B600E6E1C2 /* POIList */,
-				A3166E472E0589B600E6E1C2 /* Settings */,
 			);
-			path = Features;
+			path = Scenes;
 			sourceTree = "<group>";
 		};
 		A3166E4A2E0589B600E6E1C2 /* Generated */ = {
@@ -228,7 +242,7 @@
 				A3166E402E0589B600E6E1C2 /* Core */,
 				A3166E4A2E0589B600E6E1C2 /* Generated */,
 				A3166E4C2E0589B600E6E1C2 /* Services */,
-				A3166E482E0589B600E6E1C2 /* Features */,
+				A3166E482E0589B600E6E1C2 /* Scenes */,
 				A3166E902E09A28C00E6E1C2 /* Coordinators */,
 				A3166E412E0589B600E6E1C2 /* Dependency */,
 				A3166E4B2E0589B600E6E1C2 /* Resources */,
@@ -298,6 +312,50 @@
 				A3166E912E09A2A600E6E1C2 /* AppCoordinator.swift */,
 			);
 			path = Coordinators;
+			sourceTree = "<group>";
+		};
+		A3166E982E0D5BC400E6E1C2 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				A3166E9A2E0D5BDB00E6E1C2 /* Model */,
+				A3166EA12E0D5C3700E6E1C2 /* ViewModel */,
+				A3166EA72E0D609F00E6E1C2 /* View */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		A3166E9A2E0D5BDB00E6E1C2 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				A3166E9B2E0D5BE600E6E1C2 /* OnboardingPage.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		A3166EA12E0D5C3700E6E1C2 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				A3166EA02E0D5C3700E6E1C2 /* OnboardingViewModel.swift */,
+				A3166EA92E0D61AB00E6E1C2 /* AnyOnboardingViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		A3166EA72E0D609F00E6E1C2 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				A3166EA62E0D609F00E6E1C2 /* OnboardingView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		A3166F022E0D6E0F00E6E1C2 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				A3166F012E0D6E0F00E6E1C2 /* Scalable.swift */,
+				A3166F042E0D6E1800E6E1C2 /* ScreenSize.swift */,
+			);
+			path = Utils;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -399,12 +457,18 @@
 				A3166E592E0589B600E6E1C2 /* HTTPClient.swift in Sources */,
 				A3166E5A2E0589B600E6E1C2 /* DesignTokens.swift in Sources */,
 				A3166E5B2E0589B600E6E1C2 /* AppDelegate.swift in Sources */,
+				A3166EAA2E0D61AB00E6E1C2 /* AnyOnboardingViewModel.swift in Sources */,
 				A3166E5C2E0589B600E6E1C2 /* SceneDelegate.swift in Sources */,
 				A3166E672E05982A00E6E1C2 /* NotificationService.swift in Sources */,
+				A3166F032E0D6E0F00E6E1C2 /* Scalable.swift in Sources */,
 				A3166E5D2E0589B600E6E1C2 /* ViewController.swift in Sources */,
 				A3166E8F2E096B4100E6E1C2 /* DIContainer.swift in Sources */,
 				A3166E962E0AFDB100E6E1C2 /* AnySettingsViewModel.swift in Sources */,
+				A3166F052E0D6E1800E6E1C2 /* ScreenSize.swift in Sources */,
 				A3166E7D2E05AC5100E6E1C2 /* POIListViewModel.swift in Sources */,
+				A3166EA22E0D5C3700E6E1C2 /* OnboardingViewModel.swift in Sources */,
+				A3166E9C2E0D5BE600E6E1C2 /* OnboardingPage.swift in Sources */,
+				A3166EA82E0D609F00E6E1C2 /* OnboardingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
