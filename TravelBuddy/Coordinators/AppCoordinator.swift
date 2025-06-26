@@ -38,12 +38,14 @@ final class AppCoordinator: Coordinator {
         window.makeKeyAndVisible()
         
        
-        onboardingVM.objectWillChange
-            .sink { [weak self] _ in
-                guard onboardingVM.hasCompletedOnboarding else { return }
-                self?.showMainInterface()
-            }
-            .store(in: &cancellables)
+        onboardingVM.$hasCompletedOnboarding
+          .filter { $0 }         // только когда станет true
+          .first()               // один раз
+          .receive(on: DispatchQueue.main)
+          .sink { [weak self] _ in
+            self?.showMainInterface()
+          }
+          .store(in: &cancellables)
     }
     
     // MARK: — Build and display the main TabBar
@@ -74,4 +76,6 @@ final class AppCoordinator: Coordinator {
         // Replace rootViewController
         window.rootViewController = tabBar
     }
+    
+    
 }

@@ -9,7 +9,7 @@ import SwiftUI
 
 public struct OnboardingView<VM: OnboardingViewModelProtocol>: View {
     @ObservedObject private var vm: VM
-    @Namespace    private var imageNamespace
+    @Namespace private var imageNamespace
     
     public init(vm: VM) {
         self.vm = vm
