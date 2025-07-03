@@ -29,7 +29,12 @@ final class AppCoordinator: Coordinator {
     
     // MARK: — Start the app flow
     func start() {
-         
+        window.makeKeyAndVisible()
+        
+        if UserDefaults.standard.hasCompletedOnboarding {
+            showMainInterface()
+            return
+        }
         let onboardingVM: AnyOnboardingViewModel = container.resolve(AnyOnboardingViewModel.self)
         let onboardingView = OnboardingView(vm: onboardingVM)
         let onboardingHost = UIHostingController(rootView: onboardingView)
@@ -51,13 +56,14 @@ final class AppCoordinator: Coordinator {
     // MARK: — Build and display the main TabBar
     private func showMainInterface() {
         // POIList Tab (UIKit)
-        let poiVC = container.resolve(POIListViewController.self)
-        let poiNav = UINavigationController(rootViewController: poiVC)
-        poiNav.tabBarItem = UITabBarItem(
-            title: "Places",
-            image: UIImage(systemName: "map"),
-            tag: 0
-        )
+        let poiListVM: AnyPOIListViewModel = container.resolve(AnyPOIListViewModel.self)
+          let poiListView = POIListView(viewModel: poiListVM)
+          let poiListHost = UIHostingController(rootView: poiListView)
+          poiListHost.tabBarItem = UITabBarItem(
+              title: "Places",
+              image: UIImage(systemName: "map"),
+              tag: 0
+          )
         
         // Settings Tab (SwiftUI)
         let settingsVM: AnySettingsViewModel = container.resolve(AnySettingsViewModel.self)
@@ -71,10 +77,11 @@ final class AppCoordinator: Coordinator {
         
         // Assemble Tab Bar
         let tabBar = UITabBarController()
-        tabBar.viewControllers = [poiNav, settingsHost]
+        tabBar.viewControllers = [poiListHost, settingsHost]
         
         // Replace rootViewController
         window.rootViewController = tabBar
+       
     }
     
     

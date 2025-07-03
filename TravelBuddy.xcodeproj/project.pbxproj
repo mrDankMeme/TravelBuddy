@@ -26,7 +26,6 @@
 		A3166E652E05980D00E6E1C2 /* IAPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E642E05980D00E6E1C2 /* IAPService.swift */; };
 		A3166E672E05982A00E6E1C2 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E662E05982A00E6E1C2 /* NotificationService.swift */; };
 		A3166E702E05A15100E6E1C2 /* POI.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E6E2E05A15100E6E1C2 /* POI.swift */; };
-		A3166E7A2E05AAB700E6E1C2 /* POIListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E792E05AAB700E6E1C2 /* POIListViewController.swift */; };
 		A3166E7D2E05AC5100E6E1C2 /* POIListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E7B2E05AC5100E6E1C2 /* POIListViewModel.swift */; };
 		A3166E802E05AC5400E6E1C2 /* POIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E7E2E05AC5400E6E1C2 /* POIService.swift */; };
 		A3166E8A2E09604E00E6E1C2 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E872E09604E00E6E1C2 /* SettingsViewModel.swift */; };
@@ -41,6 +40,17 @@
 		A3166EAA2E0D61AB00E6E1C2 /* AnyOnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166EA92E0D61AB00E6E1C2 /* AnyOnboardingViewModel.swift */; };
 		A3166F032E0D6E0F00E6E1C2 /* Scalable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166F012E0D6E0F00E6E1C2 /* Scalable.swift */; };
 		A3166F052E0D6E1800E6E1C2 /* ScreenSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166F042E0D6E1800E6E1C2 /* ScreenSize.swift */; };
+		A3166F072E0DB0B500E6E1C2 /* UserDefaults+AppStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166F062E0DB0B500E6E1C2 /* UserDefaults+AppStorage.swift */; };
+		A3166F0A2E10396E00E6E1C2 /* mock_pois_local.json in Resources */ = {isa = PBXBuildFile; fileRef = A3166F092E10396E00E6E1C2 /* mock_pois_local.json */; };
+		A3166F0C2E103ECC00E6E1C2 /* RemotePOIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166F0B2E103ECC00E6E1C2 /* RemotePOIService.swift */; };
+		A3166F0E2E104A5E00E6E1C2 /* LocalPOIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166F0D2E104A5E00E6E1C2 /* LocalPOIService.swift */; };
+		A3166F102E12AA7200E6E1C2 /* RealmPOICache.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166F0F2E12AA7200E6E1C2 /* RealmPOICache.swift */; };
+		A3166F122E1413FC00E6E1C2 /* POIRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166F112E1413FC00E6E1C2 /* POIRepository.swift */; };
+		A3166F142E14196600E6E1C2 /* POICategoryFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166F132E14196600E6E1C2 /* POICategoryFilter.swift */; };
+		A3166F162E141A3500E6E1C2 /* AnyPOIListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166F152E141A3500E6E1C2 /* AnyPOIListViewModel.swift */; };
+		A3166F182E141AFF00E6E1C2 /* POIListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166F172E141AFF00E6E1C2 /* POIListView.swift */; };
+		A3166F1A2E141B1E00E6E1C2 /* POIDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166F192E141B1E00E6E1C2 /* POIDetailView.swift */; };
+		A3166F1C2E1577DA00E6E1C2 /* POIImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166F1B2E1577D900E6E1C2 /* POIImageView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -74,7 +84,6 @@
 		A3166E642E05980D00E6E1C2 /* IAPService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPService.swift; sourceTree = "<group>"; };
 		A3166E662E05982A00E6E1C2 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		A3166E6E2E05A15100E6E1C2 /* POI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POI.swift; sourceTree = "<group>"; };
-		A3166E792E05AAB700E6E1C2 /* POIListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIListViewController.swift; sourceTree = "<group>"; };
 		A3166E7B2E05AC5100E6E1C2 /* POIListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIListViewModel.swift; sourceTree = "<group>"; };
 		A3166E7E2E05AC5400E6E1C2 /* POIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIService.swift; sourceTree = "<group>"; };
 		A3166E872E09604E00E6E1C2 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
@@ -88,7 +97,26 @@
 		A3166EA92E0D61AB00E6E1C2 /* AnyOnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnyOnboardingViewModel.swift; sourceTree = "<group>"; };
 		A3166F012E0D6E0F00E6E1C2 /* Scalable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scalable.swift; sourceTree = "<group>"; };
 		A3166F042E0D6E1800E6E1C2 /* ScreenSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenSize.swift; sourceTree = "<group>"; };
+		A3166F062E0DB0B500E6E1C2 /* UserDefaults+AppStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserDefaults+AppStorage.swift"; sourceTree = "<group>"; };
+		A3166F092E10396E00E6E1C2 /* mock_pois_local.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = mock_pois_local.json; sourceTree = "<group>"; };
+		A3166F0B2E103ECC00E6E1C2 /* RemotePOIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemotePOIService.swift; sourceTree = "<group>"; };
+		A3166F0D2E104A5E00E6E1C2 /* LocalPOIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalPOIService.swift; sourceTree = "<group>"; };
+		A3166F0F2E12AA7200E6E1C2 /* RealmPOICache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealmPOICache.swift; sourceTree = "<group>"; };
+		A3166F112E1413FC00E6E1C2 /* POIRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIRepository.swift; sourceTree = "<group>"; };
+		A3166F132E14196600E6E1C2 /* POICategoryFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POICategoryFilter.swift; sourceTree = "<group>"; };
+		A3166F152E141A3500E6E1C2 /* AnyPOIListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnyPOIListViewModel.swift; sourceTree = "<group>"; };
+		A3166F172E141AFF00E6E1C2 /* POIListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIListView.swift; sourceTree = "<group>"; };
+		A3166F192E141B1E00E6E1C2 /* POIDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIDetailView.swift; sourceTree = "<group>"; };
+		A3166F1B2E1577D900E6E1C2 /* POIImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIImageView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		A31670132E16A8CD00E6E1C2 /* POIImages */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = POIImages;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A3166DE92E04752500E6E1C2 /* Frameworks */ = {
@@ -111,6 +139,7 @@
 			children = (
 				A3166E562E0589B600E6E1C2 /* TravelBuddy */,
 				A3166DED2E04752500E6E1C2 /* Products */,
+				A31670132E16A8CD00E6E1C2 /* POIImages */,
 			);
 			sourceTree = "<group>";
 		};
@@ -126,6 +155,7 @@
 			isa = PBXGroup;
 			children = (
 				A3166E3C2E0589B600E6E1C2 /* Publisher+Extensions.swift */,
+				A3166F062E0DB0B500E6E1C2 /* UserDefaults+AppStorage.swift */,
 				A3166E3D2E0589B600E6E1C2 /* UIColor+Hex.swift */,
 			);
 			path = Extensions;
@@ -182,8 +212,8 @@
 			children = (
 				A3166E782E05AAA800E6E1C2 /* View */,
 				A3166E7C2E05AC5100E6E1C2 /* ViewModel */,
-				A3166E7F2E05AC5400E6E1C2 /* Service */,
 				A3166E6F2E05A15100E6E1C2 /* Model */,
+				A3166E7F2E05AC5400E6E1C2 /* Service */,
 			);
 			path = POIList;
 			sourceTree = "<group>";
@@ -222,6 +252,7 @@
 		A3166E4B2E0589B600E6E1C2 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				A3166F082E10395500E6E1C2 /* Mocks */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -268,7 +299,9 @@
 		A3166E782E05AAA800E6E1C2 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				A3166E792E05AAB700E6E1C2 /* POIListViewController.swift */,
+				A3166F172E141AFF00E6E1C2 /* POIListView.swift */,
+				A3166F1B2E1577D900E6E1C2 /* POIImageView.swift */,
+				A3166F192E141B1E00E6E1C2 /* POIDetailView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -277,6 +310,8 @@
 			isa = PBXGroup;
 			children = (
 				A3166E7B2E05AC5100E6E1C2 /* POIListViewModel.swift */,
+				A3166F132E14196600E6E1C2 /* POICategoryFilter.swift */,
+				A3166F152E141A3500E6E1C2 /* AnyPOIListViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -284,7 +319,11 @@
 		A3166E7F2E05AC5400E6E1C2 /* Service */ = {
 			isa = PBXGroup;
 			children = (
+				A3166F112E1413FC00E6E1C2 /* POIRepository.swift */,
 				A3166E7E2E05AC5400E6E1C2 /* POIService.swift */,
+				A3166F0B2E103ECC00E6E1C2 /* RemotePOIService.swift */,
+				A3166F0D2E104A5E00E6E1C2 /* LocalPOIService.swift */,
+				A3166F0F2E12AA7200E6E1C2 /* RealmPOICache.swift */,
 			);
 			path = Service;
 			sourceTree = "<group>";
@@ -358,6 +397,14 @@
 			path = Utils;
 			sourceTree = "<group>";
 		};
+		A3166F082E10395500E6E1C2 /* Mocks */ = {
+			isa = PBXGroup;
+			children = (
+				A3166F092E10396E00E6E1C2 /* mock_pois_local.json */,
+			);
+			path = Mocks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -373,6 +420,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				A31670132E16A8CD00E6E1C2 /* POIImages */,
 			);
 			name = TravelBuddy;
 			packageProductDependencies = (
@@ -433,6 +483,7 @@
 			files = (
 				A3166E5E2E0589B600E6E1C2 /* Assets.xcassets in Resources */,
 				A3166E602E0589B600E6E1C2 /* LaunchScreen.storyboard in Resources */,
+				A3166F0A2E10396E00E6E1C2 /* mock_pois_local.json in Resources */,
 				A3166E612E0589B600E6E1C2 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -444,19 +495,28 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A3166F0E2E104A5E00E6E1C2 /* LocalPOIService.swift in Sources */,
 				A3166E572E0589B600E6E1C2 /* Publisher+Extensions.swift in Sources */,
 				A3166E582E0589B600E6E1C2 /* UIColor+Hex.swift in Sources */,
-				A3166E7A2E05AAB700E6E1C2 /* POIListViewController.swift in Sources */,
+				A3166F122E1413FC00E6E1C2 /* POIRepository.swift in Sources */,
+				A3166F1A2E141B1E00E6E1C2 /* POIDetailView.swift in Sources */,
 				A3166E8A2E09604E00E6E1C2 /* SettingsViewModel.swift in Sources */,
+				A3166F072E0DB0B500E6E1C2 /* UserDefaults+AppStorage.swift in Sources */,
 				A3166E8D2E09611E00E6E1C2 /* SettingsView.swift in Sources */,
 				A3166E702E05A15100E6E1C2 /* POI.swift in Sources */,
+				A3166F142E14196600E6E1C2 /* POICategoryFilter.swift in Sources */,
 				A3166E922E09A2A600E6E1C2 /* AppCoordinator.swift in Sources */,
 				A3166E652E05980D00E6E1C2 /* IAPService.swift in Sources */,
+				A3166F182E141AFF00E6E1C2 /* POIListView.swift in Sources */,
+				A3166F162E141A3500E6E1C2 /* AnyPOIListViewModel.swift in Sources */,
 				A3166E632E058A1800E6E1C2 /* AnalyticsService.swift in Sources */,
+				A3166F102E12AA7200E6E1C2 /* RealmPOICache.swift in Sources */,
 				A3166E802E05AC5400E6E1C2 /* POIService.swift in Sources */,
 				A3166E592E0589B600E6E1C2 /* HTTPClient.swift in Sources */,
 				A3166E5A2E0589B600E6E1C2 /* DesignTokens.swift in Sources */,
 				A3166E5B2E0589B600E6E1C2 /* AppDelegate.swift in Sources */,
+				A3166F0C2E103ECC00E6E1C2 /* RemotePOIService.swift in Sources */,
+				A3166F1C2E1577DA00E6E1C2 /* POIImageView.swift in Sources */,
 				A3166EAA2E0D61AB00E6E1C2 /* AnyOnboardingViewModel.swift in Sources */,
 				A3166E5C2E0589B600E6E1C2 /* SceneDelegate.swift in Sources */,
 				A3166E672E05982A00E6E1C2 /* NotificationService.swift in Sources */,

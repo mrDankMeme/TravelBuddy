@@ -7,6 +7,7 @@
 
 
 import Combine
+import Foundation
 
 public protocol OnboardingViewModelProtocol: ObservableObject {
     /// Чтобы View могла подписаться на любые изменения
@@ -29,7 +30,7 @@ public final class OnboardingViewModel: OnboardingViewModelProtocol {
     
     // MARK: — Outputs
     @Published public private(set) var currentPage: Int = 0
-    @Published public private(set) var hasCompletedOnboarding: Bool = false
+    @Published public private(set) var hasCompletedOnboarding: Bool
     
     public let pages: [OnboardingPage]
     private var cancellables = Set<AnyCancellable>()
@@ -56,6 +57,7 @@ public final class OnboardingViewModel: OnboardingViewModelProtocol {
                 description: "Get reminders about upcoming trips and special offers."
             )
         ]
+        self.hasCompletedOnboarding = UserDefaults.standard.hasCompletedOnboarding
     }
     
     // MARK: — Inputs
@@ -77,6 +79,7 @@ public final class OnboardingViewModel: OnboardingViewModelProtocol {
     
     public func skip() {
         hasCompletedOnboarding = true
+        UserDefaults.standard.hasCompletedOnboarding = true
         objectWillChange.send()
     }
 }

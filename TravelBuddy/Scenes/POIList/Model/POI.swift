@@ -7,9 +7,12 @@
 
 import Foundation
 
-public struct POI: Decodable, Identifiable {
-  public let id: Int
-  public let name: String
-  public let latitude: Double
-  public let longitude: Double
+public struct POI: Identifiable, Decodable {
+    public let id: Int
+    public let name: String
+    public let latitude: Double
+    public let longitude: Double
+    public let category: String?
+    public let description: String?
+    public let imageURL: URL?
 }

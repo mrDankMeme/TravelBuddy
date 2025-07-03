@@ -1,0 +1,164 @@
+[
+  {
+    "id": 1,
+    "name": "Eiffel Tower",
+    "latitude": 48.8584,
+    "longitude": 2.2945,
+    "category": "Monument",
+    "description": "Iconic landmark of Paris.",
+    "imageURL": "POIImages/eiffel_tower.png"
+  },
+  {
+    "id": 2,
+    "name": "Louvre Museum",
+    "latitude": 48.8606,
+    "longitude": 2.3376,
+    "category": "Museum",
+    "description": "World's largest art museum.",
+    "imageURL": "POIImages/louvre_museum.png"
+  },
+  {
+    "id": 3,
+    "name": "Cafe de Flore",
+    "latitude": 48.8556,
+    "longitude": 2.3332,
+    "category": "Cafe",
+    "description": "Historic Parisian cafe.",
+    "imageURL": "POIImages/cafe_de_flore.png"
+  },
+  {
+    "id": 4,
+    "name": "Notre-Dame Cathedral",
+    "latitude": 48.853,
+    "longitude": 2.3499,
+    "category": "Monument",
+    "description": "Medieval Catholic cathedral on the Île de la Cité.",
+    "imageURL": "POIImages/notre_dame_cathedral.png"
+  },
+  {
+    "id": 5,
+    "name": "Sacré-Cœur Basilica",
+    "latitude": 48.8867,
+    "longitude": 2.3431,
+    "category": "Monument",
+    "description": "Famous white-domed church atop Montmartre.",
+    "imageURL": "POIImages/sacre_coeur_basilica.png"
+  },
+  {
+    "id": 6,
+    "name": "Arc de Triomphe",
+    "latitude": 48.8738,
+    "longitude": 2.295,
+    "category": "Monument",
+    "description": "Triumphal arch honoring those who fought for France.",
+    "imageURL": "POIImages/arc_de_triomphe.png"
+  },
+  {
+    "id": 7,
+    "name": "Palais Garnier",
+    "latitude": 48.8719,
+    "longitude": 2.3316,
+    "category": "Monument",
+    "description": "Opera house known for its opulent design.",
+    "imageURL": "POIImages/palais_garnier.png"
+  },
+  {
+    "id": 8,
+    "name": "Panthéon",
+    "latitude": 48.8462,
+    "longitude": 2.346,
+    "category": "Monument",
+    "description": "Neo-classical mausoleum with famous tombs.",
+    "imageURL": "POIImages/pantheon.png"
+  },
+  {
+    "id": 9,
+    "name": "Musée d'Orsay",
+    "latitude": 48.86,
+    "longitude": 2.3266,
+    "category": "Museum",
+    "description": "Impressionist art museum in a former railway station.",
+    "imageURL": "POIImages/musee_dorsay.png"
+  },
+  {
+    "id": 10,
+    "name": "Centre Pompidou",
+    "latitude": 48.8606,
+    "longitude": 2.3522,
+    "category": "Museum",
+    "description": "Modern art museum with distinctive architectural style.",
+    "imageURL": "POIImages/centre_pompidou.png"
+  },
+  {
+    "id": 11,
+    "name": "Rodin Museum",
+    "latitude": 48.8556,
+    "longitude": 2.3157,
+    "category": "Museum",
+    "description": "Collection of Auguste Rodin's sculptures and paintings.",
+    "imageURL": "POIImages/rodin_museum.png"
+  },
+  {
+    "id": 12,
+    "name": "Picasso Museum",
+    "latitude": 48.8599,
+    "longitude": 2.362,
+    "category": "Museum",
+    "description": "Extensive collection of Picasso's works.",
+    "imageURL": "POIImages/picasso_museum.png"
+  },
+  {
+    "id": 13,
+    "name": "Louvre Underground Labyrinth",
+    "latitude": 48.86,
+    "longitude": 2.3348,
+    "category": "Museum",
+    "description": "Hidden passages beneath the Louvre.",
+    "imageURL": "POIImages/louvre_labyrinth.png"
+  },
+  {
+    "id": 14,
+    "name": "Café Les Deux Magots",
+    "latitude": 48.853,
+    "longitude": 2.3335,
+    "category": "Cafe",
+    "description": "Historic café popular with artists and writers.",
+    "imageURL": "POIImages/cafe_les_deux_magots.png"
+  },
+  {
+    "id": 15,
+    "name": "Café Procope",
+    "latitude": 48.8538,
+    "longitude": 2.3412,
+    "category": "Cafe",
+    "description": "One of Paris' oldest cafés dating back to 1686.",
+    "imageURL": "POIImages/cafe_procope.png"
+  },
+  {
+    "id": 16,
+    "name": "Angelina",
+    "latitude": 48.866,
+    "longitude": 2.3307,
+    "category": "Cafe",
+    "description": "Famous for its hot chocolate and pastries.",
+    "imageURL": "POIImages/cafe_angelina.png"
+  },
+  {
+    "id": 17,
+    "name": "Café de la Paix",
+    "latitude": 48.8708,
+    "longitude": 2.3314,
+    "category": "Cafe",
+    "description": "Elegant café near the Opera Garnier.",
+    "imageURL": "POIImages/cafe_de_la_paix.png"
+  },
+  {
+    "id": 18,
+    "name": "Café Marly",
+    "latitude": 48.8606,
+    "longitude": 2.3364,
+    "category": "Cafe",
+    "description": "Stylish café with Louvre pyramid views.",
+    "imageURL": "POIImages/cafe_marly.png"
+  }
+]
