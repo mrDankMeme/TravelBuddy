@@ -8,9 +8,6 @@
 import Foundation
 import Combine
 
-public protocol POIServiceProtocol {
-  func fetchPOIs() -> AnyPublisher<[POI], Error>
-}
 
 public final class POIService: POIServiceProtocol {
   private let httpClient: HTTPClientProtocol

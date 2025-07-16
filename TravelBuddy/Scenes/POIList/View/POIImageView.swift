@@ -9,17 +9,15 @@ import SwiftUI
 
 public struct POIImageView: View {
     let imagePath: String?
-    
+
     public init(imagePath: String?) {
         self.imagePath = imagePath
     }
-    
+
     public var body: some View {
         VStack {
-            
             if let imagePath,
                let imageName = imagePath.split(separator: "/").last {
-                
                 let components = imageName.split(separator: ".")
                 if components.count == 2 {
                     let name = String(components[0])
@@ -32,14 +30,14 @@ public struct POIImageView: View {
                     } else {
                         Text("❌ \(name).\(ext)")
                             .foregroundColor(.red)
-                        Text("Путь: \(imagePath)")
+                        Text("Path: \(imagePath)")
                             .font(.caption)
                     }
                 } else {
-                    Text("❌ Неверный путь: \(imagePath)")
+                    Text("❌ Invalid path: \(imagePath)")
                 }
             } else {
-                Text("Нет изображения")
+                Text("No image")
             }
         }
     }

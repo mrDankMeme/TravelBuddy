@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct POI: Identifiable, Decodable {
+public struct POI: Identifiable, Decodable, Hashable {
     public let id: Int
     public let name: String
     public let latitude: Double

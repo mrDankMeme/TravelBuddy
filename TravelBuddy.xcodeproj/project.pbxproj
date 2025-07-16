@@ -49,8 +49,24 @@
 		A3166F142E14196600E6E1C2 /* POICategoryFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166F132E14196600E6E1C2 /* POICategoryFilter.swift */; };
 		A3166F162E141A3500E6E1C2 /* AnyPOIListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166F152E141A3500E6E1C2 /* AnyPOIListViewModel.swift */; };
 		A3166F182E141AFF00E6E1C2 /* POIListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166F172E141AFF00E6E1C2 /* POIListView.swift */; };
-		A3166F1A2E141B1E00E6E1C2 /* POIDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166F192E141B1E00E6E1C2 /* POIDetailView.swift */; };
 		A3166F1C2E1577DA00E6E1C2 /* POIImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166F1B2E1577D900E6E1C2 /* POIImageView.swift */; };
+		A323AE232E1C0CF90055264E /* POIAnnotation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE222E1C0CF90055264E /* POIAnnotation.swift */; };
+		A323AE252E1C0D0C0055264E /* POIMapViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE242E1C0D0C0055264E /* POIMapViewModel.swift */; };
+		A323AE272E1C0D1B0055264E /* AnyPOIMapViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE262E1C0D1B0055264E /* AnyPOIMapViewModel.swift */; };
+		A323AE292E1C0D3B0055264E /* POIMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE282E1C0D3B0055264E /* POIMapView.swift */; };
+		A323AE2B2E1C0D4A0055264E /* MapViewRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE2A2E1C0D4A0055264E /* MapViewRepresentable.swift */; };
+		A323AE2D2E1C0D590055264E /* POISnippetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE2C2E1C0D590055264E /* POISnippetView.swift */; };
+		A323AE302E200E5D0055264E /* POIListCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE2F2E200E5D0055264E /* POIListCoordinator.swift */; };
+		A323AE332E201D140055264E /* MapCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE322E201D140055264E /* MapCoordinator.swift */; };
+		A323AE352E201D760055264E /* MapRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE342E201D760055264E /* MapRootView.swift */; };
+		A323AE3E2E213F930055264E /* POIDetailModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE3D2E213F930055264E /* POIDetailModel.swift */; };
+		A323AE422E213FB00055264E /* POIDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE412E213FB00055264E /* POIDetailViewModel.swift */; };
+		A323AE452E21421B0055264E /* POIListRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE442E21421B0055264E /* POIListRouter.swift */; };
+		A323AE492E2143FC0055264E /* MapRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE482E2143FB0055264E /* MapRouter.swift */; };
+		A323AE4B2E2145770055264E /* POIDetailRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE4A2E2145770055264E /* POIDetailRouter.swift */; };
+		A323AE4D2E2147520055264E /* POIDetailCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE4C2E2147520055264E /* POIDetailCoordinator.swift */; };
+		A323AE4F2E2147630055264E /* POIDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE4E2E2147630055264E /* POIDetailView.swift */; };
+		A323AE522E21616B0055264E /* POIServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE512E21616B0055264E /* POIServiceProtocol.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -106,8 +122,24 @@
 		A3166F132E14196600E6E1C2 /* POICategoryFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POICategoryFilter.swift; sourceTree = "<group>"; };
 		A3166F152E141A3500E6E1C2 /* AnyPOIListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnyPOIListViewModel.swift; sourceTree = "<group>"; };
 		A3166F172E141AFF00E6E1C2 /* POIListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIListView.swift; sourceTree = "<group>"; };
-		A3166F192E141B1E00E6E1C2 /* POIDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIDetailView.swift; sourceTree = "<group>"; };
 		A3166F1B2E1577D900E6E1C2 /* POIImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIImageView.swift; sourceTree = "<group>"; };
+		A323AE222E1C0CF90055264E /* POIAnnotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIAnnotation.swift; sourceTree = "<group>"; };
+		A323AE242E1C0D0C0055264E /* POIMapViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIMapViewModel.swift; sourceTree = "<group>"; };
+		A323AE262E1C0D1B0055264E /* AnyPOIMapViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnyPOIMapViewModel.swift; sourceTree = "<group>"; };
+		A323AE282E1C0D3B0055264E /* POIMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIMapView.swift; sourceTree = "<group>"; };
+		A323AE2A2E1C0D4A0055264E /* MapViewRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapViewRepresentable.swift; sourceTree = "<group>"; };
+		A323AE2C2E1C0D590055264E /* POISnippetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POISnippetView.swift; sourceTree = "<group>"; };
+		A323AE2F2E200E5D0055264E /* POIListCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIListCoordinator.swift; sourceTree = "<group>"; };
+		A323AE322E201D140055264E /* MapCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapCoordinator.swift; sourceTree = "<group>"; };
+		A323AE342E201D760055264E /* MapRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapRootView.swift; sourceTree = "<group>"; };
+		A323AE3D2E213F930055264E /* POIDetailModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIDetailModel.swift; sourceTree = "<group>"; };
+		A323AE412E213FB00055264E /* POIDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIDetailViewModel.swift; sourceTree = "<group>"; };
+		A323AE442E21421B0055264E /* POIListRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIListRouter.swift; sourceTree = "<group>"; };
+		A323AE482E2143FB0055264E /* MapRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapRouter.swift; sourceTree = "<group>"; };
+		A323AE4A2E2145770055264E /* POIDetailRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIDetailRouter.swift; sourceTree = "<group>"; };
+		A323AE4C2E2147520055264E /* POIDetailCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIDetailCoordinator.swift; sourceTree = "<group>"; };
+		A323AE4E2E2147630055264E /* POIDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIDetailView.swift; sourceTree = "<group>"; };
+		A323AE512E21616B0055264E /* POIServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIServiceProtocol.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -164,9 +196,8 @@
 		A3166E402E0589B600E6E1C2 /* Core */ = {
 			isa = PBXGroup;
 			children = (
-				A3166F022E0D6E0F00E6E1C2 /* Utils */,
-				A3166E3E2E0589B600E6E1C2 /* Extensions */,
 				A3166E3F2E0589B600E6E1C2 /* HTTPClient.swift */,
+				A3166F022E0D6E0F00E6E1C2 /* Utils */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -196,6 +227,11 @@
 		A3166E442E0589B600E6E1C2 /* Map */ = {
 			isa = PBXGroup;
 			children = (
+				A323AE472E2143DE0055264E /* Router */,
+				A323AE312E201D0C0055264E /* Coordinator */,
+				A323AE192E1BE3110055264E /* Model */,
+				A323AE1F2E1BE3830055264E /* ViewModel */,
+				A323AE1A2E1BE3250055264E /* View */,
 			);
 			path = Map;
 			sourceTree = "<group>";
@@ -210,9 +246,10 @@
 		A3166E462E0589B600E6E1C2 /* POIList */ = {
 			isa = PBXGroup;
 			children = (
+				A323AE432E2141FC0055264E /* Router */,
+				A323AE2E2E200E300055264E /* Coordinator */,
 				A3166E782E05AAA800E6E1C2 /* View */,
 				A3166E7C2E05AC5100E6E1C2 /* ViewModel */,
-				A3166E6F2E05A15100E6E1C2 /* Model */,
 				A3166E7F2E05AC5400E6E1C2 /* Service */,
 			);
 			path = POIList;
@@ -232,11 +269,11 @@
 			children = (
 				A3166E982E0D5BC400E6E1C2 /* Onboarding */,
 				A3166E472E0589B600E6E1C2 /* Settings */,
+				A3166E462E0589B600E6E1C2 /* POIList */,
+				A3166E442E0589B600E6E1C2 /* Map */,
 				A3166E422E0589B600E6E1C2 /* AudioGuide */,
 				A3166E432E0589B600E6E1C2 /* BLEScanner */,
-				A3166E442E0589B600E6E1C2 /* Map */,
-				A3166E452E0589B600E6E1C2 /* Photo */,
-				A3166E462E0589B600E6E1C2 /* POIList */,
+				A323AE382E213F420055264E /* POIDetail */,
 			);
 			path = Scenes;
 			sourceTree = "<group>";
@@ -257,14 +294,14 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
-		A3166E4C2E0589B600E6E1C2 /* Services */ = {
+		A3166E4C2E0589B600E6E1C2 /* Infrastructure */ = {
 			isa = PBXGroup;
 			children = (
 				A3166E622E058A1800E6E1C2 /* AnalyticsService.swift */,
 				A3166E642E05980D00E6E1C2 /* IAPService.swift */,
 				A3166E662E05982A00E6E1C2 /* NotificationService.swift */,
 			);
-			path = Services;
+			path = Infrastructure;
 			sourceTree = "<group>";
 		};
 		A3166E562E0589B600E6E1C2 /* TravelBuddy */ = {
@@ -272,8 +309,10 @@
 			children = (
 				A3166E402E0589B600E6E1C2 /* Core */,
 				A3166E4A2E0589B600E6E1C2 /* Generated */,
-				A3166E4C2E0589B600E6E1C2 /* Services */,
+				A3166E4C2E0589B600E6E1C2 /* Infrastructure */,
+				A323AE552E253BB20055264E /* Domain */,
 				A3166E482E0589B600E6E1C2 /* Scenes */,
+				A3166E452E0589B600E6E1C2 /* Photo */,
 				A3166E902E09A28C00E6E1C2 /* Coordinators */,
 				A3166E412E0589B600E6E1C2 /* Dependency */,
 				A3166E4B2E0589B600E6E1C2 /* Resources */,
@@ -288,12 +327,12 @@
 			path = TravelBuddy;
 			sourceTree = "<group>";
 		};
-		A3166E6F2E05A15100E6E1C2 /* Model */ = {
+		A3166E6F2E05A15100E6E1C2 /* Models */ = {
 			isa = PBXGroup;
 			children = (
 				A3166E6E2E05A15100E6E1C2 /* POI.swift */,
 			);
-			path = Model;
+			path = Models;
 			sourceTree = "<group>";
 		};
 		A3166E782E05AAA800E6E1C2 /* View */ = {
@@ -301,7 +340,6 @@
 			children = (
 				A3166F172E141AFF00E6E1C2 /* POIListView.swift */,
 				A3166F1B2E1577D900E6E1C2 /* POIImageView.swift */,
-				A3166F192E141B1E00E6E1C2 /* POIDetailView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -319,11 +357,6 @@
 		A3166E7F2E05AC5400E6E1C2 /* Service */ = {
 			isa = PBXGroup;
 			children = (
-				A3166F112E1413FC00E6E1C2 /* POIRepository.swift */,
-				A3166E7E2E05AC5400E6E1C2 /* POIService.swift */,
-				A3166F0B2E103ECC00E6E1C2 /* RemotePOIService.swift */,
-				A3166F0D2E104A5E00E6E1C2 /* LocalPOIService.swift */,
-				A3166F0F2E12AA7200E6E1C2 /* RealmPOICache.swift */,
 			);
 			path = Service;
 			sourceTree = "<group>";
@@ -391,6 +424,7 @@
 		A3166F022E0D6E0F00E6E1C2 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				A3166E3E2E0589B600E6E1C2 /* Extensions */,
 				A3166F012E0D6E0F00E6E1C2 /* Scalable.swift */,
 				A3166F042E0D6E1800E6E1C2 /* ScreenSize.swift */,
 			);
@@ -403,6 +437,156 @@
 				A3166F092E10396E00E6E1C2 /* mock_pois_local.json */,
 			);
 			path = Mocks;
+			sourceTree = "<group>";
+		};
+		A323AE192E1BE3110055264E /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				A323AE222E1C0CF90055264E /* POIAnnotation.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		A323AE1A2E1BE3250055264E /* View */ = {
+			isa = PBXGroup;
+			children = (
+				A323AE342E201D760055264E /* MapRootView.swift */,
+				A323AE282E1C0D3B0055264E /* POIMapView.swift */,
+				A323AE2A2E1C0D4A0055264E /* MapViewRepresentable.swift */,
+				A323AE2C2E1C0D590055264E /* POISnippetView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		A323AE1F2E1BE3830055264E /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				A323AE262E1C0D1B0055264E /* AnyPOIMapViewModel.swift */,
+				A323AE242E1C0D0C0055264E /* POIMapViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		A323AE2E2E200E300055264E /* Coordinator */ = {
+			isa = PBXGroup;
+			children = (
+				A323AE2F2E200E5D0055264E /* POIListCoordinator.swift */,
+			);
+			path = Coordinator;
+			sourceTree = "<group>";
+		};
+		A323AE312E201D0C0055264E /* Coordinator */ = {
+			isa = PBXGroup;
+			children = (
+				A323AE322E201D140055264E /* MapCoordinator.swift */,
+			);
+			path = Coordinator;
+			sourceTree = "<group>";
+		};
+		A323AE382E213F420055264E /* POIDetail */ = {
+			isa = PBXGroup;
+			children = (
+				A323AE462E2143D50055264E /* Router */,
+				A323AE392E213F6E0055264E /* Coordinator */,
+				A323AE3C2E213F840055264E /* Model */,
+				A323AE3B2E213F7D0055264E /* ViewModel */,
+				A323AE3A2E213F780055264E /* View */,
+			);
+			path = POIDetail;
+			sourceTree = "<group>";
+		};
+		A323AE392E213F6E0055264E /* Coordinator */ = {
+			isa = PBXGroup;
+			children = (
+				A323AE4C2E2147520055264E /* POIDetailCoordinator.swift */,
+			);
+			path = Coordinator;
+			sourceTree = "<group>";
+		};
+		A323AE3A2E213F780055264E /* View */ = {
+			isa = PBXGroup;
+			children = (
+				A323AE4E2E2147630055264E /* POIDetailView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		A323AE3B2E213F7D0055264E /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				A323AE412E213FB00055264E /* POIDetailViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		A323AE3C2E213F840055264E /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				A323AE3D2E213F930055264E /* POIDetailModel.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		A323AE432E2141FC0055264E /* Router */ = {
+			isa = PBXGroup;
+			children = (
+				A323AE442E21421B0055264E /* POIListRouter.swift */,
+			);
+			path = Router;
+			sourceTree = "<group>";
+		};
+		A323AE462E2143D50055264E /* Router */ = {
+			isa = PBXGroup;
+			children = (
+				A323AE4A2E2145770055264E /* POIDetailRouter.swift */,
+			);
+			path = Router;
+			sourceTree = "<group>";
+		};
+		A323AE472E2143DE0055264E /* Router */ = {
+			isa = PBXGroup;
+			children = (
+				A323AE482E2143FB0055264E /* MapRouter.swift */,
+			);
+			path = Router;
+			sourceTree = "<group>";
+		};
+		A323AE502E21613E0055264E /* POI */ = {
+			isa = PBXGroup;
+			children = (
+				A3166E6F2E05A15100E6E1C2 /* Models */,
+				A323AE532E2161780055264E /* Protocols */,
+				A323AE542E21670A0055264E /* Implementation */,
+			);
+			path = POI;
+			sourceTree = "<group>";
+		};
+		A323AE532E2161780055264E /* Protocols */ = {
+			isa = PBXGroup;
+			children = (
+				A323AE512E21616B0055264E /* POIServiceProtocol.swift */,
+			);
+			path = Protocols;
+			sourceTree = "<group>";
+		};
+		A323AE542E21670A0055264E /* Implementation */ = {
+			isa = PBXGroup;
+			children = (
+				A3166F112E1413FC00E6E1C2 /* POIRepository.swift */,
+				A3166E7E2E05AC5400E6E1C2 /* POIService.swift */,
+				A3166F0B2E103ECC00E6E1C2 /* RemotePOIService.swift */,
+				A3166F0D2E104A5E00E6E1C2 /* LocalPOIService.swift */,
+				A3166F0F2E12AA7200E6E1C2 /* RealmPOICache.swift */,
+			);
+			path = Implementation;
+			sourceTree = "<group>";
+		};
+		A323AE552E253BB20055264E /* Domain */ = {
+			isa = PBXGroup;
+			children = (
+				A323AE502E21613E0055264E /* POI */,
+			);
+			path = Domain;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -499,31 +683,47 @@
 				A3166E572E0589B600E6E1C2 /* Publisher+Extensions.swift in Sources */,
 				A3166E582E0589B600E6E1C2 /* UIColor+Hex.swift in Sources */,
 				A3166F122E1413FC00E6E1C2 /* POIRepository.swift in Sources */,
-				A3166F1A2E141B1E00E6E1C2 /* POIDetailView.swift in Sources */,
 				A3166E8A2E09604E00E6E1C2 /* SettingsViewModel.swift in Sources */,
 				A3166F072E0DB0B500E6E1C2 /* UserDefaults+AppStorage.swift in Sources */,
+				A323AE2B2E1C0D4A0055264E /* MapViewRepresentable.swift in Sources */,
 				A3166E8D2E09611E00E6E1C2 /* SettingsView.swift in Sources */,
+				A323AE332E201D140055264E /* MapCoordinator.swift in Sources */,
+				A323AE232E1C0CF90055264E /* POIAnnotation.swift in Sources */,
 				A3166E702E05A15100E6E1C2 /* POI.swift in Sources */,
 				A3166F142E14196600E6E1C2 /* POICategoryFilter.swift in Sources */,
 				A3166E922E09A2A600E6E1C2 /* AppCoordinator.swift in Sources */,
+				A323AE452E21421B0055264E /* POIListRouter.swift in Sources */,
+				A323AE2D2E1C0D590055264E /* POISnippetView.swift in Sources */,
 				A3166E652E05980D00E6E1C2 /* IAPService.swift in Sources */,
+				A323AE522E21616B0055264E /* POIServiceProtocol.swift in Sources */,
 				A3166F182E141AFF00E6E1C2 /* POIListView.swift in Sources */,
+				A323AE422E213FB00055264E /* POIDetailViewModel.swift in Sources */,
 				A3166F162E141A3500E6E1C2 /* AnyPOIListViewModel.swift in Sources */,
 				A3166E632E058A1800E6E1C2 /* AnalyticsService.swift in Sources */,
+				A323AE352E201D760055264E /* MapRootView.swift in Sources */,
+				A323AE302E200E5D0055264E /* POIListCoordinator.swift in Sources */,
 				A3166F102E12AA7200E6E1C2 /* RealmPOICache.swift in Sources */,
 				A3166E802E05AC5400E6E1C2 /* POIService.swift in Sources */,
 				A3166E592E0589B600E6E1C2 /* HTTPClient.swift in Sources */,
 				A3166E5A2E0589B600E6E1C2 /* DesignTokens.swift in Sources */,
 				A3166E5B2E0589B600E6E1C2 /* AppDelegate.swift in Sources */,
+				A323AE4B2E2145770055264E /* POIDetailRouter.swift in Sources */,
 				A3166F0C2E103ECC00E6E1C2 /* RemotePOIService.swift in Sources */,
 				A3166F1C2E1577DA00E6E1C2 /* POIImageView.swift in Sources */,
+				A323AE272E1C0D1B0055264E /* AnyPOIMapViewModel.swift in Sources */,
+				A323AE292E1C0D3B0055264E /* POIMapView.swift in Sources */,
+				A323AE4F2E2147630055264E /* POIDetailView.swift in Sources */,
 				A3166EAA2E0D61AB00E6E1C2 /* AnyOnboardingViewModel.swift in Sources */,
+				A323AE252E1C0D0C0055264E /* POIMapViewModel.swift in Sources */,
 				A3166E5C2E0589B600E6E1C2 /* SceneDelegate.swift in Sources */,
+				A323AE3E2E213F930055264E /* POIDetailModel.swift in Sources */,
+				A323AE4D2E2147520055264E /* POIDetailCoordinator.swift in Sources */,
 				A3166E672E05982A00E6E1C2 /* NotificationService.swift in Sources */,
 				A3166F032E0D6E0F00E6E1C2 /* Scalable.swift in Sources */,
 				A3166E5D2E0589B600E6E1C2 /* ViewController.swift in Sources */,
 				A3166E8F2E096B4100E6E1C2 /* DIContainer.swift in Sources */,
 				A3166E962E0AFDB100E6E1C2 /* AnySettingsViewModel.swift in Sources */,
+				A323AE492E2143FC0055264E /* MapRouter.swift in Sources */,
 				A3166F052E0D6E1800E6E1C2 /* ScreenSize.swift in Sources */,
 				A3166E7D2E05AC5100E6E1C2 /* POIListViewModel.swift in Sources */,
 				A3166EA22E0D5C3700E6E1C2 /* OnboardingViewModel.swift in Sources */,
@@ -576,9 +776,13 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = niiazkhasanov.TravelBuddy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -604,9 +808,13 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = niiazkhasanov.TravelBuddy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
