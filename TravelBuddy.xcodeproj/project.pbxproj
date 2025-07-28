@@ -14,11 +14,10 @@
 		A3166E152E05625800E6E1C2 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = A3166E142E05625800E6E1C2 /* Alamofire */; };
 		A3166E572E0589B600E6E1C2 /* Publisher+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E3C2E0589B600E6E1C2 /* Publisher+Extensions.swift */; };
 		A3166E582E0589B600E6E1C2 /* UIColor+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E3D2E0589B600E6E1C2 /* UIColor+Hex.swift */; };
-		A3166E592E0589B600E6E1C2 /* HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E3F2E0589B600E6E1C2 /* HTTPClient.swift */; };
+		A3166E592E0589B600E6E1C2 /* HTTPClientProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E3F2E0589B600E6E1C2 /* HTTPClientProtocol.swift */; };
 		A3166E5A2E0589B600E6E1C2 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E492E0589B600E6E1C2 /* DesignTokens.swift */; };
 		A3166E5B2E0589B600E6E1C2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E4D2E0589B600E6E1C2 /* AppDelegate.swift */; };
 		A3166E5C2E0589B600E6E1C2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E542E0589B600E6E1C2 /* SceneDelegate.swift */; };
-		A3166E5D2E0589B600E6E1C2 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E552E0589B600E6E1C2 /* ViewController.swift */; };
 		A3166E5E2E0589B600E6E1C2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3166E4E2E0589B600E6E1C2 /* Assets.xcassets */; };
 		A3166E602E0589B600E6E1C2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A3166E512E0589B600E6E1C2 /* LaunchScreen.storyboard */; };
 		A3166E612E0589B600E6E1C2 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A3166E532E0589B600E6E1C2 /* Main.storyboard */; };
@@ -30,8 +29,6 @@
 		A3166E802E05AC5400E6E1C2 /* POIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E7E2E05AC5400E6E1C2 /* POIService.swift */; };
 		A3166E8A2E09604E00E6E1C2 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E872E09604E00E6E1C2 /* SettingsViewModel.swift */; };
 		A3166E8D2E09611E00E6E1C2 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E8C2E09611E00E6E1C2 /* SettingsView.swift */; };
-		A3166E8F2E096B4100E6E1C2 /* DIContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E8E2E096B4100E6E1C2 /* DIContainer.swift */; };
-		A3166E922E09A2A600E6E1C2 /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E912E09A2A600E6E1C2 /* AppCoordinator.swift */; };
 		A3166E932E09A9EE00E6E1C2 /* RealmSwift in Embed Frameworks */ = {isa = PBXBuildFile; productRef = A3166E112E0561DB00E6E1C2 /* RealmSwift */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		A3166E962E0AFDB100E6E1C2 /* AnySettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E952E0AFDB100E6E1C2 /* AnySettingsViewModel.swift */; };
 		A3166E9C2E0D5BE600E6E1C2 /* OnboardingPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E9B2E0D5BE600E6E1C2 /* OnboardingPage.swift */; };
@@ -57,16 +54,23 @@
 		A323AE2B2E1C0D4A0055264E /* MapViewRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE2A2E1C0D4A0055264E /* MapViewRepresentable.swift */; };
 		A323AE2D2E1C0D590055264E /* POISnippetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE2C2E1C0D590055264E /* POISnippetView.swift */; };
 		A323AE302E200E5D0055264E /* POIListCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE2F2E200E5D0055264E /* POIListCoordinator.swift */; };
-		A323AE332E201D140055264E /* MapCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE322E201D140055264E /* MapCoordinator.swift */; };
-		A323AE352E201D760055264E /* MapRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE342E201D760055264E /* MapRootView.swift */; };
 		A323AE3E2E213F930055264E /* POIDetailModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE3D2E213F930055264E /* POIDetailModel.swift */; };
 		A323AE422E213FB00055264E /* POIDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE412E213FB00055264E /* POIDetailViewModel.swift */; };
 		A323AE452E21421B0055264E /* POIListRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE442E21421B0055264E /* POIListRouter.swift */; };
-		A323AE492E2143FC0055264E /* MapRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE482E2143FB0055264E /* MapRouter.swift */; };
-		A323AE4B2E2145770055264E /* POIDetailRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE4A2E2145770055264E /* POIDetailRouter.swift */; };
-		A323AE4D2E2147520055264E /* POIDetailCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE4C2E2147520055264E /* POIDetailCoordinator.swift */; };
 		A323AE4F2E2147630055264E /* POIDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE4E2E2147630055264E /* POIDetailView.swift */; };
 		A323AE522E21616B0055264E /* POIServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE512E21616B0055264E /* POIServiceProtocol.swift */; };
+		A385D5912E37C4FE009C0251 /* POICacheProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5902E37C4FE009C0251 /* POICacheProtocol.swift */; };
+		A385D59F2E37C99E009C0251 /* IAPServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D59E2E37C99E009C0251 /* IAPServiceProtocol.swift */; };
+		A385D5A12E37CAF3009C0251 /* NotificationServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5A02E37CAF3009C0251 /* NotificationServiceProtocol.swift */; };
+		A385D5A32E37CB0D009C0251 /* AnalyticsServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5A22E37CB0D009C0251 /* AnalyticsServiceProtocol.swift */; };
+		A385D5A52E37CE52009C0251 /* HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5A42E37CE52009C0251 /* HTTPClient.swift */; };
+		A385D5B22E37D0C6009C0251 /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5AD2E37D0C6009C0251 /* AppCoordinator.swift */; };
+		A385D5B32E37D0C6009C0251 /* DIContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5AF2E37D0C6009C0251 /* DIContainer.swift */; };
+		A385D5BA2E37D4AC009C0251 /* MapCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5B72E37D4AC009C0251 /* MapCoordinator.swift */; };
+		A385D5BB2E37D4AC009C0251 /* MapRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5B82E37D4AC009C0251 /* MapRouter.swift */; };
+		A385D5C02E37D4FC009C0251 /* POIDetailCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5BD2E37D4FC009C0251 /* POIDetailCoordinator.swift */; };
+		A385D5C12E37D4FC009C0251 /* POIDetailRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5BE2E37D4FC009C0251 /* POIDetailRouter.swift */; };
+		A3914C872E290E5100F8740A /* MapContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3914C862E290E5100F8740A /* MapContainer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -87,7 +91,7 @@
 		A3166DEC2E04752500E6E1C2 /* TravelBuddy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TravelBuddy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3166E3C2E0589B600E6E1C2 /* Publisher+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publisher+Extensions.swift"; sourceTree = "<group>"; };
 		A3166E3D2E0589B600E6E1C2 /* UIColor+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+Hex.swift"; sourceTree = "<group>"; };
-		A3166E3F2E0589B600E6E1C2 /* HTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPClient.swift; sourceTree = "<group>"; };
+		A3166E3F2E0589B600E6E1C2 /* HTTPClientProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPClientProtocol.swift; sourceTree = "<group>"; };
 		A3166E492E0589B600E6E1C2 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		A3166E4D2E0589B600E6E1C2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A3166E4E2E0589B600E6E1C2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -95,7 +99,6 @@
 		A3166E502E0589B600E6E1C2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		A3166E522E0589B600E6E1C2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		A3166E542E0589B600E6E1C2 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		A3166E552E0589B600E6E1C2 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		A3166E622E058A1800E6E1C2 /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
 		A3166E642E05980D00E6E1C2 /* IAPService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPService.swift; sourceTree = "<group>"; };
 		A3166E662E05982A00E6E1C2 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
@@ -104,8 +107,6 @@
 		A3166E7E2E05AC5400E6E1C2 /* POIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIService.swift; sourceTree = "<group>"; };
 		A3166E872E09604E00E6E1C2 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		A3166E8C2E09611E00E6E1C2 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		A3166E8E2E096B4100E6E1C2 /* DIContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIContainer.swift; sourceTree = "<group>"; };
-		A3166E912E09A2A600E6E1C2 /* AppCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
 		A3166E952E0AFDB100E6E1C2 /* AnySettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnySettingsViewModel.swift; sourceTree = "<group>"; };
 		A3166E9B2E0D5BE600E6E1C2 /* OnboardingPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPage.swift; sourceTree = "<group>"; };
 		A3166EA02E0D5C3700E6E1C2 /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
@@ -130,16 +131,23 @@
 		A323AE2A2E1C0D4A0055264E /* MapViewRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapViewRepresentable.swift; sourceTree = "<group>"; };
 		A323AE2C2E1C0D590055264E /* POISnippetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POISnippetView.swift; sourceTree = "<group>"; };
 		A323AE2F2E200E5D0055264E /* POIListCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIListCoordinator.swift; sourceTree = "<group>"; };
-		A323AE322E201D140055264E /* MapCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapCoordinator.swift; sourceTree = "<group>"; };
-		A323AE342E201D760055264E /* MapRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapRootView.swift; sourceTree = "<group>"; };
 		A323AE3D2E213F930055264E /* POIDetailModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIDetailModel.swift; sourceTree = "<group>"; };
 		A323AE412E213FB00055264E /* POIDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIDetailViewModel.swift; sourceTree = "<group>"; };
 		A323AE442E21421B0055264E /* POIListRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIListRouter.swift; sourceTree = "<group>"; };
-		A323AE482E2143FB0055264E /* MapRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapRouter.swift; sourceTree = "<group>"; };
-		A323AE4A2E2145770055264E /* POIDetailRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIDetailRouter.swift; sourceTree = "<group>"; };
-		A323AE4C2E2147520055264E /* POIDetailCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIDetailCoordinator.swift; sourceTree = "<group>"; };
 		A323AE4E2E2147630055264E /* POIDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIDetailView.swift; sourceTree = "<group>"; };
 		A323AE512E21616B0055264E /* POIServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIServiceProtocol.swift; sourceTree = "<group>"; };
+		A385D5902E37C4FE009C0251 /* POICacheProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POICacheProtocol.swift; sourceTree = "<group>"; };
+		A385D59E2E37C99E009C0251 /* IAPServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPServiceProtocol.swift; sourceTree = "<group>"; };
+		A385D5A02E37CAF3009C0251 /* NotificationServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationServiceProtocol.swift; sourceTree = "<group>"; };
+		A385D5A22E37CB0D009C0251 /* AnalyticsServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsServiceProtocol.swift; sourceTree = "<group>"; };
+		A385D5A42E37CE52009C0251 /* HTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPClient.swift; sourceTree = "<group>"; };
+		A385D5AD2E37D0C6009C0251 /* AppCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
+		A385D5AF2E37D0C6009C0251 /* DIContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIContainer.swift; sourceTree = "<group>"; };
+		A385D5B72E37D4AC009C0251 /* MapCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapCoordinator.swift; sourceTree = "<group>"; };
+		A385D5B82E37D4AC009C0251 /* MapRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapRouter.swift; sourceTree = "<group>"; };
+		A385D5BD2E37D4FC009C0251 /* POIDetailCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIDetailCoordinator.swift; sourceTree = "<group>"; };
+		A385D5BE2E37D4FC009C0251 /* POIDetailRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIDetailRouter.swift; sourceTree = "<group>"; };
+		A3914C862E290E5100F8740A /* MapContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapContainer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -170,6 +178,10 @@
 			isa = PBXGroup;
 			children = (
 				A3166E562E0589B600E6E1C2 /* TravelBuddy */,
+				A3166E4E2E0589B600E6E1C2 /* Assets.xcassets */,
+				A3166E512E0589B600E6E1C2 /* LaunchScreen.storyboard */,
+				A3166E532E0589B600E6E1C2 /* Main.storyboard */,
+				A3166E4F2E0589B600E6E1C2 /* Info.plist */,
 				A3166DED2E04752500E6E1C2 /* Products */,
 				A31670132E16A8CD00E6E1C2 /* POIImages */,
 			);
@@ -196,18 +208,10 @@
 		A3166E402E0589B600E6E1C2 /* Core */ = {
 			isa = PBXGroup;
 			children = (
-				A3166E3F2E0589B600E6E1C2 /* HTTPClient.swift */,
+				A3166E3E2E0589B600E6E1C2 /* Extensions */,
 				A3166F022E0D6E0F00E6E1C2 /* Utils */,
 			);
 			path = Core;
-			sourceTree = "<group>";
-		};
-		A3166E412E0589B600E6E1C2 /* Dependency */ = {
-			isa = PBXGroup;
-			children = (
-				A3166E8E2E096B4100E6E1C2 /* DIContainer.swift */,
-			);
-			path = Dependency;
 			sourceTree = "<group>";
 		};
 		A3166E422E0589B600E6E1C2 /* AudioGuide */ = {
@@ -227,11 +231,10 @@
 		A3166E442E0589B600E6E1C2 /* Map */ = {
 			isa = PBXGroup;
 			children = (
-				A323AE472E2143DE0055264E /* Router */,
-				A323AE312E201D0C0055264E /* Coordinator */,
-				A323AE192E1BE3110055264E /* Model */,
-				A323AE1F2E1BE3830055264E /* ViewModel */,
-				A323AE1A2E1BE3250055264E /* View */,
+				A323AE192E1BE3110055264E /* Models */,
+				A323AE1F2E1BE3830055264E /* ViewModels */,
+				A323AE1A2E1BE3250055264E /* Views */,
+				A385D5B92E37D4AC009C0251 /* Navigation */,
 			);
 			path = Map;
 			sourceTree = "<group>";
@@ -246,11 +249,9 @@
 		A3166E462E0589B600E6E1C2 /* POIList */ = {
 			isa = PBXGroup;
 			children = (
-				A323AE432E2141FC0055264E /* Router */,
-				A323AE2E2E200E300055264E /* Coordinator */,
-				A3166E782E05AAA800E6E1C2 /* View */,
-				A3166E7C2E05AC5100E6E1C2 /* ViewModel */,
-				A3166E7F2E05AC5400E6E1C2 /* Service */,
+				A3166E782E05AAA800E6E1C2 /* Views */,
+				A3166E7C2E05AC5100E6E1C2 /* ViewModels */,
+				A385D5B52E37D216009C0251 /* Navigation */,
 			);
 			path = POIList;
 			sourceTree = "<group>";
@@ -258,8 +259,8 @@
 		A3166E472E0589B600E6E1C2 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
-				A3166E892E09604E00E6E1C2 /* ViewModel */,
-				A3166E862E09604500E6E1C2 /* View */,
+				A3166E892E09604E00E6E1C2 /* ViewModelя */,
+				A3166E862E09604500E6E1C2 /* Views */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -270,10 +271,10 @@
 				A3166E982E0D5BC400E6E1C2 /* Onboarding */,
 				A3166E472E0589B600E6E1C2 /* Settings */,
 				A3166E462E0589B600E6E1C2 /* POIList */,
+				A323AE382E213F420055264E /* POIDetail */,
 				A3166E442E0589B600E6E1C2 /* Map */,
 				A3166E422E0589B600E6E1C2 /* AudioGuide */,
 				A3166E432E0589B600E6E1C2 /* BLEScanner */,
-				A323AE382E213F420055264E /* POIDetail */,
 			);
 			path = Scenes;
 			sourceTree = "<group>";
@@ -297,9 +298,9 @@
 		A3166E4C2E0589B600E6E1C2 /* Infrastructure */ = {
 			isa = PBXGroup;
 			children = (
-				A3166E622E058A1800E6E1C2 /* AnalyticsService.swift */,
-				A3166E642E05980D00E6E1C2 /* IAPService.swift */,
-				A3166E662E05982A00E6E1C2 /* NotificationService.swift */,
+				A385D5972E37C894009C0251 /* Network */,
+				A385D5962E37C894009C0251 /* POI */,
+				A385D5952E37C894009C0251 /* Services */,
 			);
 			path = Infrastructure;
 			sourceTree = "<group>";
@@ -307,22 +308,14 @@
 		A3166E562E0589B600E6E1C2 /* TravelBuddy */ = {
 			isa = PBXGroup;
 			children = (
+				A385D5B12E37D0C6009C0251 /* App */,
 				A3166E402E0589B600E6E1C2 /* Core */,
-				A3166E4A2E0589B600E6E1C2 /* Generated */,
-				A3166E4C2E0589B600E6E1C2 /* Infrastructure */,
 				A323AE552E253BB20055264E /* Domain */,
-				A3166E482E0589B600E6E1C2 /* Scenes */,
+				A3166E4C2E0589B600E6E1C2 /* Infrastructure */,
+				A385D58D2E37A14F009C0251 /* Pressentation */,
+				A3166E4A2E0589B600E6E1C2 /* Generated */,
 				A3166E452E0589B600E6E1C2 /* Photo */,
-				A3166E902E09A28C00E6E1C2 /* Coordinators */,
-				A3166E412E0589B600E6E1C2 /* Dependency */,
 				A3166E4B2E0589B600E6E1C2 /* Resources */,
-				A3166E4D2E0589B600E6E1C2 /* AppDelegate.swift */,
-				A3166E4E2E0589B600E6E1C2 /* Assets.xcassets */,
-				A3166E4F2E0589B600E6E1C2 /* Info.plist */,
-				A3166E512E0589B600E6E1C2 /* LaunchScreen.storyboard */,
-				A3166E532E0589B600E6E1C2 /* Main.storyboard */,
-				A3166E542E0589B600E6E1C2 /* SceneDelegate.swift */,
-				A3166E552E0589B600E6E1C2 /* ViewController.swift */,
 			);
 			path = TravelBuddy;
 			sourceTree = "<group>";
@@ -335,96 +328,79 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
-		A3166E782E05AAA800E6E1C2 /* View */ = {
+		A3166E782E05AAA800E6E1C2 /* Views */ = {
 			isa = PBXGroup;
 			children = (
 				A3166F172E141AFF00E6E1C2 /* POIListView.swift */,
 				A3166F1B2E1577D900E6E1C2 /* POIImageView.swift */,
 			);
-			path = View;
+			path = Views;
 			sourceTree = "<group>";
 		};
-		A3166E7C2E05AC5100E6E1C2 /* ViewModel */ = {
+		A3166E7C2E05AC5100E6E1C2 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
 				A3166E7B2E05AC5100E6E1C2 /* POIListViewModel.swift */,
-				A3166F132E14196600E6E1C2 /* POICategoryFilter.swift */,
 				A3166F152E141A3500E6E1C2 /* AnyPOIListViewModel.swift */,
 			);
-			path = ViewModel;
+			path = ViewModels;
 			sourceTree = "<group>";
 		};
-		A3166E7F2E05AC5400E6E1C2 /* Service */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Service;
-			sourceTree = "<group>";
-		};
-		A3166E862E09604500E6E1C2 /* View */ = {
+		A3166E862E09604500E6E1C2 /* Views */ = {
 			isa = PBXGroup;
 			children = (
 				A3166E8C2E09611E00E6E1C2 /* SettingsView.swift */,
 			);
-			path = View;
+			path = Views;
 			sourceTree = "<group>";
 		};
-		A3166E892E09604E00E6E1C2 /* ViewModel */ = {
+		A3166E892E09604E00E6E1C2 /* ViewModelя */ = {
 			isa = PBXGroup;
 			children = (
 				A3166E872E09604E00E6E1C2 /* SettingsViewModel.swift */,
 				A3166E952E0AFDB100E6E1C2 /* AnySettingsViewModel.swift */,
 			);
-			path = ViewModel;
-			sourceTree = "<group>";
-		};
-		A3166E902E09A28C00E6E1C2 /* Coordinators */ = {
-			isa = PBXGroup;
-			children = (
-				A3166E912E09A2A600E6E1C2 /* AppCoordinator.swift */,
-			);
-			path = Coordinators;
+			path = "ViewModelя";
 			sourceTree = "<group>";
 		};
 		A3166E982E0D5BC400E6E1C2 /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
-				A3166E9A2E0D5BDB00E6E1C2 /* Model */,
-				A3166EA12E0D5C3700E6E1C2 /* ViewModel */,
-				A3166EA72E0D609F00E6E1C2 /* View */,
+				A3166E9A2E0D5BDB00E6E1C2 /* Models */,
+				A3166EA12E0D5C3700E6E1C2 /* ViewModels */,
+				A3166EA72E0D609F00E6E1C2 /* Views */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
 		};
-		A3166E9A2E0D5BDB00E6E1C2 /* Model */ = {
+		A3166E9A2E0D5BDB00E6E1C2 /* Models */ = {
 			isa = PBXGroup;
 			children = (
 				A3166E9B2E0D5BE600E6E1C2 /* OnboardingPage.swift */,
 			);
-			path = Model;
+			path = Models;
 			sourceTree = "<group>";
 		};
-		A3166EA12E0D5C3700E6E1C2 /* ViewModel */ = {
+		A3166EA12E0D5C3700E6E1C2 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
 				A3166EA02E0D5C3700E6E1C2 /* OnboardingViewModel.swift */,
 				A3166EA92E0D61AB00E6E1C2 /* AnyOnboardingViewModel.swift */,
 			);
-			path = ViewModel;
+			path = ViewModels;
 			sourceTree = "<group>";
 		};
-		A3166EA72E0D609F00E6E1C2 /* View */ = {
+		A3166EA72E0D609F00E6E1C2 /* Views */ = {
 			isa = PBXGroup;
 			children = (
 				A3166EA62E0D609F00E6E1C2 /* OnboardingView.swift */,
 			);
-			path = View;
+			path = Views;
 			sourceTree = "<group>";
 		};
 		A3166F022E0D6E0F00E6E1C2 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
-				A3166E3E2E0589B600E6E1C2 /* Extensions */,
 				A3166F012E0D6E0F00E6E1C2 /* Scalable.swift */,
 				A3166F042E0D6E1800E6E1C2 /* ScreenSize.swift */,
 			);
@@ -439,124 +415,75 @@
 			path = Mocks;
 			sourceTree = "<group>";
 		};
-		A323AE192E1BE3110055264E /* Model */ = {
+		A323AE192E1BE3110055264E /* Models */ = {
 			isa = PBXGroup;
 			children = (
 				A323AE222E1C0CF90055264E /* POIAnnotation.swift */,
 			);
-			path = Model;
+			path = Models;
 			sourceTree = "<group>";
 		};
-		A323AE1A2E1BE3250055264E /* View */ = {
+		A323AE1A2E1BE3250055264E /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				A323AE342E201D760055264E /* MapRootView.swift */,
+				A3914C862E290E5100F8740A /* MapContainer.swift */,
 				A323AE282E1C0D3B0055264E /* POIMapView.swift */,
 				A323AE2A2E1C0D4A0055264E /* MapViewRepresentable.swift */,
 				A323AE2C2E1C0D590055264E /* POISnippetView.swift */,
 			);
-			path = View;
+			path = Views;
 			sourceTree = "<group>";
 		};
-		A323AE1F2E1BE3830055264E /* ViewModel */ = {
+		A323AE1F2E1BE3830055264E /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
 				A323AE262E1C0D1B0055264E /* AnyPOIMapViewModel.swift */,
 				A323AE242E1C0D0C0055264E /* POIMapViewModel.swift */,
 			);
-			path = ViewModel;
-			sourceTree = "<group>";
-		};
-		A323AE2E2E200E300055264E /* Coordinator */ = {
-			isa = PBXGroup;
-			children = (
-				A323AE2F2E200E5D0055264E /* POIListCoordinator.swift */,
-			);
-			path = Coordinator;
-			sourceTree = "<group>";
-		};
-		A323AE312E201D0C0055264E /* Coordinator */ = {
-			isa = PBXGroup;
-			children = (
-				A323AE322E201D140055264E /* MapCoordinator.swift */,
-			);
-			path = Coordinator;
+			path = ViewModels;
 			sourceTree = "<group>";
 		};
 		A323AE382E213F420055264E /* POIDetail */ = {
 			isa = PBXGroup;
 			children = (
-				A323AE462E2143D50055264E /* Router */,
-				A323AE392E213F6E0055264E /* Coordinator */,
-				A323AE3C2E213F840055264E /* Model */,
-				A323AE3B2E213F7D0055264E /* ViewModel */,
-				A323AE3A2E213F780055264E /* View */,
+				A323AE3C2E213F840055264E /* Models */,
+				A323AE3B2E213F7D0055264E /* ViewModels */,
+				A323AE3A2E213F780055264E /* Views */,
+				A385D5BF2E37D4FC009C0251 /* Navigation */,
 			);
 			path = POIDetail;
 			sourceTree = "<group>";
 		};
-		A323AE392E213F6E0055264E /* Coordinator */ = {
-			isa = PBXGroup;
-			children = (
-				A323AE4C2E2147520055264E /* POIDetailCoordinator.swift */,
-			);
-			path = Coordinator;
-			sourceTree = "<group>";
-		};
-		A323AE3A2E213F780055264E /* View */ = {
+		A323AE3A2E213F780055264E /* Views */ = {
 			isa = PBXGroup;
 			children = (
 				A323AE4E2E2147630055264E /* POIDetailView.swift */,
 			);
-			path = View;
+			path = Views;
 			sourceTree = "<group>";
 		};
-		A323AE3B2E213F7D0055264E /* ViewModel */ = {
+		A323AE3B2E213F7D0055264E /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
 				A323AE412E213FB00055264E /* POIDetailViewModel.swift */,
 			);
-			path = ViewModel;
+			path = ViewModels;
 			sourceTree = "<group>";
 		};
-		A323AE3C2E213F840055264E /* Model */ = {
+		A323AE3C2E213F840055264E /* Models */ = {
 			isa = PBXGroup;
 			children = (
 				A323AE3D2E213F930055264E /* POIDetailModel.swift */,
 			);
-			path = Model;
-			sourceTree = "<group>";
-		};
-		A323AE432E2141FC0055264E /* Router */ = {
-			isa = PBXGroup;
-			children = (
-				A323AE442E21421B0055264E /* POIListRouter.swift */,
-			);
-			path = Router;
-			sourceTree = "<group>";
-		};
-		A323AE462E2143D50055264E /* Router */ = {
-			isa = PBXGroup;
-			children = (
-				A323AE4A2E2145770055264E /* POIDetailRouter.swift */,
-			);
-			path = Router;
-			sourceTree = "<group>";
-		};
-		A323AE472E2143DE0055264E /* Router */ = {
-			isa = PBXGroup;
-			children = (
-				A323AE482E2143FB0055264E /* MapRouter.swift */,
-			);
-			path = Router;
+			path = Models;
 			sourceTree = "<group>";
 		};
 		A323AE502E21613E0055264E /* POI */ = {
 			isa = PBXGroup;
 			children = (
+				A385D58E2E37C42D009C0251 /* Enums */,
 				A3166E6F2E05A15100E6E1C2 /* Models */,
 				A323AE532E2161780055264E /* Protocols */,
-				A323AE542E21670A0055264E /* Implementation */,
 			);
 			path = POI;
 			sourceTree = "<group>";
@@ -564,21 +491,10 @@
 		A323AE532E2161780055264E /* Protocols */ = {
 			isa = PBXGroup;
 			children = (
+				A385D5902E37C4FE009C0251 /* POICacheProtocol.swift */,
 				A323AE512E21616B0055264E /* POIServiceProtocol.swift */,
 			);
 			path = Protocols;
-			sourceTree = "<group>";
-		};
-		A323AE542E21670A0055264E /* Implementation */ = {
-			isa = PBXGroup;
-			children = (
-				A3166F112E1413FC00E6E1C2 /* POIRepository.swift */,
-				A3166E7E2E05AC5400E6E1C2 /* POIService.swift */,
-				A3166F0B2E103ECC00E6E1C2 /* RemotePOIService.swift */,
-				A3166F0D2E104A5E00E6E1C2 /* LocalPOIService.swift */,
-				A3166F0F2E12AA7200E6E1C2 /* RealmPOICache.swift */,
-			);
-			path = Implementation;
 			sourceTree = "<group>";
 		};
 		A323AE552E253BB20055264E /* Domain */ = {
@@ -587,6 +503,134 @@
 				A323AE502E21613E0055264E /* POI */,
 			);
 			path = Domain;
+			sourceTree = "<group>";
+		};
+		A385D58D2E37A14F009C0251 /* Pressentation */ = {
+			isa = PBXGroup;
+			children = (
+				A3166E482E0589B600E6E1C2 /* Scenes */,
+			);
+			path = Pressentation;
+			sourceTree = "<group>";
+		};
+		A385D58E2E37C42D009C0251 /* Enums */ = {
+			isa = PBXGroup;
+			children = (
+				A3166F132E14196600E6E1C2 /* POICategoryFilter.swift */,
+			);
+			path = Enums;
+			sourceTree = "<group>";
+		};
+		A385D5952E37C894009C0251 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A385D59B2E37C8B8009C0251 /* Notification */,
+				A385D59D2E37C8B8009C0251 /* IAP */,
+				A385D59C2E37C8B8009C0251 /* Analytics */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		A385D5962E37C894009C0251 /* POI */ = {
+			isa = PBXGroup;
+			children = (
+				A3166F112E1413FC00E6E1C2 /* POIRepository.swift */,
+				A3166E7E2E05AC5400E6E1C2 /* POIService.swift */,
+				A3166F0B2E103ECC00E6E1C2 /* RemotePOIService.swift */,
+				A3166F0D2E104A5E00E6E1C2 /* LocalPOIService.swift */,
+				A3166F0F2E12AA7200E6E1C2 /* RealmPOICache.swift */,
+			);
+			path = POI;
+			sourceTree = "<group>";
+		};
+		A385D5972E37C894009C0251 /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				A3166E3F2E0589B600E6E1C2 /* HTTPClientProtocol.swift */,
+				A385D5A42E37CE52009C0251 /* HTTPClient.swift */,
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
+		A385D59B2E37C8B8009C0251 /* Notification */ = {
+			isa = PBXGroup;
+			children = (
+				A3166E662E05982A00E6E1C2 /* NotificationService.swift */,
+				A385D5A02E37CAF3009C0251 /* NotificationServiceProtocol.swift */,
+			);
+			path = Notification;
+			sourceTree = "<group>";
+		};
+		A385D59C2E37C8B8009C0251 /* Analytics */ = {
+			isa = PBXGroup;
+			children = (
+				A3166E622E058A1800E6E1C2 /* AnalyticsService.swift */,
+				A385D5A22E37CB0D009C0251 /* AnalyticsServiceProtocol.swift */,
+			);
+			path = Analytics;
+			sourceTree = "<group>";
+		};
+		A385D59D2E37C8B8009C0251 /* IAP */ = {
+			isa = PBXGroup;
+			children = (
+				A385D59E2E37C99E009C0251 /* IAPServiceProtocol.swift */,
+				A3166E642E05980D00E6E1C2 /* IAPService.swift */,
+			);
+			path = IAP;
+			sourceTree = "<group>";
+		};
+		A385D5AE2E37D0C6009C0251 /* Coordinators */ = {
+			isa = PBXGroup;
+			children = (
+				A385D5AD2E37D0C6009C0251 /* AppCoordinator.swift */,
+			);
+			path = Coordinators;
+			sourceTree = "<group>";
+		};
+		A385D5B02E37D0C6009C0251 /* Dependency */ = {
+			isa = PBXGroup;
+			children = (
+				A385D5AF2E37D0C6009C0251 /* DIContainer.swift */,
+			);
+			path = Dependency;
+			sourceTree = "<group>";
+		};
+		A385D5B12E37D0C6009C0251 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				A3166E4D2E0589B600E6E1C2 /* AppDelegate.swift */,
+				A3166E542E0589B600E6E1C2 /* SceneDelegate.swift */,
+				A385D5AE2E37D0C6009C0251 /* Coordinators */,
+				A385D5B02E37D0C6009C0251 /* Dependency */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		A385D5B52E37D216009C0251 /* Navigation */ = {
+			isa = PBXGroup;
+			children = (
+				A323AE442E21421B0055264E /* POIListRouter.swift */,
+				A323AE2F2E200E5D0055264E /* POIListCoordinator.swift */,
+			);
+			path = Navigation;
+			sourceTree = "<group>";
+		};
+		A385D5B92E37D4AC009C0251 /* Navigation */ = {
+			isa = PBXGroup;
+			children = (
+				A385D5B72E37D4AC009C0251 /* MapCoordinator.swift */,
+				A385D5B82E37D4AC009C0251 /* MapRouter.swift */,
+			);
+			path = Navigation;
+			sourceTree = "<group>";
+		};
+		A385D5BF2E37D4FC009C0251 /* Navigation */ = {
+			isa = PBXGroup;
+			children = (
+				A385D5BD2E37D4FC009C0251 /* POIDetailCoordinator.swift */,
+				A385D5BE2E37D4FC009C0251 /* POIDetailRouter.swift */,
+			);
+			path = Navigation;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -687,12 +731,17 @@
 				A3166F072E0DB0B500E6E1C2 /* UserDefaults+AppStorage.swift in Sources */,
 				A323AE2B2E1C0D4A0055264E /* MapViewRepresentable.swift in Sources */,
 				A3166E8D2E09611E00E6E1C2 /* SettingsView.swift in Sources */,
-				A323AE332E201D140055264E /* MapCoordinator.swift in Sources */,
+				A3914C872E290E5100F8740A /* MapContainer.swift in Sources */,
+				A385D5A32E37CB0D009C0251 /* AnalyticsServiceProtocol.swift in Sources */,
 				A323AE232E1C0CF90055264E /* POIAnnotation.swift in Sources */,
+				A385D5A52E37CE52009C0251 /* HTTPClient.swift in Sources */,
 				A3166E702E05A15100E6E1C2 /* POI.swift in Sources */,
 				A3166F142E14196600E6E1C2 /* POICategoryFilter.swift in Sources */,
-				A3166E922E09A2A600E6E1C2 /* AppCoordinator.swift in Sources */,
 				A323AE452E21421B0055264E /* POIListRouter.swift in Sources */,
+				A385D5C02E37D4FC009C0251 /* POIDetailCoordinator.swift in Sources */,
+				A385D5C12E37D4FC009C0251 /* POIDetailRouter.swift in Sources */,
+				A385D5B22E37D0C6009C0251 /* AppCoordinator.swift in Sources */,
+				A385D5B32E37D0C6009C0251 /* DIContainer.swift in Sources */,
 				A323AE2D2E1C0D590055264E /* POISnippetView.swift in Sources */,
 				A3166E652E05980D00E6E1C2 /* IAPService.swift in Sources */,
 				A323AE522E21616B0055264E /* POIServiceProtocol.swift in Sources */,
@@ -700,30 +749,29 @@
 				A323AE422E213FB00055264E /* POIDetailViewModel.swift in Sources */,
 				A3166F162E141A3500E6E1C2 /* AnyPOIListViewModel.swift in Sources */,
 				A3166E632E058A1800E6E1C2 /* AnalyticsService.swift in Sources */,
-				A323AE352E201D760055264E /* MapRootView.swift in Sources */,
 				A323AE302E200E5D0055264E /* POIListCoordinator.swift in Sources */,
 				A3166F102E12AA7200E6E1C2 /* RealmPOICache.swift in Sources */,
 				A3166E802E05AC5400E6E1C2 /* POIService.swift in Sources */,
-				A3166E592E0589B600E6E1C2 /* HTTPClient.swift in Sources */,
+				A3166E592E0589B600E6E1C2 /* HTTPClientProtocol.swift in Sources */,
 				A3166E5A2E0589B600E6E1C2 /* DesignTokens.swift in Sources */,
 				A3166E5B2E0589B600E6E1C2 /* AppDelegate.swift in Sources */,
-				A323AE4B2E2145770055264E /* POIDetailRouter.swift in Sources */,
+				A385D5BA2E37D4AC009C0251 /* MapCoordinator.swift in Sources */,
+				A385D5BB2E37D4AC009C0251 /* MapRouter.swift in Sources */,
+				A385D5912E37C4FE009C0251 /* POICacheProtocol.swift in Sources */,
 				A3166F0C2E103ECC00E6E1C2 /* RemotePOIService.swift in Sources */,
 				A3166F1C2E1577DA00E6E1C2 /* POIImageView.swift in Sources */,
+				A385D59F2E37C99E009C0251 /* IAPServiceProtocol.swift in Sources */,
 				A323AE272E1C0D1B0055264E /* AnyPOIMapViewModel.swift in Sources */,
 				A323AE292E1C0D3B0055264E /* POIMapView.swift in Sources */,
+				A385D5A12E37CAF3009C0251 /* NotificationServiceProtocol.swift in Sources */,
 				A323AE4F2E2147630055264E /* POIDetailView.swift in Sources */,
 				A3166EAA2E0D61AB00E6E1C2 /* AnyOnboardingViewModel.swift in Sources */,
 				A323AE252E1C0D0C0055264E /* POIMapViewModel.swift in Sources */,
 				A3166E5C2E0589B600E6E1C2 /* SceneDelegate.swift in Sources */,
 				A323AE3E2E213F930055264E /* POIDetailModel.swift in Sources */,
-				A323AE4D2E2147520055264E /* POIDetailCoordinator.swift in Sources */,
 				A3166E672E05982A00E6E1C2 /* NotificationService.swift in Sources */,
 				A3166F032E0D6E0F00E6E1C2 /* Scalable.swift in Sources */,
-				A3166E5D2E0589B600E6E1C2 /* ViewController.swift in Sources */,
-				A3166E8F2E096B4100E6E1C2 /* DIContainer.swift in Sources */,
 				A3166E962E0AFDB100E6E1C2 /* AnySettingsViewModel.swift in Sources */,
-				A323AE492E2143FC0055264E /* MapRouter.swift in Sources */,
 				A3166F052E0D6E1800E6E1C2 /* ScreenSize.swift in Sources */,
 				A3166E7D2E05AC5100E6E1C2 /* POIListViewModel.swift in Sources */,
 				A3166EA22E0D5C3700E6E1C2 /* OnboardingViewModel.swift in Sources */,
