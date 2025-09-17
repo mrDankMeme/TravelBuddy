@@ -71,6 +71,9 @@
 		A385D5C02E37D4FC009C0251 /* POIDetailCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5BD2E37D4FC009C0251 /* POIDetailCoordinator.swift */; };
 		A385D5C12E37D4FC009C0251 /* POIDetailRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5BE2E37D4FC009C0251 /* POIDetailRouter.swift */; };
 		A3914C872E290E5100F8740A /* MapContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3914C862E290E5100F8740A /* MapContainer.swift */; };
+		A3F4F7D12E730F82002EEDF2 /* POIListContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F4F7D02E730F82002EEDF2 /* POIListContainer.swift */; };
+		A3F4F7D42E74598C002EEDF2 /* AppRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F4F7D32E74598C002EEDF2 /* AppRoute.swift */; };
+		A3F4F7D62E745996002EEDF2 /* AppRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F4F7D52E745996002EEDF2 /* AppRouter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -95,7 +98,6 @@
 		A3166E492E0589B600E6E1C2 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		A3166E4D2E0589B600E6E1C2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A3166E4E2E0589B600E6E1C2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		A3166E4F2E0589B600E6E1C2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A3166E502E0589B600E6E1C2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		A3166E522E0589B600E6E1C2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		A3166E542E0589B600E6E1C2 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -147,7 +149,11 @@
 		A385D5B82E37D4AC009C0251 /* MapRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapRouter.swift; sourceTree = "<group>"; };
 		A385D5BD2E37D4FC009C0251 /* POIDetailCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIDetailCoordinator.swift; sourceTree = "<group>"; };
 		A385D5BE2E37D4FC009C0251 /* POIDetailRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIDetailRouter.swift; sourceTree = "<group>"; };
+		A385D5C22E38E61C009C0251 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A3914C862E290E5100F8740A /* MapContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapContainer.swift; sourceTree = "<group>"; };
+		A3F4F7D02E730F82002EEDF2 /* POIListContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIListContainer.swift; sourceTree = "<group>"; };
+		A3F4F7D32E74598C002EEDF2 /* AppRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRoute.swift; sourceTree = "<group>"; };
+		A3F4F7D52E745996002EEDF2 /* AppRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -181,7 +187,7 @@
 				A3166E4E2E0589B600E6E1C2 /* Assets.xcassets */,
 				A3166E512E0589B600E6E1C2 /* LaunchScreen.storyboard */,
 				A3166E532E0589B600E6E1C2 /* Main.storyboard */,
-				A3166E4F2E0589B600E6E1C2 /* Info.plist */,
+				A385D5C22E38E61C009C0251 /* Info.plist */,
 				A3166DED2E04752500E6E1C2 /* Products */,
 				A31670132E16A8CD00E6E1C2 /* POIImages */,
 			);
@@ -208,6 +214,7 @@
 		A3166E402E0589B600E6E1C2 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				A3F4F7D22E745978002EEDF2 /* Navigation */,
 				A3166E3E2E0589B600E6E1C2 /* Extensions */,
 				A3166F022E0D6E0F00E6E1C2 /* Utils */,
 			);
@@ -309,13 +316,13 @@
 			isa = PBXGroup;
 			children = (
 				A385D5B12E37D0C6009C0251 /* App */,
-				A3166E402E0589B600E6E1C2 /* Core */,
-				A323AE552E253BB20055264E /* Domain */,
+				A385D58D2E37A14F009C0251 /* Presentation */,
 				A3166E4C2E0589B600E6E1C2 /* Infrastructure */,
-				A385D58D2E37A14F009C0251 /* Pressentation */,
+				A323AE552E253BB20055264E /* Domain */,
+				A3166E402E0589B600E6E1C2 /* Core */,
+				A3166E4B2E0589B600E6E1C2 /* Resources */,
 				A3166E4A2E0589B600E6E1C2 /* Generated */,
 				A3166E452E0589B600E6E1C2 /* Photo */,
-				A3166E4B2E0589B600E6E1C2 /* Resources */,
 			);
 			path = TravelBuddy;
 			sourceTree = "<group>";
@@ -332,6 +339,7 @@
 			isa = PBXGroup;
 			children = (
 				A3166F172E141AFF00E6E1C2 /* POIListView.swift */,
+				A3F4F7D02E730F82002EEDF2 /* POIListContainer.swift */,
 				A3166F1B2E1577D900E6E1C2 /* POIImageView.swift */,
 			);
 			path = Views;
@@ -505,12 +513,12 @@
 			path = Domain;
 			sourceTree = "<group>";
 		};
-		A385D58D2E37A14F009C0251 /* Pressentation */ = {
+		A385D58D2E37A14F009C0251 /* Presentation */ = {
 			isa = PBXGroup;
 			children = (
 				A3166E482E0589B600E6E1C2 /* Scenes */,
 			);
-			path = Pressentation;
+			path = Presentation;
 			sourceTree = "<group>";
 		};
 		A385D58E2E37C42D009C0251 /* Enums */ = {
@@ -633,6 +641,15 @@
 			path = Navigation;
 			sourceTree = "<group>";
 		};
+		A3F4F7D22E745978002EEDF2 /* Navigation */ = {
+			isa = PBXGroup;
+			children = (
+				A3F4F7D32E74598C002EEDF2 /* AppRoute.swift */,
+				A3F4F7D52E745996002EEDF2 /* AppRouter.swift */,
+			);
+			path = Navigation;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -725,6 +742,7 @@
 			files = (
 				A3166F0E2E104A5E00E6E1C2 /* LocalPOIService.swift in Sources */,
 				A3166E572E0589B600E6E1C2 /* Publisher+Extensions.swift in Sources */,
+				A3F4F7D62E745996002EEDF2 /* AppRouter.swift in Sources */,
 				A3166E582E0589B600E6E1C2 /* UIColor+Hex.swift in Sources */,
 				A3166F122E1413FC00E6E1C2 /* POIRepository.swift in Sources */,
 				A3166E8A2E09604E00E6E1C2 /* SettingsViewModel.swift in Sources */,
@@ -748,6 +766,7 @@
 				A3166F182E141AFF00E6E1C2 /* POIListView.swift in Sources */,
 				A323AE422E213FB00055264E /* POIDetailViewModel.swift in Sources */,
 				A3166F162E141A3500E6E1C2 /* AnyPOIListViewModel.swift in Sources */,
+				A3F4F7D12E730F82002EEDF2 /* POIListContainer.swift in Sources */,
 				A3166E632E058A1800E6E1C2 /* AnalyticsService.swift in Sources */,
 				A323AE302E200E5D0055264E /* POIListCoordinator.swift in Sources */,
 				A3166F102E12AA7200E6E1C2 /* RealmPOICache.swift in Sources */,
@@ -755,6 +774,7 @@
 				A3166E592E0589B600E6E1C2 /* HTTPClientProtocol.swift in Sources */,
 				A3166E5A2E0589B600E6E1C2 /* DesignTokens.swift in Sources */,
 				A3166E5B2E0589B600E6E1C2 /* AppDelegate.swift in Sources */,
+				A3F4F7D42E74598C002EEDF2 /* AppRoute.swift in Sources */,
 				A385D5BA2E37D4AC009C0251 /* MapCoordinator.swift in Sources */,
 				A385D5BB2E37D4AC009C0251 /* MapRouter.swift in Sources */,
 				A385D5912E37C4FE009C0251 /* POICacheProtocol.swift in Sources */,
@@ -811,7 +831,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2NVL5EUMWM;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = TravelBuddy/Info.plist;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -843,7 +863,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2NVL5EUMWM;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = TravelBuddy/Info.plist;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;

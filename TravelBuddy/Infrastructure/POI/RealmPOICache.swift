@@ -9,15 +9,20 @@ import Foundation
 import RealmSwift
 
 public final class RealmPOICache: POICacheProtocol {
-    private let realm = try! Realm()
-
     public func save(_ pois: [POI]) {
-        let objects = pois.map { RealmPOI(poi: $0) }
-        try? realm.write { realm.add(objects, update: .modified) }
+        autoreleasepool {
+            do {
+                let realm = try Realm()
+                let objects = pois.map { RealmPOI(poi: $0) }
+                try realm.write { realm.add(objects, update: .modified) }
+            } catch { /* лог при желании */ }
+        }
     }
 
     public func load() -> [POI] {
-        realm.objects(RealmPOI.self).map { $0.toPOI() }
+        autoreleasepool {
+            (try? Realm()).map { Array($0.objects(RealmPOI.self)).map { $0.toPOI() } } ?? []
+        }
     }
 }
 

@@ -71,17 +71,12 @@ public final class POIListViewModel: ObservableObject, POIListViewModelProtocol 
             .store(in: &cancellables)
     }
     
-    private func applyFilter(using filter: POICategoryFilter? = .all) {
-        if let filter = filter {
-            pois = (filter == .all)
+    private func applyFilter(using filter: POICategoryFilter? = nil) {
+        let effective = filter ?? self.filter
+        pois = (effective == .all)
             ? allPois
-            : allPois.filter { $0.category == filter.rawValue }
-        }  else
-        {
-            return
-        }
+            : allPois.filter { $0.category == effective.rawValue }
     }
-    
     
     public func openInMaps(poi: POI) {
         let coord = CLLocationCoordinate2D(latitude: poi.latitude,

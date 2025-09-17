@@ -26,8 +26,7 @@ public final class LocalPOIService: POIServiceProtocol {
                         }
                         let data = try Data(contentsOf: url)
                         let pois = try JSONDecoder().decode([POI].self, from: data)
-                        // Имитация задержки (например, 1 секунда)
-                        Thread.sleep(forTimeInterval: 1)
+                        //Thread.sleep(forTimeInterval: 0)
                         promise(.success(pois))
                     } catch {
                         promise(.failure(error))
@@ -35,7 +34,6 @@ public final class LocalPOIService: POIServiceProtocol {
                 }
             }
         }
-        .receive(on: DispatchQueue.main) // результат вернётся на главный поток, удобно для ViewModel/UI
         .eraseToAnyPublisher()
     }
 }

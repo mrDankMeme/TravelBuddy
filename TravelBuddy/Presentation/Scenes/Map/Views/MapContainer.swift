@@ -8,6 +8,7 @@
 
 import SwiftUI
 import Combine
+import Swinject
 
 struct MapContainer: View {
     // ---------- State ----------
@@ -28,8 +29,9 @@ struct MapContainer: View {
                 .navigationDestination(for: MapRoute.self) { route in
                     switch route {
                     case .detail(let poi):
-                        DIContainer.shared
-                            .resolve(POIDetailCoordinator.self, argument: poi)
+                        let r = DIContainer.shared.resolver
+                        
+                        r.resolve(POIDetailCoordinator.self, argument: poi)?
                             .rootView()
                     }
                 }

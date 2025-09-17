@@ -11,7 +11,7 @@ import SwiftUI
 public struct POIListView: View {
     @ObservedObject var viewModel: AnyPOIListViewModel
     @EnvironmentObject var router: POIListRouter
-
+    
     public init(viewModel: AnyPOIListViewModel) {
         self.viewModel = viewModel
     }

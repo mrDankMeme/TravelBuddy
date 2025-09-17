@@ -1,0 +1,2556 @@
+//
+//  DesignTokens.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/20/25.
+//
+
+import UIKit
+
+public enum DesignTokens {
+    // MARK: Colors
+    public static let colorPrimary = UIColor(hex: "#0055FF")!
+    public static let colorBackground = UIColor { trait in
+        trait.userInterfaceStyle == .dark
+        ? UIColor(hex: "#000000")!
+        : UIColor(hex: "#FFFFFF")!
+    }
+    
+    // MARK: Typography
+    public static let fontHeadline = UIFont.systemFont(ofSize: 24.scale, weight: .bold)
+    public static let fontBody     = UIFont.systemFont(ofSize: 16.scale, weight: .regular)
+    
+    // MARK: Spacing
+    public static let spacingSmall  = 8.scale
+    public static let spacingMedium = 16.scale
+    
+}
+//
+//  AppRouter.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 9/12/25.
+//
+
+
+import Combine
+
+@MainActor
+public final class AppRouter: ObservableObject {
+    public let events = PassthroughSubject<AppRoute, Never>()
+    public init() {}
+    public func send(_ route: AppRoute) { events.send(route) }
+}
+//
+//  AppRoute.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 9/12/25.
+//
+
+
+import Foundation
+
+public enum AppRoute: Equatable {
+    case openPOIDetail(POI)
+    case openMapWithPOI(POI.ID)
+    case openSettings
+}
+//
+//  Scalable.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/26/25.
+//
+
+import UIKit
+
+protocol Scalable {
+    var scale: Self { get }
+}
+
+extension CGFloat: Scalable {
+    var scale: CGFloat {
+        let designScreenWidth: CGFloat = 375
+        let currentScreenWidth = UIScreen.main.bounds.size.width
+        return self * currentScreenWidth / designScreenWidth
+    }
+   
+}
+
+extension Int {
+    var scale: CGFloat {
+        CGFloat(self).scale
+    }
+}
+
+extension Double {
+    var scale: CGFloat {
+        CGFloat(self).scale
+    }
+}
+
+extension CGPoint: Scalable {
+    var scale: CGPoint {
+        CGPoint(x: x.scale, y: y.scale)
+    }
+}
+
+extension CGSize: Scalable {
+    var scale: CGSize {
+        CGSize(width: width.scale, height: height.scale)
+    }
+}
+
+extension CGRect: Scalable {
+    var scale: CGRect {
+        CGRect(origin: origin.scale, size: size.scale)
+    }
+}
+
+extension UIFont {
+    var scale: UIFont {
+        UIFont(name: fontName, size: pointSize.scale) ?? UIFont.systemFont(ofSize: pointSize.scale)
+    }
+}
+
+extension UIEdgeInsets: Scalable {
+    var scale: UIEdgeInsets {
+        UIEdgeInsets(top: top.scale, left: left.scale, bottom: bottom.scale, right: right.scale)
+    }
+}
+//
+//  ScreenSize.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/26/25.
+//
+
+
+import UIKit
+
+enum ScreenSize {
+    static let bounds: CGRect = (UIScreen.main.bounds)
+    static let width: CGFloat = (bounds.width)
+    static let height: CGFloat = (bounds.height)
+    static let maxLength: CGFloat = (max(width, height))
+    static let minLength: CGFloat = (min(width, height))
+    
+    static let isIphone = UIDevice.current.userInterfaceIdiom == .phone
+    static let isRetina = (UIScreen.main.scale >= 2.0)
+    static let isIphoneXFamily = (isIphone && maxLength / minLength > 2.0)
+}
+//
+//  UIColor+Hex.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/20/25.
+//
+
+import UIKit
+
+public extension UIColor {
+  convenience init?(hex: String) {
+    var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+    hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
+    var rgb: UInt64 = 0
+    guard Scanner(string: hexSanitized).scanHexInt64(&rgb) else { return nil }
+    let r = CGFloat((rgb & 0xFF0000) >> 16) / 255
+    let g = CGFloat((rgb & 0x00FF00) >> 8) / 255
+    let b = CGFloat(rgb & 0x0000FF) / 255
+    self.init(red: r, green: g, blue: b, alpha: 1)
+  }
+}
+//
+//  Publisher+Extensions.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/20/25.
+//
+
+import Combine
+
+public extension Publisher {
+  func logError(_ tag: String) -> AnyPublisher<Output, Failure> {
+    handleEvents(receiveCompletion: { completion in
+      if case let .failure(error) = completion {
+          Swift.print("[\(tag)] Error:", error)
+      }
+    })
+    .eraseToAnyPublisher()
+  }
+}
+//
+//  UserDefaults+AppStorage.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/26/25.
+//
+
+import Foundation
+
+extension UserDefaults {
+  // MARK: — Ключи
+  private enum Keys {
+    static let hasCompletedOnboarding = "hasCompletedOnboarding"
+    // в будущем сюда можно добавлять другие ключи
+  }
+
+  // MARK: — Свойства
+  var hasCompletedOnboarding: Bool {
+    get { bool(forKey: Keys.hasCompletedOnboarding) }
+    set { set(newValue, forKey: Keys.hasCompletedOnboarding) }
+  }
+}
+//
+//  AppCoordinator.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/26/25.
+//
+
+
+import UIKit
+import SwiftUI
+import Combine
+import Swinject
+
+protocol Coordinator {
+    func start()
+}
+
+@MainActor
+final class AppCoordinator: Coordinator {
+    // MARK: — Dependencies
+    private let window: UIWindow
+    private let container: DIContainer
+
+    // MARK: — UI State
+    private let tabBar = UITabBarController()
+    private var cancellables = Set<AnyCancellable>()
+
+    init(window: UIWindow, container: DIContainer? = nil) {
+        self.window = window
+        self.container = container ?? DIContainer.shared
+    }
+
+    // MARK: — Start
+    func start() {
+        
+        window.makeKeyAndVisible()
+
+        if UserDefaults.standard.hasCompletedOnboarding {
+            showMainInterface()
+        } else {
+            showOnboarding()
+        }
+    }
+
+    // MARK: — Onboarding Flow
+    private func showOnboarding() {
+        // ⟶ только через resolver
+        guard let onboardingVM = container.resolver.resolve(AnyOnboardingViewModel.self) else {
+            preconditionFailure("Swinject: AnyOnboardingViewModel не зарегистрирован")
+        }
+
+        let onboardingHost = UIHostingController(rootView: OnboardingView(vm: onboardingVM))
+        window.rootViewController = onboardingHost
+
+        onboardingVM.$hasCompletedOnboarding
+            .filter { $0 }
+            .first()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.showMainInterface()
+            }
+            .store(in: &cancellables)
+    }
+
+    // MARK: — Main Interface
+    private func showMainInterface() {
+     
+        guard let appRouter = container.resolver.resolve(AppRouter.self) else {
+                preconditionFailure("Swinject: AppRouter не зарегистрирован")
+        }
+        
+        // — POIList Tab
+        guard
+            let poiListVM     = container.resolver.resolve(AnyPOIListViewModel.self),
+            let poiListRouter = container.resolver.resolve(POIListRouter.self)
+        else {
+            preconditionFailure("Swinject: нет регистрации AnyPOIListViewModel или POIListRouter")
+        }
+
+        let poiListCoord = POIListCoordinator(viewModel: poiListVM, router: poiListRouter)
+        let poiListHost  = UIHostingController(
+            rootView: poiListCoord.rootView().environmentObject(appRouter)
+        )
+        poiListHost.tabBarItem = UITabBarItem(
+            title: "Places",
+            image: UIImage(systemName: "map"),
+            tag: 0
+        )
+
+        // — Map Tab
+        guard
+            let mapVM     = container.resolver.resolve(AnyPOIMapViewModel.self),
+            let mapRouter = container.resolver.resolve(MapRouter.self)
+        else {
+            preconditionFailure("Swinject: нет регистрации AnyPOIMapViewModel или MapRouter")
+        }
+
+        let mapCoord = MapCoordinator(vm: mapVM, router: mapRouter)
+        let mapHost  = UIHostingController(rootView: mapCoord.rootView().environmentObject(appRouter)
+        )
+        mapHost.tabBarItem = UITabBarItem(
+            title: "Map",
+            image: UIImage(systemName: "map.fill"),
+            tag: 1
+        )
+
+        // — Settings Tab
+        guard let settingsVM = container.resolver.resolve(AnySettingsViewModel.self) else {
+            preconditionFailure("Swinject: AnySettingsViewModel не зарегистрирован")
+        }
+
+        let settingsHost = UIHostingController(
+            rootView: SettingsView(vm: settingsVM).environmentObject(appRouter)
+        )
+        settingsHost.tabBarItem = UITabBarItem(
+            title: "Settings",
+            image: UIImage(systemName: "gearshape"),
+            tag: 2
+        )
+
+        // Собираем TabBar
+        tabBar.viewControllers = [
+            UINavigationController(rootViewController: poiListHost),
+            UINavigationController(rootViewController: mapHost),
+            UINavigationController(rootViewController: settingsHost)
+        ]
+        window.rootViewController = tabBar
+
+        bindAppRouter(appRouter)
+
+    }
+    // MARK: — AppRouter binding
+    private func bindAppRouter(_ appRouter: AppRouter) {
+        appRouter.events
+            .sink { [weak self] route in
+                self?.handle(route)
+            }
+            .store(in: &cancellables)
+    }
+
+    private func handle(_ route: AppRoute) {
+//        switch route {
+//        case .openPOIDetail(let poi):
+//            guard
+//                let nav = tabBar.selectedViewController as? UINavigationController,
+//                let coord = container.resolver.resolve(POIDetailCoordinator.self, argument: poi)
+//            else { return }
+//
+//            let host = UIHostingController(rootView: coord.rootView())
+//            nav.pushViewController(host, animated: true)
+//
+//        case .openMapWithPOI(_):
+//            tabBar.selectedIndex = 1
+//
+//        case .openSettings:
+//            tabBar.selectedIndex = 2
+//        }
+    }
+
+
+}
+//
+//  DIContainer.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/23/25.
+//
+
+
+// DIContainer.swift
+import Foundation
+import Swinject
+import UIKit
+import SwiftUI
+
+@MainActor
+public final class DIContainer {
+    public static let shared = DIContainer()
+    let container = Container() // оставляем internal, чтобы можно было собрать тестовый контейнер
+
+    private init() {
+        // MARK: — Core Navigation (глобальная шина маршрутов)
+        container.register(AppRouter.self) { _ in AppRouter() }
+            .inObjectScope(.container)   
+
+        // MARK: — Core
+        container.register(HTTPClientProtocol.self) { _ in HTTPClient() }
+            .inObjectScope(.container)
+
+        // MARK: — Services
+        container.register(AnalyticsServiceProtocol.self) { _ in AnalyticsService() }
+            .inObjectScope(.container)
+        container.register(IAPServiceProtocol.self) { _ in IAPService() }
+            .inObjectScope(.container)
+        container.register(NotificationServiceProtocol.self) { _ in NotificationService() }
+            .inObjectScope(.container)
+        
+
+        // MARK: — Scene: Onboarding
+        container.register((any OnboardingViewModelProtocol).self) { _ in OnboardingViewModel() }
+        container.register(AnyOnboardingViewModel.self) { r in
+            AnyOnboardingViewModel(r.resolve((any OnboardingViewModelProtocol).self)!)
+        }.inObjectScope(.graph)
+
+        // MARK: — Scene: POIList
+        container.register(RemotePOIService.self) { r in
+            RemotePOIService(httpClient: r.resolve(HTTPClientProtocol.self)!)
+        }
+        container.register(LocalPOIService.self) { _ in LocalPOIService() }
+        container.register(POICacheProtocol.self) { _ in RealmPOICache() }
+
+        container.register(POIServiceProtocol.self) { r in
+            POIRepository(
+                remote: r.resolve(RemotePOIService.self)!,
+                local:  r.resolve(LocalPOIService.self)!,
+                cache:  r.resolve(POICacheProtocol.self)!
+            )
+        }.inObjectScope(.container) // repo как фасад поверх remote/local/cache — ок в контейнере
+
+        container.register((any POIListViewModelProtocol).self) { r in
+            POIListViewModel(repository: r.resolve(POIServiceProtocol.self)!)
+        }.inObjectScope(.graph)
+
+        container.register(AnyPOIListViewModel.self) { r in
+            AnyPOIListViewModel(r.resolve((any POIListViewModelProtocol).self)!)
+        }.inObjectScope(.graph)
+
+        container.register(POIListRouter.self) { _ in POIListRouter() }
+            .inObjectScope(.graph)
+
+        // MARK: — Scene: Map
+        container.register((any POIMapViewModelProtocol).self) { r in
+            POIMapViewModel(
+                service: r.resolve(POIServiceProtocol.self)!,
+                factory: DefaultAnnotationFactory()
+            )
+        }.inObjectScope(.graph)
+
+        container.register(AnyPOIMapViewModel.self) { r in
+            AnyPOIMapViewModel(r.resolve((any POIMapViewModelProtocol).self)!)
+        }.inObjectScope(.graph)
+
+        container.register(MapRouter.self) { _ in MapRouter() }
+            .inObjectScope(.graph)
+
+        // MARK: — Scene: Settings
+        container.register((any SettingsViewModelProtocol).self) { r in
+            SettingsViewModel(
+                iapService:   r.resolve(IAPServiceProtocol.self)!,
+                analytics:    r.resolve(AnalyticsServiceProtocol.self)!,
+                notification: r.resolve(NotificationServiceProtocol.self)!
+            )
+        }.inObjectScope(.graph)
+
+        container.register(AnySettingsViewModel.self) { r in
+            AnySettingsViewModel(r.resolve((any SettingsViewModelProtocol).self)!)
+        }.inObjectScope(.graph)
+
+        // MARK: — Scene: POIDetail
+        container.register(POIDetailViewModel.self) { _, poi in
+            POIDetailViewModel(poi: poi)
+        }
+        // ВАЖНО: координатору даём resolver из Swinject
+        container.register(POIDetailCoordinator.self) { r, poi in
+            POIDetailCoordinator(poi: poi, resolver: r)
+        }.inObjectScope(.graph)
+    }
+
+    // Потокобезопасный резолвер (локальный граф зависимостей)
+    public var resolver: Resolver { container.synchronize() }
+}
+//
+//  AppDelegate.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/19/25.
+//
+
+import UIKit
+
+@main
+class AppDelegate: UIResponder, UIApplicationDelegate {
+
+
+
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        // Override point for customization after application launch.
+        return true
+    }
+
+    // MARK: UISceneSession Lifecycle
+
+    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+        // Called when a new scene session is being created.
+        // Use this method to select a configuration to create the new scene with.
+        return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
+    }
+
+    func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
+        // Called when the user discards a scene session.
+        // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.
+        // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
+    }
+
+
+}
+
+//
+//  SceneDelegate.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/19/25.
+//
+
+import UIKit
+
+class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+    var window: UIWindow?
+    var coordinator: AppCoordinator?
+    func scene(_ scene: UIScene,
+               willConnectTo session: UISceneSession,
+               options connectionOptions: UIScene.ConnectionOptions) {
+        guard let ws = (scene as? UIWindowScene) else { return }
+        let window = UIWindow(windowScene: ws)
+        self.window = window
+        
+        // Инициализируем и запускаем координатор
+        coordinator = AppCoordinator(window: window)
+        if let coordinator = coordinator {
+            coordinator.start()
+        }
+    }
+}
+
+//
+//  HTTPClient 2.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/28/25.
+//
+
+import Foundation
+import Combine
+
+public final class HTTPClient: HTTPClientProtocol {
+  public init() {}
+  public func send<T: Decodable>(_ request: URLRequest) -> AnyPublisher<T, Error> {
+    URLSession.shared.dataTaskPublisher(for: request)
+      .map(\.data)
+      .decode(type: T.self, decoder: JSONDecoder())
+      .receive(on: DispatchQueue.main)
+      .eraseToAnyPublisher()
+  }
+}
+//
+//  HTTPClient.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/20/25.
+//
+
+
+import Foundation
+import Combine
+
+public protocol HTTPClientProtocol {
+  func send<T: Decodable>(_ request: URLRequest) -> AnyPublisher<T, Error>
+}
+
+//
+//  POIRepository.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/1/25.
+//
+
+
+import Combine
+import Foundation
+
+public final class POIRepository: POIServiceProtocol {
+    private let remote: POIServiceProtocol
+    private let local: POIServiceProtocol
+    private let cache: POICacheProtocol
+    private var didLoadRemote = false
+    
+    public init(remote: POIServiceProtocol,
+                local: POIServiceProtocol,
+                cache: POICacheProtocol) {
+        self.remote = remote
+        self.local = local
+        self.cache = cache
+    }
+
+    public func fetchPOIs() -> AnyPublisher<[POI], Error> {
+        if !didLoadRemote {
+            didLoadRemote = true
+            // Сначала кеш, потом remote
+            let cachePublisher = Deferred {
+                Future<[POI], Error> { [weak self] promise in
+                    DispatchQueue.global(qos: .userInitiated).async {
+                        let pois = self?.cache.load() ?? []
+                        promise(.success(pois))
+                    }
+                }
+            }
+            .eraseToAnyPublisher()
+
+            let remotePublisher = remote.fetchPOIs()
+                .timeout(.seconds(0.1), scheduler: DispatchQueue.global(qos: .userInitiated))
+                .handleEvents(receiveOutput: { [weak self] pois in
+                    self?.cache.save(pois)
+                })
+                .catch { [weak self] _ -> AnyPublisher<[POI], Error> in
+                    guard let self = self else {
+                        return Fail(error: URLError(.unknown)).eraseToAnyPublisher()
+                    }
+                    return self.local.fetchPOIs()
+                        .handleEvents(receiveOutput: { [weak self] pois in self?.cache.save(pois) })
+                        .eraseToAnyPublisher()
+                }
+
+            return cachePublisher
+                .append(remotePublisher)
+                .eraseToAnyPublisher()
+        } else {
+            // Только кеш
+            return Deferred {
+                Future<[POI], Error> { [weak self] promise in
+                    DispatchQueue.global(qos: .userInitiated).async {
+                        let pois = self?.cache.load() ?? []
+                        promise(.success(pois))
+                    }
+                }
+            }
+            .eraseToAnyPublisher()
+        }
+    }
+}
+//
+//  RealmPOICache.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/30/25.
+//
+
+import Foundation
+import RealmSwift
+
+public final class RealmPOICache: POICacheProtocol {
+    public func save(_ pois: [POI]) {
+        autoreleasepool {
+            do {
+                let realm = try Realm()
+                let objects = pois.map { RealmPOI(poi: $0) }
+                try realm.write { realm.add(objects, update: .modified) }
+            } catch { /* лог при желании */ }
+        }
+    }
+
+    public func load() -> [POI] {
+        autoreleasepool {
+            (try? Realm()).map { Array($0.objects(RealmPOI.self)).map { $0.toPOI() } } ?? []
+        }
+    }
+}
+
+public final class RealmPOI: Object {
+    @objc dynamic var id = 0
+    @objc dynamic var name = ""
+    @objc dynamic var latitude = 0.0
+    @objc dynamic var longitude = 0.0
+    @objc dynamic var category: String? = nil
+    @objc dynamic var descriptionText: String? = nil
+    @objc dynamic var imageURLString: String? = nil
+
+    public override static func primaryKey() -> String? { "id" }
+
+    convenience init(poi: POI) {
+        self.init()
+        id = poi.id; name = poi.name
+        latitude = poi.latitude; longitude = poi.longitude
+        category = poi.category
+        descriptionText = poi.description
+        imageURLString = poi.imageURL?.absoluteString
+    }
+
+    func toPOI() -> POI {
+        POI(
+          id: id, name: name,
+          latitude: latitude, longitude: longitude,
+          category: category,
+          description: descriptionText,
+          imageURL: imageURLString.flatMap(URL.init)
+        )
+    }
+}
+
+//
+//  RemotePOIService.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/28/25.
+//
+
+import Foundation
+import Combine
+
+public final class RemotePOIService: POIServiceProtocol {
+    private let httpClient: HTTPClientProtocol
+    private let endpoint = URL(string: "https://api.example.com/pois")!
+
+    public init(httpClient: HTTPClientProtocol) {
+        self.httpClient = httpClient
+    }
+
+    public func fetchPOIs() -> AnyPublisher<[POI], Error> {
+        httpClient.send(URLRequest(url: endpoint))
+    }
+
+}
+//
+//  LocalPOIService.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/28/25.
+//
+
+import Foundation
+import Combine
+
+public final class LocalPOIService: POIServiceProtocol {
+    private let jsonName: String
+
+    public init(jsonName: String = "mock_pois_local") {
+        self.jsonName = jsonName
+    }
+
+    public func fetchPOIs() -> AnyPublisher<[POI], Error> {
+        Deferred {
+            Future<[POI], Error> { promise in
+                DispatchQueue.global(qos: .background).async {
+                    do {
+                        guard let url = Bundle.main.url(forResource: self.jsonName, withExtension: "json") else {
+                            promise(.failure(URLError(.fileDoesNotExist)))
+                            return
+                        }
+                        let data = try Data(contentsOf: url)
+                        let pois = try JSONDecoder().decode([POI].self, from: data)
+                        //Thread.sleep(forTimeInterval: 0)
+                        promise(.success(pois))
+                    } catch {
+                        promise(.failure(error))
+                    }
+                }
+            }
+        }
+        .receive(on: DispatchQueue.main) // результат вернётся на главный поток, удобно для ViewModel/UI
+        .eraseToAnyPublisher()
+    }
+}
+//
+//  POIService.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/20/25.
+//
+
+import Foundation
+import Combine
+
+
+public final class POIService: POIServiceProtocol {
+  private let httpClient: HTTPClientProtocol
+  private let baseURL = URL(string: "https://api.example.com")!
+
+  public init(httpClient: HTTPClientProtocol) {
+    self.httpClient = httpClient
+  }
+
+  public func fetchPOIs() -> AnyPublisher<[POI], Error> {
+    let req = URLRequest(url: baseURL.appendingPathComponent("pois"))
+    return httpClient.send(req)
+      .logError("POIService")
+      .eraseToAnyPublisher()
+  }
+}
+//
+//  NotificationServiceProtocol.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/28/25.
+//
+
+
+import UserNotifications
+import Combine
+
+public protocol NotificationServiceProtocol {
+  func requestAuthorization() -> AnyPublisher<Bool, Never>
+  func schedule(_ content: UNNotificationContent, at date: Date)
+}
+//
+//  NotificationService.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/20/25.
+//
+
+
+import UserNotifications
+import Combine
+
+
+public final class NotificationService: NotificationServiceProtocol {
+  public init() {}
+
+  public func requestAuthorization() -> AnyPublisher<Bool, Never> {
+    Future { promise in
+      UNUserNotificationCenter.current()
+        .requestAuthorization(options: [.alert, .sound]) { granted, _ in
+          promise(.success(granted))
+        }
+    }
+    .eraseToAnyPublisher()
+  }
+
+  public func schedule(_ content: UNNotificationContent, at date: Date) {
+    let interval = max(1, date.timeIntervalSinceNow)
+    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)
+    let req = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+    UNUserNotificationCenter.current().add(req)
+  }
+}
+//
+//  IAPServiceProtocol.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/28/25.
+//
+
+
+
+import StoreKit
+import Combine
+
+public protocol IAPServiceProtocol {
+  /// Асинхронно загружает информацию о продуктах по идентификаторам
+  func fetchProducts() -> AnyPublisher<[Product], Error>
+  /// Запускает покупку и возвращает верифицированную транзакцию или ошибку
+  func purchase(_ product: Product) -> AnyPublisher<Transaction, Error>
+}//
+//  IAPService.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/20/25.
+//
+
+
+
+import StoreKit
+import Combine
+
+public final class IAPService: IAPServiceProtocol {
+  public init() {}
+
+  // MARK: — Загрузка продуктов
+  public func fetchProducts() -> AnyPublisher<[Product], Error> {
+    Deferred {
+      Future { promise in
+        Task {
+          do {
+            let ids: Set<String> = ["com.travelbuddy.premium"]
+            let products = try await Product.products(for: ids)
+            promise(.success(products))
+          } catch {
+            promise(.failure(error))
+          }
+        }
+      }
+    }
+    .eraseToAnyPublisher()
+  }
+
+  // MARK: — Покупка продукта
+  public func purchase(_ product: Product) -> AnyPublisher<Transaction, Error> {
+    Deferred {
+      Future { promise in
+        Task {
+          do {
+            let result = try await product.purchase()
+            switch result {
+            case .success(let verification):
+              // Проверяем подпись транзакции
+              switch verification {
+              case .verified(let transaction):
+                promise(.success(transaction))
+              case .unverified(_, let verificationError):
+                promise(.failure(verificationError))
+              }
+            case .userCancelled:
+              // Пользователь отменил покупку
+              let err = NSError(
+                domain: SKErrorDomain,
+                code: SKError.paymentCancelled.rawValue,
+                userInfo: [NSLocalizedDescriptionKey: "Purchase cancelled"]
+              )
+              promise(.failure(err))
+            case .pending:
+              // Покупка ещё в процессе
+              let err = NSError(
+                domain: SKErrorDomain,
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "Purchase pending"]
+              )
+              promise(.failure(err))
+            @unknown default:
+              // На случай новых кейсов в будущем
+              let err = NSError(
+                domain: SKErrorDomain,
+                code: -2,
+                userInfo: [NSLocalizedDescriptionKey: "Unknown purchase result"]
+              )
+              promise(.failure(err))
+            }
+          } catch {
+            // Ошибка самого await product.purchase()
+            promise(.failure(error))
+          }
+        }
+      }
+    }
+    .eraseToAnyPublisher()
+  }
+}
+//
+//  AnalyticsServiceProtocol.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/28/25.
+//
+
+
+import Foundation
+
+public protocol AnalyticsServiceProtocol {
+  func logEvent(name: String, parameters: [String: Any]?)
+  func recordError(_ error: Error)
+}
+//
+//  AnalyticsService.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/20/25.
+//
+
+import FirebaseAnalytics
+import FirebaseCrashlytics
+
+
+public final class AnalyticsService: AnalyticsServiceProtocol {
+  public init() {}
+  public func logEvent(name: String, parameters: [String: Any]?) {
+    Analytics.logEvent(name, parameters: parameters)
+  }
+  public func recordError(_ error: Error) {
+    Crashlytics.crashlytics().record(error: error)
+  }
+}
+//
+//  POICategoryFilter.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/1/25.
+//
+
+import Foundation
+
+public enum POICategoryFilter: String, CaseIterable, Identifiable {
+    case all = "All", monument = "Monument", museum = "Museum", cafe = "Cafe"
+    public var id: String { rawValue }
+}
+
+
+//
+//  POI.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/20/25.
+//
+
+import Foundation
+
+public struct POI: Identifiable, Decodable, Hashable {
+    public let id: Int
+    public let name: String
+    public let latitude: Double
+    public let longitude: Double
+    public let category: String?
+    public let description: String?
+    public let imageURL: URL?
+}
+//
+//  POIServiceProtocol.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/11/25.
+//
+
+
+import Foundation
+import Combine
+
+public protocol POIServiceProtocol {
+  func fetchPOIs() -> AnyPublisher<[POI], Error>
+}//
+//  POICacheProtocol.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/28/25.
+//
+
+
+import Foundation
+
+public protocol POICacheProtocol: AnyObject {
+    func save(_ pois: [POI])
+    func load() -> [POI]
+}
+//
+//  SettingsView.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/23/25.
+//
+
+import SwiftUI
+
+public struct SettingsView<VM: SettingsViewModelProtocol>: View {
+  @ObservedObject var vm: VM
+
+  public init(vm: VM) {
+    self.vm = vm
+  }
+
+  public var body: some View {
+    NavigationView {
+      Form {
+        Toggle("Dark Mode", isOn: Binding(
+          get:  { vm.isDarkMode },
+          set: { _ in vm.toggleDarkMode() }
+        ))
+        Toggle("Notifications", isOn: Binding(
+          get:  { vm.notificationsEnabled },
+          set: { _ in vm.toggleNotifications() }
+        ))
+        Button(action: { vm.purchasePremium() }) {
+          Text(vm.premiumUnlocked ? "Premium Unlocked" : "Unlock Premium")
+        }
+        .disabled(vm.premiumUnlocked)
+      }
+      .navigationTitle("Settings")
+      .alert(item: Binding(
+        get: {
+          vm.errorMessage.map { AlertError(message: $0) }
+        },
+        set: { _ in
+          vm.clearError()
+        }
+      )) { alertError in
+        Alert(title: Text("Error"), message: Text(alertError.message))
+      }
+    }
+  }
+}
+
+
+private struct AlertError: Identifiable {
+  let id = UUID()
+  let message: String
+}
+//
+//  SettingsViewModel.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/20/25.
+//
+
+import Combine
+import StoreKit
+import SwiftUI
+
+public protocol SettingsViewModelProtocol: ObservableObject {
+    var objectWillChange: ObservableObjectPublisher { get }
+    
+    var isDarkMode: Bool { get }
+    var notificationsEnabled: Bool { get }
+    var premiumUnlocked: Bool { get }
+    var errorMessage: String? { get }
+
+    func toggleDarkMode()
+    func toggleNotifications()
+    func purchasePremium()
+    func clearError()
+}
+
+
+public final class SettingsViewModel: SettingsViewModelProtocol {
+    public let objectWillChange = ObservableObjectPublisher()
+    
+    @Published public private(set) var isDarkMode = false
+    @Published public private(set) var notificationsEnabled = false
+    @Published public private(set) var premiumUnlocked = false
+    @Published public private(set) var errorMessage: String?
+
+    // Твои сервисы
+    private let iapService: IAPServiceProtocol
+    private let analytics: AnalyticsServiceProtocol
+    private let notification: NotificationServiceProtocol
+
+    public init(iapService: IAPServiceProtocol,
+                analytics: AnalyticsServiceProtocol,
+                notification: NotificationServiceProtocol) {
+        self.iapService = iapService
+        self.analytics = analytics
+        self.notification = notification
+    }
+
+    public func toggleDarkMode() {
+        isDarkMode.toggle()
+        analytics.logEvent(name: "DarkModeToggled", parameters: ["enabled": isDarkMode])
+        objectWillChange.send()
+    }
+
+    public func toggleNotifications() {
+        notificationsEnabled.toggle()
+        analytics.logEvent(name: "NotificationsToggled", parameters: ["enabled": notificationsEnabled])
+        objectWillChange.send()
+    }
+
+    public func purchasePremium() {
+        // твоя логика покупки
+        objectWillChange.send()
+    }
+
+    public func clearError() {
+        errorMessage = nil
+        objectWillChange.send()
+    }
+}
+//
+//  AnySettingsViewModel.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/24/25.
+//
+
+import Combine
+import StoreKit
+import SwiftUI
+
+
+
+final class AnySettingsViewModel: ObservableObject, SettingsViewModelProtocol {
+    private let wrapped: any SettingsViewModelProtocol
+    private var cancellables = Set<AnyCancellable>()
+
+    let objectWillChange = ObservableObjectPublisher()
+
+    @Published private(set) var isDarkMode: Bool = false
+    @Published private(set) var notificationsEnabled: Bool = false
+    @Published private(set) var premiumUnlocked: Bool = false
+    @Published private(set) var errorMessage: String?
+
+    init(_ wrapped: any SettingsViewModelProtocol) {
+        self.wrapped = wrapped
+
+        // Теперь здесь гарантированно совпадают типы
+        wrapped.objectWillChange
+            .sink { [weak self] _ in
+                self?.syncProperties()
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+
+        syncProperties()
+    }
+
+    private func syncProperties() {
+        isDarkMode = wrapped.isDarkMode
+        notificationsEnabled = wrapped.notificationsEnabled
+        premiumUnlocked = wrapped.premiumUnlocked
+        errorMessage = wrapped.errorMessage
+    }
+
+    func toggleDarkMode() { wrapped.toggleDarkMode() }
+    func toggleNotifications() { wrapped.toggleNotifications() }
+    func purchasePremium() { wrapped.purchasePremium() }
+    func clearError() { wrapped.clearError() }
+}
+//
+//  POIDetailViewModelProtocol.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/11/25.
+//
+
+
+import Combine
+import MapKit
+
+public protocol POIDetailViewModelProtocol: AnyObject {
+  // Outputs
+  var model: POIDetailModel { get }
+  var isLoadingAddress: Bool { get }
+  var address: String? { get }
+  var errorMessage: String? { get }
+
+  // User actions
+  func onAppear()
+  func didTapShare()
+  func didTapOpenInMaps()
+  func didTapClose()
+
+  // Publishers for Coordinator/Router
+  var sharePublisher: AnyPublisher<URL, Never> { get }
+  var openInMapsPublisher: AnyPublisher<MKMapItem, Never> { get }
+  var closePublisher: AnyPublisher<Void, Never> { get }
+
+  // Publisher for model updates
+  var modelPublisher: AnyPublisher<POIDetailModel, Never> { get }
+}
+
+@MainActor
+public final class POIDetailViewModel: ObservableObject, POIDetailViewModelProtocol {
+  @Published public private(set) var model: POIDetailModel
+  @Published public private(set) var isLoadingAddress = false
+  @Published public private(set) var address: String?
+  @Published public private(set) var errorMessage: String?
+
+  private let geocoder = CLGeocoder()
+  private var cancellables = Set<AnyCancellable>()
+
+  public init(poi: POI) {
+    self.model = POIDetailModel(poi: poi,
+                                address: nil,
+                                imageData: nil)
+  }
+
+  public func onAppear() {
+    guard address == nil else { return }
+    isLoadingAddress = true
+    let loc = CLLocation(latitude: model.poi.latitude,
+                         longitude: model.poi.longitude)
+    geocoder.reverseGeocodeLocation(loc) { [weak self] places, error in
+      DispatchQueue.main.async {
+        if let err = error {
+            self?.isLoadingAddress = false
+          self?.errorMessage = err.localizedDescription
+        } else {
+          self?.address = places?.first?.compactAddress
+        }
+      }
+    }
+  }
+
+  public func didTapShare() {
+    let p = model.poi
+    let url = URL(string: "https://maps.apple.com/?ll=\(p.latitude),\(p.longitude)")!
+    shareSubject.send(url)
+  }
+
+  public func didTapOpenInMaps() {
+    let p = model.poi
+    let coord = CLLocationCoordinate2D(latitude: p.latitude,
+                                       longitude: p.longitude)
+    let item = MKMapItem(placemark: MKPlacemark(coordinate: coord))
+    item.name = p.name
+    openInMapsSubject.send(item)
+  }
+
+  public func didTapClose() {
+    closeSubject.send(())
+  }
+
+  // Internal subjects
+  private let shareSubject      = PassthroughSubject<URL, Never>()
+  private let openInMapsSubject = PassthroughSubject<MKMapItem, Never>()
+  private let closeSubject      = PassthroughSubject<Void, Never>()
+
+  // Protocol publishers
+  public var sharePublisher: AnyPublisher<URL, Never> {
+    shareSubject.eraseToAnyPublisher()
+  }
+  public var openInMapsPublisher: AnyPublisher<MKMapItem, Never> {
+    openInMapsSubject.eraseToAnyPublisher()
+  }
+  public var closePublisher: AnyPublisher<Void, Never> {
+    closeSubject.eraseToAnyPublisher()
+  }
+
+  public var modelPublisher: AnyPublisher<POIDetailModel, Never> {
+    $model.eraseToAnyPublisher()
+  }
+}
+
+private extension CLPlacemark {
+  var compactAddress: String {
+    [subThoroughfare, thoroughfare, locality, administrativeArea]
+      .compactMap { $0 }
+      .joined(separator: ", ")
+  }
+}
+//
+//  POIDetailRoute.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/11/25.
+//
+
+
+import Combine
+import MapKit
+
+public enum POIDetailRoute: Hashable, Identifiable {
+  case share(URL)
+  case openInMaps(MKMapItem)
+  case close
+
+  public var id: String {
+    switch self {
+    case .share(let url):
+      return "share:\(url.absoluteString)"
+    case .openInMaps(let item):
+      let c = item.placemark.coordinate
+      return "open:\(c.latitude),\(c.longitude)"
+    case .close:
+      return "close"
+    }
+  }
+}
+
+@MainActor
+public final class POIDetailRouter: ObservableObject {
+  public let routes = PassthroughSubject<POIDetailRoute, Never>()
+  private var cancellables = Set<AnyCancellable>()
+
+  public init(viewModel: POIDetailViewModel) {
+    // мы теперь используем конкретную ViewModel
+    viewModel.sharePublisher
+      .map(POIDetailRoute.share)
+      .sink { [routes] in routes.send($0) }
+      .store(in: &cancellables)
+
+    viewModel.openInMapsPublisher
+      .map(POIDetailRoute.openInMaps)
+      .sink { [routes] in routes.send($0) }
+      .store(in: &cancellables)
+
+    viewModel.closePublisher
+      .map { _ in POIDetailRoute.close }
+      .sink { [routes] in routes.send($0) }
+      .store(in: &cancellables)
+  }
+}
+// Presentation/Scenes/POIDetail/Navigation/POIDetailCoordinator.swift
+import SwiftUI
+import Combine
+import Swinject
+
+@MainActor
+public final class POIDetailCoordinator: ObservableObject {
+    @Published private(set) var sheetRoute: POIDetailRoute?
+    @Published private(set) var model: POIDetailModel
+
+    private let viewModel: POIDetailViewModel
+    private let router: POIDetailRouter
+    private var cancellables = Set<AnyCancellable>()
+
+    
+    public init(poi: POI, resolver: Resolver? = nil) {
+        let r = resolver ?? DIContainer.shared.resolver
+        // получаем конкретную VM через переданный resolver
+        guard let vm = r.resolve(POIDetailViewModel.self, argument: poi) else {
+            preconditionFailure("Swinject: POIDetailViewModel не зарегистрирован для \(POI.self)")
+        }
+
+        self.viewModel = vm
+        self.router    = POIDetailRouter(viewModel: vm)
+        self.model     = vm.model
+
+        // Навигация
+        router.routes
+            .sink { [weak self] route in
+                switch route {
+                case .share(let url):       self?.sheetRoute = .share(url)
+                case .openInMaps(let item): item.openInMaps(launchOptions: nil)
+                case .close:                self?.sheetRoute = nil
+                }
+            }
+            .store(in: &cancellables)
+
+        // Синхронизация модели
+        vm.modelPublisher
+            .sink { [weak self] newModel in
+                self?.model = newModel
+            }
+            .store(in: &cancellables)
+    }
+
+    @ViewBuilder
+    public func rootView() -> some View {
+        let binding = Binding<POIDetailRoute?>(
+            get: { self.sheetRoute },
+            set: { self.sheetRoute = $0 }
+        )
+        POIDetailView(viewModel: viewModel, sheetRoute: binding)
+    }
+}
+//
+//  POIDetailModel.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/11/25.
+//
+
+
+import Foundation
+
+public struct POIDetailModel {
+  public let poi: POI
+  public let address: String?
+  public let imageData: Data?
+
+  public init(
+    poi: POI,
+    address: String?,
+    imageData: Data?
+  ) {
+    self.poi = poi
+    self.address = address
+    self.imageData = imageData
+  }
+}
+//
+//  POIDetailView.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/11/25.
+//
+
+
+import SwiftUI
+import MapKit
+
+public struct POIDetailView: View {
+  @ObservedObject private var vm: POIDetailViewModel
+  @Binding       private var sheetRoute: POIDetailRoute?
+
+  public init(
+    viewModel: POIDetailViewModel,
+    sheetRoute: Binding<POIDetailRoute?>
+  ) {
+    self.vm = viewModel
+    self._sheetRoute = sheetRoute
+  }
+
+  public var body: some View {
+    VStack(spacing: 16) {
+      HStack { Spacer()
+        Button(action: vm.didTapClose) {
+          Image(systemName: "xmark.circle.fill")
+            .font(.title2)
+        }
+      }
+
+      Text(vm.model.poi.name)
+        .font(.largeTitle)
+
+      if vm.isLoadingAddress {
+        ProgressView("Loading address…")
+      } else if let addr = vm.address {
+        Text(addr).italic()
+      } else if let err = vm.errorMessage {
+        Text(err).foregroundColor(.red)
+      }
+
+      Button("Share",        action: vm.didTapShare)
+      Button("Open in Maps", action: vm.didTapOpenInMaps)
+      Spacer()
+    }
+    .padding()
+    .onAppear(perform: vm.onAppear)
+    .navigationTitle(vm.model.poi.name)
+    .sheet(item: $sheetRoute) { route in
+      switch route {
+      case .share(let url):
+        ActivityViewController(activityItems: [url])
+      default:
+        EmptyView()
+      }
+    }
+  }
+}
+
+// UIKit wrapper
+struct ActivityViewController: UIViewControllerRepresentable {
+  let activityItems: [Any]
+
+  func makeUIViewController(
+    context: Context
+  ) -> UIActivityViewController {
+    UIActivityViewController(
+      activityItems: activityItems,
+      applicationActivities: nil
+    )
+  }
+
+  func updateUIViewController(
+    _ vc: UIActivityViewController,
+    context: Context
+  ) {}
+}
+//
+//  POIMapViewModelProtocol.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/7/25.
+//
+
+
+import Combine
+import MapKit
+
+public protocol POIMapViewModelProtocol: ObservableObject {
+    var annotations: [POIAnnotation] { get }
+    var selectedPOI: POI? { get }
+    func fetch()
+    func select(annotation: POIAnnotation)
+}
+
+public final class POIMapViewModel: POIMapViewModelProtocol {
+    // Output
+    @Published public private(set) var annotations: [POIAnnotation] = []
+    @Published public private(set) var selectedPOI: POI?
+
+    // Deps
+    private let service: POIServiceProtocol
+    private let factory: AnnotationFactory
+    private var bag = Set<AnyCancellable>()
+
+    init(service: POIServiceProtocol,
+                factory: AnnotationFactory = DefaultAnnotationFactory()) {
+        self.service  = service
+        self.factory  = factory
+    }
+
+    public func fetch() {
+        service.fetchPOIs()
+            .map(factory.makeAnnotations)
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { _ in },
+                  receiveValue: { [weak self] in self?.annotations = $0 })
+            .store(in: &bag)
+    }
+
+    public func select(annotation: POIAnnotation) {
+        selectedPOI = annotation.poi
+    }
+}
+//
+//  AnyPOIMapViewModel.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/7/25.
+//
+
+
+import Combine
+import SwiftUI
+
+public final class AnyPOIMapViewModel: ObservableObject {
+    // -------- SwiftUI bindings --------
+    @Published public var annotations: [POIAnnotation] = []
+    @Published public var selectedPOI: POI?            = nil
+
+    // -------- Internals --------
+    private let wrapped: any POIMapViewModelProtocol
+    private var bag = Set<AnyCancellable>()
+
+    // MARK: – init
+    public init(_ wrapped: any POIMapViewModelProtocol) {
+        self.wrapped      = wrapped
+        self.annotations  = wrapped.annotations
+        self.selectedPOI  = wrapped.selectedPOI
+
+        // Если это именно POIMapViewModel, подписываемся на его @Published-поля
+        if let concrete = wrapped as? POIMapViewModel {
+            concrete.$annotations
+                .receive(on: DispatchQueue.main)
+                .assign(to: &$annotations)
+
+            concrete.$selectedPOI
+                .receive(on: DispatchQueue.main)
+                .assign(to: &$selectedPOI)
+        }
+    }
+
+    // MARK: – Facade
+    public func fetch()                           { wrapped.fetch() }
+    public func select(annotation: POIAnnotation) { wrapped.select(annotation: annotation) }
+}
+//
+//  MapRoute.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/11/25.
+//
+
+
+import SwiftUI
+import Combine
+
+enum MapRoute: Hashable {
+    case detail(POI)
+}
+
+enum MapNavigationCommand {
+    case detail(POI)
+    case back
+    case reset
+}
+
+@MainActor
+final class MapRouter: ObservableObject {
+    fileprivate var cancellables = Set<AnyCancellable>()
+    let routes = PassthroughSubject<MapNavigationCommand, Never>()
+
+    func goDetail(_ poi: POI) {
+        routes.send(MapNavigationCommand.detail(poi))
+    }
+
+    func goBack() {
+        routes.send(MapNavigationCommand.back)
+    }
+
+    func reset() {
+        routes.send(MapNavigationCommand.reset)
+    }
+}//
+//  MapCoordinator.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/10/25.
+//
+
+
+import SwiftUI
+import Combine
+
+@MainActor
+final class MapCoordinator {
+    private let vm: AnyPOIMapViewModel
+    private let router: MapRouter
+    
+    init(vm: AnyPOIMapViewModel, router: MapRouter) {
+        self.vm     = vm
+        self.router = router
+    }
+    
+    /// Отдаём единственный корневой view
+    func rootView() -> some View {
+        MapContainer(vm: vm, router: router)
+    }
+}
+
+//
+//  POIAnnotation.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/7/25.
+//
+
+
+import MapKit
+
+/// Простая обёртка над POI, чтобы стать MKAnnotation
+public final class POIAnnotation: NSObject, MKAnnotation {
+    let poi: POI
+
+    // локально собираем координату, модель POI не меняем
+    public var coordinate: CLLocationCoordinate2D {
+        .init(latitude: poi.latitude, longitude: poi.longitude)
+    }
+
+    public var title: String?    { poi.name      }
+    public var subtitle: String? { poi.category  }
+
+    init(poi: POI) { self.poi = poi }
+}
+
+/// SRP-фабрика для тестов и явной зависимости
+protocol AnnotationFactory {
+    func makeAnnotations(from pois: [POI]) -> [POIAnnotation]
+}
+
+struct DefaultAnnotationFactory: AnnotationFactory {
+    func makeAnnotations(from pois: [POI]) -> [POIAnnotation] {
+        pois.map(POIAnnotation.init)
+    }
+}
+//
+//  POISnippetView.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/7/25.
+//
+
+
+
+import SwiftUI
+import MapKit
+
+struct POISnippetView: View {
+    let poi: POI
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(poi.name).font(.title2).bold()
+            if let cat = poi.category { Text(cat).foregroundColor(.secondary) }
+            if let desc = poi.description { Text(desc).lineLimit(3) }
+
+            HStack {
+                Button("Details") {
+                    NotificationCenter.default.post(name: .openPOIDetail, object: poi)
+                    dismiss()
+                }
+                .buttonStyle(.borderedProminent)
+
+                Spacer()
+                Button("Route") {
+                    let coord = CLLocationCoordinate2D(latitude: poi.latitude,
+                                                        longitude: poi.longitude)
+                    MKMapItem(placemark: MKPlacemark(coordinate: coord))
+                        .openInMaps()
+                }
+            }
+        }
+        .padding()
+    }
+}
+
+extension Notification.Name {
+    static let openPOIDetail = Notification.Name("openPOIDetail")
+}
+//
+//  MapViewRepresentable.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/7/25.
+//
+
+
+
+import SwiftUI
+import MapKit
+
+struct MapViewRepresentable: UIViewRepresentable {
+    let annotations: [POIAnnotation]
+    let onSelect: (POIAnnotation) -> Void
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    func makeUIView(context: Context) -> MKMapView {
+        let map = MKMapView()
+        map.delegate = context.coordinator
+        map.register(MKMarkerAnnotationView.self,
+                     forAnnotationViewWithReuseIdentifier: "marker")
+        map.showsUserLocation       = true
+        map.pointOfInterestFilter   = .excludingAll
+        return map
+    }
+
+    func updateUIView(_ map: MKMapView, context: Context) {
+        map.removeAnnotations(map.annotations)
+        map.addAnnotations(annotations)
+
+        if let first = annotations.first {
+            map.setRegion(
+                .init(center: first.coordinate,
+                      latitudinalMeters: 4000,
+                      longitudinalMeters: 4000),
+                animated: false
+            )
+        }
+    }
+
+    // MARK: - Coordinator
+    final class Coordinator: NSObject, MKMapViewDelegate {
+        let parent: MapViewRepresentable
+        init(_ parent: MapViewRepresentable) { self.parent = parent }
+
+        func mapView(_ mapView: MKMapView,
+                     didSelect view: MKAnnotationView) {
+            guard let anno = view.annotation as? POIAnnotation else { return }
+            parent.onSelect(anno)
+        }
+
+        func mapView(_ mapView: MKMapView,
+                     viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+            guard !(annotation is MKClusterAnnotation),
+                  annotation is POIAnnotation else { return nil }
+
+            let v = mapView.dequeueReusableAnnotationView(withIdentifier: "marker",
+                                                          for: annotation) as! MKMarkerAnnotationView
+            v.displayPriority      = .defaultHigh
+            v.clusteringIdentifier = "poi"
+            v.markerTintColor      = .systemBlue
+            v.glyphImage           = UIImage(systemName: "mappin")
+            v.canShowCallout       = false
+            return v
+        }
+    }
+}
+//
+//  POIMapView.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/7/25.
+//
+
+
+
+import SwiftUI
+import MapKit
+
+public struct POIMapView: View {
+    @StateObject private var vm: AnyPOIMapViewModel
+    @EnvironmentObject private var router: MapRouter
+
+    public init(viewModel: AnyPOIMapViewModel) {
+        _vm = StateObject(wrappedValue: viewModel)
+    }
+
+    public var body: some View {
+        MapViewRepresentable(
+            annotations: vm.annotations,
+            onSelect: { annotation in
+                // при выборе точки — отправляем команду в роутер
+                router.goDetail(annotation.poi)
+            }
+        )
+        .ignoresSafeArea()
+        .onAppear { vm.fetch() }
+        .navigationTitle("Map")
+    }
+}
+
+//
+//  MapContainer.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/17/25.
+//
+
+
+import SwiftUI
+import Combine
+import Swinject
+
+struct MapContainer: View {
+    // ---------- State ----------
+    @State private var navPath = NavigationPath()
+    @StateObject private var router: MapRouter
+    @StateObject private var vm: AnyPOIMapViewModel
+
+    // ---------- Init ----------
+    init(vm: AnyPOIMapViewModel, router: MapRouter) {
+        _vm     = StateObject(wrappedValue: vm)
+        _router = StateObject(wrappedValue: router)
+    }
+
+    // ---------- UI ----------
+    var body: some View {
+        NavigationStack(path: $navPath) {
+            POIMapView(viewModel: vm)
+                .navigationDestination(for: MapRoute.self) { route in
+                    switch route {
+                    case .detail(let poi):
+                        let r = DIContainer.shared.resolver
+                        
+                        r.resolve(POIDetailCoordinator.self, argument: poi)?
+                            .rootView()
+                    }
+                }
+        }
+        // -------- Router → NavigationPath --------
+        .onReceive(router.routes) { command in
+            switch command {
+            case .detail(let poi):
+                navPath.append(MapRoute.detail(poi))
+
+            case .back:
+                if !navPath.isEmpty { navPath.removeLast() }
+
+            case .reset:
+                navPath.removeLast(navPath.count)
+            }
+        }
+        .environmentObject(router)   // нужен внутри POIMapView
+    }
+}
+//
+//  POIListViewModel.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/20/25.
+//
+
+
+
+import Combine
+import CoreLocation
+import MapKit
+
+public protocol POIListViewModelProtocol: AnyObject {
+    // Inputs
+    var filter: POICategoryFilter { get set }
+    func fetchPOIs()
+    func openInMaps(poi: POI)
+    
+    // Outputs
+    var pois: [POI] { get }
+    var isLoading: Bool { get }
+    var errorMessage: String? { get }
+}
+
+public final class POIListViewModel: ObservableObject, POIListViewModelProtocol {
+    // MARK: Inputs
+    @Published public var filter: POICategoryFilter = .all
+    
+    // MARK: Internal state
+    private var allPois: [POI] = []
+    
+    // MARK: Outputs
+    @Published public private(set) var pois: [POI] = []
+    @Published public private(set) var isLoading: Bool = false
+    @Published public private(set) var errorMessage: String? = nil
+    
+    private let repository: POIServiceProtocol
+    private var cancellables = Set<AnyCancellable>()
+    
+    public init(repository: POIServiceProtocol) {
+        self.repository = repository
+        
+        // Локальная фильтрация при смене filter
+        $filter
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newFilter in
+                self?.applyFilter(using: newFilter)
+            }
+            .store(in: &cancellables)
+    }
+    
+    public func fetchPOIs() {
+        isLoading = true
+        errorMessage = nil
+        
+        repository.fetchPOIs()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] completion in
+                guard let self = self else { return }
+                self.isLoading = false
+                if case let .failure(err) = completion {
+                    self.errorMessage = err.localizedDescription
+                }
+            } receiveValue: { [weak self] list in
+                guard let self = self else { return }
+                self.allPois = list
+                self.applyFilter()
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func applyFilter(using filter: POICategoryFilter? = nil) {
+        let effective = filter ?? self.filter
+        pois = (effective == .all)
+            ? allPois
+            : allPois.filter { $0.category == effective.rawValue }
+    }
+    
+    public func openInMaps(poi: POI) {
+        let coord = CLLocationCoordinate2D(latitude: poi.latitude,
+                                           longitude: poi.longitude)
+        let item = MKMapItem(placemark: MKPlacemark(coordinate: coord))
+        item.name = poi.name
+        item.openInMaps(launchOptions: nil)
+    }
+}
+//
+//  AnyPOIListViewModel.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/1/25.
+//
+
+import Foundation
+import Combine
+
+public final class AnyPOIListViewModel: ObservableObject {
+    @Published public var filter: POICategoryFilter = .all
+    @Published public var pois: [POI] = []
+    @Published public var isLoading: Bool = false
+    @Published public var errorMessage: String? = nil
+
+    private let wrapped: POIListViewModelProtocol
+    private var cancellables = Set<AnyCancellable>()
+
+    public init(_ wrapped: POIListViewModelProtocol) {
+        self.wrapped = wrapped
+        self.filter = wrapped.filter
+
+        // 1. Пробрасываем filter из wrapper в wrapped
+        $filter
+            .dropFirst()
+            .sink { [weak self] newFilter in
+                guard let self else { return }
+                if self.wrapped.filter != newFilter {
+                    self.wrapped.filter = newFilter
+                }
+            }
+            .store(in: &cancellables)
+
+        // 2. Пробрасываем filter из wrapped наружу (если вдруг он меняется)
+        if let vm = wrapped as? POIListViewModel {
+            vm.$filter
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] newFilter in
+                    guard let self else { return }
+                    if self.filter != newFilter {
+                        self.filter = newFilter
+                    }
+                }
+                .store(in: &cancellables)
+
+            vm.$pois
+                .receive(on: DispatchQueue.main)
+                .assign(to: &$pois)
+            vm.$isLoading
+                .receive(on: DispatchQueue.main)
+                .assign(to: &$isLoading)
+            vm.$errorMessage
+                .receive(on: DispatchQueue.main)
+                .assign(to: &$errorMessage)
+        }
+    }
+
+    public func fetchPOIs() { wrapped.fetchPOIs() }
+    public func openInMaps(poi: POI) { wrapped.openInMaps(poi: poi) }
+}
+//
+//  POIListRoute.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/11/25.
+//
+
+
+import SwiftUI
+import Combine
+
+enum POIListRoute: Hashable {
+    case detail(POI)
+}
+
+enum POIListNavigationCommand {
+    case detail(POI)
+    case back
+    case reset
+}
+
+@MainActor
+final class POIListRouter: ObservableObject {
+    let routes = PassthroughSubject<POIListNavigationCommand, Never>()
+    fileprivate var cancellables = Set<AnyCancellable>()
+    
+    func goDetail(_ poi: POI){
+        routes.send(.detail(poi))
+    }
+    func goBack(){
+        routes.send(.back)
+    }
+    func reset(){
+        routes.send(.reset)
+    }
+}
+//
+//  POIListRoute.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/10/25.
+//
+
+
+import SwiftUI
+
+@MainActor
+final class POIListCoordinator {
+    private let viewModel: AnyPOIListViewModel
+    private let router: POIListRouter
+
+    init(viewModel: AnyPOIListViewModel, router: POIListRouter) {
+        self.viewModel = viewModel
+        self.router = router
+    }
+
+    @ViewBuilder
+    func rootView() -> some View {
+        POIListContainer(vm: viewModel, router: router)
+    }
+}
+//
+//  POIImageView.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/2/25.
+//
+
+import SwiftUI
+
+public struct POIImageView: View {
+    let imagePath: String?
+
+    public init(imagePath: String?) {
+        self.imagePath = imagePath
+    }
+
+    public var body: some View {
+        VStack {
+            if let imagePath,
+               let imageName = imagePath.split(separator: "/").last {
+                let components = imageName.split(separator: ".")
+                if components.count == 2 {
+                    let name = String(components[0])
+                    let ext = String(components[1])
+                    if let url = Bundle.main.url(forResource: name, withExtension: ext),
+                       let uiImage = UIImage(contentsOfFile: url.path) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFit()
+                    } else {
+                        Text("❌ \(name).\(ext)")
+                            .foregroundColor(.red)
+                        Text("Path: \(imagePath)")
+                            .font(.caption)
+                    }
+                } else {
+                    Text("❌ Invalid path: \(imagePath)")
+                }
+            } else {
+                Text("No image")
+            }
+        }
+    }
+}
+//
+//  POIListContainer.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 9/11/25.
+//
+
+
+import SwiftUI
+import Combine
+
+/// Обёртка сцены списка:
+/// — владеет NavigationPath,
+/// — слушает POIListRouter и применяет команды к $path,
+/// — лениво резолвит координатор деталки.
+struct POIListContainer: View {
+    @State private var path = NavigationPath()
+    @StateObject private var vm: AnyPOIListViewModel
+    @StateObject private var router: POIListRouter
+
+    init(vm: AnyPOIListViewModel, router: POIListRouter) {
+        _vm = StateObject(wrappedValue: vm)
+        _router = StateObject(wrappedValue: router)
+    }
+
+    var body: some View {
+        NavigationStack(path: $path) {
+            POIListView(viewModel: vm)
+                .navigationDestination(for: POIListRoute.self) { route in
+                    switch route {
+                    case .detail(let poi):
+                        DIContainer.shared.resolver
+                            .resolve(POIDetailCoordinator.self, argument: poi)!
+                            .rootView()
+                    }
+                }
+        }
+        .onReceive(router.routes) { cmd in
+            switch cmd {
+            case .detail(let poi): path.append(POIListRoute.detail(poi))
+            case .back: if !path.isEmpty { path.removeLast() }
+            case .reset: if !path.isEmpty { path.removeLast(path.count) }
+            }
+        }
+        .environmentObject(router)
+    }
+}
+//
+//  POIListView.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/1/25.
+//
+
+
+import SwiftUI
+
+public struct POIListView: View {
+    @ObservedObject var viewModel: AnyPOIListViewModel
+    @EnvironmentObject var router: POIListRouter
+    
+    public init(viewModel: AnyPOIListViewModel) {
+        self.viewModel = viewModel
+    }
+
+    public var body: some View {
+        Group {
+            if viewModel.isLoading {
+                ProgressView()
+            } else if let err = viewModel.errorMessage {
+                VStack(spacing: 16) {
+                    Text("Error: \(err)")
+                        .multilineTextAlignment(.center)
+                    Button("Retry") {
+                        viewModel.fetchPOIs()
+                    }
+                }
+                .padding()
+            } else {
+                // Сегментированный фильтр
+                Picker("Category", selection: $viewModel.filter) {
+                    ForEach(POICategoryFilter.allCases) {
+                        Text($0.rawValue).tag($0)
+                    }
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .padding(.vertical)
+
+                // Список с кнопками вместо NavigationLink
+                List(viewModel.pois) { poi in
+                    Button {
+                        router.goDetail(poi)
+                    } label: {
+                        HStack {
+                            POIImageView(imagePath: poi.imageURL?.path)
+                                .frame(width: 48, height: 48)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .padding(.trailing, 4)
+
+                            VStack(alignment: .leading) {
+                                Text(poi.name)
+                                    .font(.headline)
+                                if let c = poi.category {
+                                    Text(c)
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+                .listStyle(PlainListStyle())
+            }
+        }
+        .navigationTitle("Places")
+        .onAppear {
+            viewModel.fetchPOIs()
+        }
+    }
+}
+//
+//  AnyOnboardingViewModel.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/26/25.
+//
+
+import Combine
+
+/// Универсальный Any-ViewModel для Onboarding, скрывает конкретный тип
+public final class AnyOnboardingViewModel: OnboardingViewModelProtocol {
+    // MARK: — ObservableObject conformance
+    public let objectWillChange = ObservableObjectPublisher()
+    private var cancellables = Set<AnyCancellable>()
+    
+    // MARK: — Outputs
+    @Published public private(set) var pages: [OnboardingPage]
+    @Published public private(set) var currentPage: Int
+    @Published public private(set) var hasCompletedOnboarding: Bool
+    
+    
+    // MARK: — Wrapped instance
+    private let wrapped: any OnboardingViewModelProtocol
+    
+    /// Инициализируем тип-стирающую «обёртку»
+    public init(_ wrapped: any OnboardingViewModelProtocol) {
+        self.wrapped = wrapped
+        // копируем начальные значения
+        self.pages               = wrapped.pages
+        self.currentPage         = wrapped.currentPage
+        self.hasCompletedOnboarding = wrapped.hasCompletedOnboarding
+        
+        // подписываемся на objectWillChange wrapped-VM,
+        // чтобы передавать события субъективного обновления и синхронизировать свойства
+        wrapped.objectWillChange
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                self.pages               = self.wrapped.pages
+                self.currentPage         = self.wrapped.currentPage
+                self.hasCompletedOnboarding = self.wrapped.hasCompletedOnboarding
+                self.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+    }
+    
+    // MARK: — Inputs: просто делегируем вызовы
+    public func next() {
+        wrapped.next()
+    }
+    public func previous() {
+        wrapped.previous()
+    }
+    public func skip() {
+        wrapped.skip()
+    }
+}
+//
+//  OnboardingViewModel.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/26/25.
+//
+
+
+import Combine
+import Foundation
+
+public protocol OnboardingViewModelProtocol: ObservableObject {
+    /// Чтобы View могла подписаться на любые изменения
+    var objectWillChange: ObservableObjectPublisher { get }
+    
+    // MARK: — Outputs
+    var pages: [OnboardingPage] { get }
+    var currentPage: Int { get }
+    var hasCompletedOnboarding: Bool { get }
+    
+    // MARK: — Inputs
+    func next()
+    func previous()
+    func skip()
+}
+
+public final class OnboardingViewModel: OnboardingViewModelProtocol {
+    // MARK: — ObservableObject conformance
+    public let objectWillChange = ObservableObjectPublisher()
+    
+    // MARK: — Outputs
+    @Published public private(set) var currentPage: Int = 0
+    @Published public private(set) var hasCompletedOnboarding: Bool
+    
+    public let pages: [OnboardingPage]
+    private var cancellables = Set<AnyCancellable>()
+    
+    public init() {
+        // Страницы онбординга
+        self.pages = [
+            OnboardingPage(
+                id: 0,
+                imageName: "onb1",
+                title: "Welcome to TravelBuddy",
+                description: "Discover new places and plan your journeys with ease."
+            ),
+            OnboardingPage(
+                id: 1,
+                imageName: "onb2",
+                title: "Track Your Route",
+                description: "Use our interactive map to mark and save your favorite spots."
+            ),
+            OnboardingPage(
+                id: 2,
+                imageName: "onb3",
+                title: "Stay Notified",
+                description: "Get reminders about upcoming trips and special offers."
+            )
+        ]
+        self.hasCompletedOnboarding = UserDefaults.standard.hasCompletedOnboarding
+    }
+    
+    // MARK: — Inputs
+    
+    public func next() {
+        guard currentPage < pages.count - 1 else {
+            skip()
+            return
+        }
+        currentPage += 1
+        objectWillChange.send()                 // <-- уведомляем SwiftUI заранее
+    }
+    
+    public func previous() {
+        guard currentPage > 0 else { return }
+        currentPage -= 1
+        objectWillChange.send()
+    }
+    
+    public func skip() {
+        hasCompletedOnboarding = true
+        UserDefaults.standard.hasCompletedOnboarding = true
+        objectWillChange.send()
+    }
+}
+//
+//  OnboardingPage.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/26/25.
+//
+
+
+import Foundation
+
+public struct OnboardingPage: Identifiable {
+  public let id: Int
+  public let imageName: String
+  public let title: String
+  public let description: String
+
+  public init(
+    id: Int,
+    imageName: String,
+    title: String,
+    description: String
+  ) {
+    self.id = id
+    self.imageName = imageName
+    self.title = title
+    self.description = description
+  }
+}
+//
+//  OnboardingView.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 6/26/25.
+//
+
+import SwiftUI
+
+public struct OnboardingView<VM: OnboardingViewModelProtocol>: View {
+    @ObservedObject private var vm: VM
+    @Namespace private var imageNamespace
+    
+    public init(vm: VM) {
+        self.vm = vm
+    }
+    
+    public var body: some View {
+      ZStack {
+        Color(DesignTokens.colorBackground)
+          .ignoresSafeArea()
+
+        VStack(spacing: DesignTokens.spacingMedium) {
+          Spacer()
+
+          // картинка
+            ForEach(vm.pages, id: \.id) { page in
+                if page.id == vm.currentPage {
+                    Image(page.imageName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: 300.scale)
+                        .padding(.horizontal, DesignTokens.spacingMedium)
+                        .transition(
+                            .asymmetric(
+                                insertion: .scale.combined(with: .opacity),
+                                removal: .scale.combined(with: .opacity)
+                            )
+                        )
+                }
+            }
+
+          Text(vm.pages[vm.currentPage].title)
+            .font(.headline)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, DesignTokens.spacingMedium)
+
+          Text(vm.pages[vm.currentPage].description)
+            .font(.body)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, DesignTokens.spacingMedium)
+
+          Spacer()
+
+          HStack(spacing: 5.scale) {
+            ForEach(vm.pages.indices, id: \.self) { idx in
+              Circle()
+                .fill(idx == vm.currentPage
+                      ? Color(DesignTokens.colorPrimary)
+                      : Color.gray.opacity(0.4))
+                .frame(width: 5.scale, height: 5.scale)
+                .scaleEffect(idx == vm.currentPage ? 1.2 : 1.0)
+            }
+          }
+
+          HStack {
+            if vm.currentPage > 0 {
+              Button("Back") {
+                withAnimation(.easeInOut) {
+                  vm.previous()
+                }
+              }
+              .font(.body)
+              .padding(.trailing, DesignTokens.spacingMedium)
+            }
+
+            Spacer()
+
+            Button(vm.currentPage == vm.pages.count - 1 ? "Get Started" : "Next") {
+              withAnimation(.easeInOut) {
+                vm.next()
+                
+              }
+            }
+            .font(.body)
+          }
+          .padding(.horizontal, DesignTokens.spacingMedium)
+        }
+        .foregroundColor(.primary)
+      }
+      // анимация на уровень выше
+      .animation(.spring(response: 0.5, dampingFraction: 0.7), value: vm.currentPage)
+    }
+
+}

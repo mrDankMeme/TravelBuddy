@@ -23,8 +23,14 @@ enum POIListNavigationCommand {
 final class POIListRouter: ObservableObject {
     let routes = PassthroughSubject<POIListNavigationCommand, Never>()
     fileprivate var cancellables = Set<AnyCancellable>()
-
-    func goDetail(_ poi: POI) { routes.send(.detail(poi)) }
-    func goBack()           { routes.send(.back)     }
-    func reset()            { routes.send(.reset)    }
+    
+    func goDetail(_ poi: POI){
+        routes.send(.detail(poi))
+    }
+    func goBack(){
+        routes.send(.back)
+    }
+    func reset(){
+        routes.send(.reset)
+    }
 }
