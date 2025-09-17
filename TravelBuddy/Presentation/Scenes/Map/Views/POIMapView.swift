@@ -28,7 +28,7 @@ public struct POIMapView: View {
         )
         .ignoresSafeArea()
         .onAppear { vm.fetch() }
-        .navigationTitle("Map")
+        //.navigationTitle("Map")
     }
 }
 

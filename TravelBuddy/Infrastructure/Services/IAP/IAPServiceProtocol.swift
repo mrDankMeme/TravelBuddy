@@ -10,9 +10,10 @@
 import StoreKit
 import Combine
 
+
 public protocol IAPServiceProtocol {
-  /// Асинхронно загружает информацию о продуктах по идентификаторам
   func fetchProducts() -> AnyPublisher<[Product], Error>
-  /// Запускает покупку и возвращает верифицированную транзакцию или ошибку
   func purchase(_ product: Product) -> AnyPublisher<Transaction, Error>
+  func verify<T>(_ result: VerificationResult<T>) throws -> T
+  func readCurrentPremiumEntitlement() -> AnyPublisher<Bool, Never>
 }

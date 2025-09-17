@@ -18,6 +18,7 @@ public final class DIContainer {
     let container = Container() // оставляем internal, чтобы можно было собрать тестовый контейнер
 
     private init() {
+       
         // MARK: — Core Navigation (глобальная шина маршрутов)
         container.register(AppRouter.self) { _ in AppRouter() }
             .inObjectScope(.container)   
@@ -29,8 +30,15 @@ public final class DIContainer {
         // MARK: — Services
         container.register(AnalyticsServiceProtocol.self) { _ in AnalyticsService() }
             .inObjectScope(.container)
+       
         container.register(IAPServiceProtocol.self) { _ in IAPService() }
-            .inObjectScope(.container)
+          .inObjectScope(.container)
+
+        container.register(IAPObserver.self) { r in
+          IAPObserver(iap: r.resolve(IAPServiceProtocol.self)!)
+        }
+       
+        .inObjectScope(.container)
         container.register(NotificationServiceProtocol.self) { _ in NotificationService() }
             .inObjectScope(.container)
         

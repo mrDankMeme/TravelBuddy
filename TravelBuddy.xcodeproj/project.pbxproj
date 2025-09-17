@@ -71,6 +71,7 @@
 		A385D5C02E37D4FC009C0251 /* POIDetailCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5BD2E37D4FC009C0251 /* POIDetailCoordinator.swift */; };
 		A385D5C12E37D4FC009C0251 /* POIDetailRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5BE2E37D4FC009C0251 /* POIDetailRouter.swift */; };
 		A3914C872E290E5100F8740A /* MapContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3914C862E290E5100F8740A /* MapContainer.swift */; };
+		A3B449132E7B0FAC00F13CC1 /* IAPObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B449122E7B0FAC00F13CC1 /* IAPObserver.swift */; };
 		A3F4F7D12E730F82002EEDF2 /* POIListContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F4F7D02E730F82002EEDF2 /* POIListContainer.swift */; };
 		A3F4F7D42E74598C002EEDF2 /* AppRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F4F7D32E74598C002EEDF2 /* AppRoute.swift */; };
 		A3F4F7D62E745996002EEDF2 /* AppRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F4F7D52E745996002EEDF2 /* AppRouter.swift */; };
@@ -151,6 +152,7 @@
 		A385D5BE2E37D4FC009C0251 /* POIDetailRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIDetailRouter.swift; sourceTree = "<group>"; };
 		A385D5C22E38E61C009C0251 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A3914C862E290E5100F8740A /* MapContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapContainer.swift; sourceTree = "<group>"; };
+		A3B449122E7B0FAC00F13CC1 /* IAPObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPObserver.swift; sourceTree = "<group>"; };
 		A3F4F7D02E730F82002EEDF2 /* POIListContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIListContainer.swift; sourceTree = "<group>"; };
 		A3F4F7D32E74598C002EEDF2 /* AppRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRoute.swift; sourceTree = "<group>"; };
 		A3F4F7D52E745996002EEDF2 /* AppRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouter.swift; sourceTree = "<group>"; };
@@ -581,6 +583,7 @@
 		A385D59D2E37C8B8009C0251 /* IAP */ = {
 			isa = PBXGroup;
 			children = (
+				A3B449122E7B0FAC00F13CC1 /* IAPObserver.swift */,
 				A385D59E2E37C99E009C0251 /* IAPServiceProtocol.swift */,
 				A3166E642E05980D00E6E1C2 /* IAPService.swift */,
 			);
@@ -790,6 +793,7 @@
 				A3166E5C2E0589B600E6E1C2 /* SceneDelegate.swift in Sources */,
 				A323AE3E2E213F930055264E /* POIDetailModel.swift in Sources */,
 				A3166E672E05982A00E6E1C2 /* NotificationService.swift in Sources */,
+				A3B449132E7B0FAC00F13CC1 /* IAPObserver.swift in Sources */,
 				A3166F032E0D6E0F00E6E1C2 /* Scalable.swift in Sources */,
 				A3166E962E0AFDB100E6E1C2 /* AnySettingsViewModel.swift in Sources */,
 				A3166F052E0D6E1800E6E1C2 /* ScreenSize.swift in Sources */,
