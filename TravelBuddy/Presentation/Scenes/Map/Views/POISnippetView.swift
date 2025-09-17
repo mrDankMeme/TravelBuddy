@@ -12,8 +12,10 @@ import MapKit
 
 struct POISnippetView: View {
     let poi: POI
+ 
     @Environment(\.dismiss) private var dismiss
-
+    @EnvironmentObject private var appRouter: AppRouter
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(poi.name).font(.title2).bold()
@@ -22,7 +24,7 @@ struct POISnippetView: View {
 
             HStack {
                 Button("Details") {
-                    NotificationCenter.default.post(name: .openPOIDetail, object: poi)
+                    appRouter.send(.openPOIDetail(poi))
                     dismiss()
                 }
                 .buttonStyle(.borderedProminent)
@@ -40,6 +42,3 @@ struct POISnippetView: View {
     }
 }
 
-extension Notification.Name {
-    static let openPOIDetail = Notification.Name("openPOIDetail")
-}

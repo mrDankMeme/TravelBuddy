@@ -54,8 +54,8 @@ public final class POIDetailViewModel: ObservableObject, POIDetailViewModelProto
                          longitude: model.poi.longitude)
     geocoder.reverseGeocodeLocation(loc) { [weak self] places, error in
       DispatchQueue.main.async {
+          self?.isLoadingAddress = false
         if let err = error {
-            self?.isLoadingAddress = false
           self?.errorMessage = err.localizedDescription
         } else {
           self?.address = places?.first?.compactAddress
