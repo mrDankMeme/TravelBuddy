@@ -57,6 +57,7 @@ public final class POIRepository: POIServiceProtocol {
 
         // cacheThenRefresh: сначала кэш, затем сеть
         return cached
+            .filter { !$0.isEmpty }
             .append(refresh)
             .eraseToAnyPublisher()
     }
