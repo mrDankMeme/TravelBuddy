@@ -33,7 +33,7 @@ public final class IAPObserver {
     for await update in Transaction.updates {
       do {
         let tx: Transaction = try iap.verify(update)
-        // выдаю право пользователю на использование 
+        // выдаю право пользователю на использование
         await tx.finish()
         // сообщим UI, что энтитлменты могли измениться
         NotificationCenter.default.post(name: .iapEntitlementsChanged, object: nil)

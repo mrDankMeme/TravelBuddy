@@ -52,14 +52,16 @@ public final class POIListViewModel: ObservableObject, POIListViewModelProtocol 
     }
     
     public func fetchPOIs() {
-        isLoading = true
+        if pois.isEmpty { isLoading = true }
         errorMessage = nil
         
         repository.fetchPOIs()
             .receive(on: DispatchQueue.main)
+            .handleEvents(receiveOutput: { [weak self] _ in
+                self?.isLoading = false
+            })
             .sink { [weak self] completion in
                 guard let self = self else { return }
-                self.isLoading = false
                 if case let .failure(err) = completion {
                     self.errorMessage = err.localizedDescription
                 }
@@ -74,8 +76,8 @@ public final class POIListViewModel: ObservableObject, POIListViewModelProtocol 
     private func applyFilter(using filter: POICategoryFilter? = nil) {
         let effective = filter ?? self.filter
         pois = (effective == .all)
-            ? allPois
-            : allPois.filter { $0.category == effective.rawValue }
+        ? allPois
+        : allPois.filter { $0.category == effective.rawValue }
     }
     
     public func openInMaps(poi: POI) {
