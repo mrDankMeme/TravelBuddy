@@ -13,9 +13,7 @@ public final class POIRepository: POIServiceProtocol {
     private let remote: POIServiceProtocol
     private let local: POIServiceProtocol
     private let cache: POICacheProtocol
-
-    // TTL для обновления (можешь менять: 5 минут = 300 сек)
-    private let ttl: TimeInterval = 300
+    private let ttl: TimeInterval
 
     // in-flight общий publisher для дедупликации конкурентных запросов
     private let stateQueue = DispatchQueue(label: "poi.repo.state")
@@ -25,12 +23,14 @@ public final class POIRepository: POIServiceProtocol {
     private let lastRefreshKey = "poi.cache.lastRefreshAt"
 
     public init(remote: POIServiceProtocol,
-                local: POIServiceProtocol,
-                cache: POICacheProtocol) {
-        self.remote = remote
-        self.local  = local
-        self.cache  = cache
-    }
+                 local: POIServiceProtocol,
+                 cache: POICacheProtocol,
+                 ttl: TimeInterval) {
+         self.remote = remote
+         self.local  = local
+         self.cache  = cache
+         self.ttl    = ttl
+     }
 
     public func fetchPOIs() -> AnyPublisher<[POI], Error> {
         let cached = loadCacheAsync()

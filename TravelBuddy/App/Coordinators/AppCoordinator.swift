@@ -145,13 +145,7 @@ final class AppCoordinator: Coordinator {
     private func handle(_ route: AppRoute) {
         switch route {
         case .openPOIDetail(let poi):
-            guard
-                let nav = tabBar.selectedViewController as? UINavigationController,
-                let coord = container.resolver.resolve(POIDetailCoordinator.self, argument: poi)
-            else { return }
-
-            let host = UIHostingController(rootView: coord.rootView())
-            nav.pushViewController(host, animated: true)
+            tabBar.selectedIndex = 0
 
         case .openMapWithPOI(_):
             tabBar.selectedIndex = 1

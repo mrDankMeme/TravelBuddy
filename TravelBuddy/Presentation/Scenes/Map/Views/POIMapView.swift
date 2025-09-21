@@ -13,22 +13,21 @@ import MapKit
 public struct POIMapView: View {
     @StateObject private var vm: AnyPOIMapViewModel
     @EnvironmentObject private var router: MapRouter
+    private let defaultRegionMeters: CLLocationDistance
 
-    public init(viewModel: AnyPOIMapViewModel) {
+    public init(viewModel: AnyPOIMapViewModel,
+                defaultRegionMeters: CLLocationDistance) {
         _vm = StateObject(wrappedValue: viewModel)
+        self.defaultRegionMeters = defaultRegionMeters
     }
 
     public var body: some View {
         MapViewRepresentable(
             annotations: vm.annotations,
-            onSelect: { annotation in
-                // при выборе точки — отправляем команду в роутер
-                router.goDetail(annotation.poi)
-            }
+            defaultRegionMeters: defaultRegionMeters,
+            onSelect: { annotation in router.goDetail(annotation.poi) }
         )
         .ignoresSafeArea()
         .onAppear { vm.fetch() }
-        //.navigationTitle("Map")
     }
 }
-

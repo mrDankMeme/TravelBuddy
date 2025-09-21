@@ -10,14 +10,15 @@ import Combine
 
 public final class RemotePOIService: POIServiceProtocol {
     private let httpClient: HTTPClientProtocol
-    private let endpoint = URL(string: "https://api.example.com/pois")!
+    private let baseURL: URL
 
-    public init(httpClient: HTTPClientProtocol) {
+    public init(httpClient: HTTPClientProtocol, config: AppConfig) {
         self.httpClient = httpClient
+        self.baseURL = config.apiBaseURL
     }
 
     public func fetchPOIs() -> AnyPublisher<[POI], Error> {
-        httpClient.send(URLRequest(url: endpoint))
+        let url = baseURL.appendingPathComponent("pois")
+        return httpClient.send(URLRequest(url: url))
     }
-
 }

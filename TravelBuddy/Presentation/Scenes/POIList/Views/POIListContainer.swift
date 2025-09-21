@@ -17,10 +17,12 @@ struct POIListContainer: View {
     @State private var path = NavigationPath()
     @StateObject private var vm: AnyPOIListViewModel
     @StateObject private var router: POIListRouter
-
-    init(vm: AnyPOIListViewModel, router: POIListRouter) {
+    private let makeDetail: (POI) -> AnyView
+    
+    init(vm: AnyPOIListViewModel, router: POIListRouter, makeDetail: @escaping (POI) -> AnyView) {
         _vm = StateObject(wrappedValue: vm)
         _router = StateObject(wrappedValue: router)
+        self.makeDetail = makeDetail
     }
 
     var body: some View {
@@ -32,6 +34,7 @@ struct POIListContainer: View {
                         DIContainer.shared.resolver
                             .resolve(POIDetailCoordinator.self, argument: poi)!
                             .rootView()
+                        makeDetail(poi)
                     }
                 }
         }

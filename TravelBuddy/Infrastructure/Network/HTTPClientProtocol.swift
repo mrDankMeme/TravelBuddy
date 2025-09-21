@@ -1,5 +1,5 @@
 //
-//  HTTPClient.swift
+//  HTTPClientProtocol.swift
 //  TravelBuddy
 //
 //  Created by Niiaz Khasanov on 6/20/25.

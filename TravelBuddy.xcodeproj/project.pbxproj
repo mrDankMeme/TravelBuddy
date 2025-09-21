@@ -26,7 +26,6 @@
 		A3166E672E05982A00E6E1C2 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E662E05982A00E6E1C2 /* NotificationService.swift */; };
 		A3166E702E05A15100E6E1C2 /* POI.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E6E2E05A15100E6E1C2 /* POI.swift */; };
 		A3166E7D2E05AC5100E6E1C2 /* POIListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E7B2E05AC5100E6E1C2 /* POIListViewModel.swift */; };
-		A3166E802E05AC5400E6E1C2 /* POIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E7E2E05AC5400E6E1C2 /* POIService.swift */; };
 		A3166E8A2E09604E00E6E1C2 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E872E09604E00E6E1C2 /* SettingsViewModel.swift */; };
 		A3166E8D2E09611E00E6E1C2 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3166E8C2E09611E00E6E1C2 /* SettingsView.swift */; };
 		A3166E932E09A9EE00E6E1C2 /* RealmSwift in Embed Frameworks */ = {isa = PBXBuildFile; productRef = A3166E112E0561DB00E6E1C2 /* RealmSwift */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -72,6 +71,7 @@
 		A385D5C12E37D4FC009C0251 /* POIDetailRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5BE2E37D4FC009C0251 /* POIDetailRouter.swift */; };
 		A3914C872E290E5100F8740A /* MapContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3914C862E290E5100F8740A /* MapContainer.swift */; };
 		A3B449132E7B0FAC00F13CC1 /* IAPObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B449122E7B0FAC00F13CC1 /* IAPObserver.swift */; };
+		A3B449162E7D807D00F13CC1 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B449152E7D807C00F13CC1 /* AppConfig.swift */; };
 		A3F4F7D12E730F82002EEDF2 /* POIListContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F4F7D02E730F82002EEDF2 /* POIListContainer.swift */; };
 		A3F4F7D42E74598C002EEDF2 /* AppRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F4F7D32E74598C002EEDF2 /* AppRoute.swift */; };
 		A3F4F7D62E745996002EEDF2 /* AppRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F4F7D52E745996002EEDF2 /* AppRouter.swift */; };
@@ -107,7 +107,6 @@
 		A3166E662E05982A00E6E1C2 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		A3166E6E2E05A15100E6E1C2 /* POI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POI.swift; sourceTree = "<group>"; };
 		A3166E7B2E05AC5100E6E1C2 /* POIListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIListViewModel.swift; sourceTree = "<group>"; };
-		A3166E7E2E05AC5400E6E1C2 /* POIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIService.swift; sourceTree = "<group>"; };
 		A3166E872E09604E00E6E1C2 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		A3166E8C2E09611E00E6E1C2 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A3166E952E0AFDB100E6E1C2 /* AnySettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnySettingsViewModel.swift; sourceTree = "<group>"; };
@@ -153,6 +152,7 @@
 		A385D5C22E38E61C009C0251 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A3914C862E290E5100F8740A /* MapContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapContainer.swift; sourceTree = "<group>"; };
 		A3B449122E7B0FAC00F13CC1 /* IAPObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPObserver.swift; sourceTree = "<group>"; };
+		A3B449152E7D807C00F13CC1 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
 		A3F4F7D02E730F82002EEDF2 /* POIListContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIListContainer.swift; sourceTree = "<group>"; };
 		A3F4F7D32E74598C002EEDF2 /* AppRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRoute.swift; sourceTree = "<group>"; };
 		A3F4F7D52E745996002EEDF2 /* AppRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouter.swift; sourceTree = "<group>"; };
@@ -216,6 +216,7 @@
 		A3166E402E0589B600E6E1C2 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				A3B449142E7D7FD200F13CC1 /* Config */,
 				A3F4F7D22E745978002EEDF2 /* Navigation */,
 				A3166E3E2E0589B600E6E1C2 /* Extensions */,
 				A3166F022E0D6E0F00E6E1C2 /* Utils */,
@@ -545,7 +546,6 @@
 			isa = PBXGroup;
 			children = (
 				A3166F112E1413FC00E6E1C2 /* POIRepository.swift */,
-				A3166E7E2E05AC5400E6E1C2 /* POIService.swift */,
 				A3166F0B2E103ECC00E6E1C2 /* RemotePOIService.swift */,
 				A3166F0D2E104A5E00E6E1C2 /* LocalPOIService.swift */,
 				A3166F0F2E12AA7200E6E1C2 /* RealmPOICache.swift */,
@@ -642,6 +642,14 @@
 				A385D5BE2E37D4FC009C0251 /* POIDetailRouter.swift */,
 			);
 			path = Navigation;
+			sourceTree = "<group>";
+		};
+		A3B449142E7D7FD200F13CC1 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				A3B449152E7D807C00F13CC1 /* AppConfig.swift */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 		A3F4F7D22E745978002EEDF2 /* Navigation */ = {
@@ -764,6 +772,7 @@
 				A385D5B22E37D0C6009C0251 /* AppCoordinator.swift in Sources */,
 				A385D5B32E37D0C6009C0251 /* DIContainer.swift in Sources */,
 				A323AE2D2E1C0D590055264E /* POISnippetView.swift in Sources */,
+				A3B449162E7D807D00F13CC1 /* AppConfig.swift in Sources */,
 				A3166E652E05980D00E6E1C2 /* IAPService.swift in Sources */,
 				A323AE522E21616B0055264E /* POIServiceProtocol.swift in Sources */,
 				A3166F182E141AFF00E6E1C2 /* POIListView.swift in Sources */,
@@ -773,7 +782,6 @@
 				A3166E632E058A1800E6E1C2 /* AnalyticsService.swift in Sources */,
 				A323AE302E200E5D0055264E /* POIListCoordinator.swift in Sources */,
 				A3166F102E12AA7200E6E1C2 /* RealmPOICache.swift in Sources */,
-				A3166E802E05AC5400E6E1C2 /* POIService.swift in Sources */,
 				A3166E592E0589B600E6E1C2 /* HTTPClientProtocol.swift in Sources */,
 				A3166E5A2E0589B600E6E1C2 /* DesignTokens.swift in Sources */,
 				A3166E5B2E0589B600E6E1C2 /* AppDelegate.swift in Sources */,

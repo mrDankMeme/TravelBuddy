@@ -57,11 +57,9 @@ public final class POIListViewModel: ObservableObject, POIListViewModelProtocol 
         
         repository.fetchPOIs()
             .receive(on: DispatchQueue.main)
-            .handleEvents(receiveOutput: { [weak self] _ in
-                self?.isLoading = false
-            })
             .sink { [weak self] completion in
                 guard let self = self else { return }
+                self.isLoading = false
                 if case let .failure(err) = completion {
                     self.errorMessage = err.localizedDescription
                 }

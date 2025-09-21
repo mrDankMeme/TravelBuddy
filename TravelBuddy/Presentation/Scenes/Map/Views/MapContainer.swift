@@ -9,30 +9,34 @@
 import SwiftUI
 import Combine
 import Swinject
+import MapKit
 
 struct MapContainer: View {
     // ---------- State ----------
     @State private var navPath = NavigationPath()
     @StateObject private var router: MapRouter
     @StateObject private var vm: AnyPOIMapViewModel
+    private let defaultRegionMeters: CLLocationDistance
+    private let makeDetail: (POI) -> AnyView
 
-    // ---------- Init ----------
-    init(vm: AnyPOIMapViewModel, router: MapRouter) {
-        _vm     = StateObject(wrappedValue: vm)
+    init(vm: AnyPOIMapViewModel, router: MapRouter, defaultRegionMeters: CLLocationDistance,makeDetail: @escaping (POI) -> AnyView) {
+        _vm = StateObject(wrappedValue: vm)
         _router = StateObject(wrappedValue: router)
+        self.defaultRegionMeters = defaultRegionMeters
+        self.makeDetail = makeDetail
     }
 
     // ---------- UI ----------
     var body: some View {
         NavigationStack(path: $navPath) {
-            POIMapView(viewModel: vm)
+            POIMapView(viewModel: vm, defaultRegionMeters: defaultRegionMeters)
                 .navigationDestination(for: MapRoute.self) { route in
                     switch route {
                     case .detail(let poi):
                         let r = DIContainer.shared.resolver
-                        
                         r.resolve(POIDetailCoordinator.self, argument: poi)?
                             .rootView()
+                        makeDetail(poi)
                     }
                 }
         }

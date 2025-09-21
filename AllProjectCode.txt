@@ -26,6 +26,83 @@ public enum DesignTokens {
     
 }
 //
+//  AppConfig.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 9/19/25.
+//
+
+
+import Foundation
+import CoreLocation
+
+public struct AppConfig {
+    // MARK: — Network
+    public let apiBaseURL: URL
+    public let httpTimeout: TimeInterval
+
+    // MARK: — Repository / Cache
+    public let poiCacheTTL: TimeInterval
+
+    // MARK: — IAP
+    public struct IAP {
+        public let premiumProductID: String
+    }
+    public let iap: IAP
+
+    // MARK: — Local data / mocks
+    public let localPOIJSONName: String
+
+    // MARK: — Map defaults
+    public let defaultRegionMeters: CLLocationDistance
+
+    // MARK: — Feature Flags
+    public struct Flags {
+        public let enableDebugLogs: Bool
+        public let useAlamofireClient: Bool  // на будущее
+        public let showBLETab: Bool          // на будущее
+        public let enableAudioGuide: Bool    // на будущее
+    }
+    public let flags: Flags
+}
+
+
+public extension AppConfig {
+    static func makeDefault() -> AppConfig {
+        #if DEBUG
+        return AppConfig(
+            apiBaseURL: URL(string: "https://api.example.com")!,
+            httpTimeout: 0.15 ,
+            poiCacheTTL: 300,
+            iap: .init(premiumProductID: "com.travelbuddy.premium"),
+            localPOIJSONName: "mock_pois_local",
+            defaultRegionMeters: 4000,
+            flags: .init(
+                enableDebugLogs: true,
+                useAlamofireClient: false,
+                showBLETab: false,
+                enableAudioGuide: false
+            )
+        )
+        #else
+        return AppConfig(
+            apiBaseURL: URL(string: "https://api.example.com")!,
+            httpTimeout: 15,
+            poiCacheTTL: 300,
+            iap: .init(premiumProductID: "com.travelbuddy.premium"),
+            localPOIJSONName: "mock_pois_local",
+            defaultRegionMeters: 4000,
+            flags: .init(
+                enableDebugLogs: false,
+                useAlamofireClient: false,
+                showBLETab: false,
+                enableAudioGuide: false
+            )
+        )
+        #endif
+    }
+}
+//
 //  AppRouter.swift
 //  TravelBuddy
 //
@@ -349,13 +426,7 @@ final class AppCoordinator: Coordinator {
     private func handle(_ route: AppRoute) {
         switch route {
         case .openPOIDetail(let poi):
-            guard
-                let nav = tabBar.selectedViewController as? UINavigationController,
-                let coord = container.resolver.resolve(POIDetailCoordinator.self, argument: poi)
-            else { return }
-
-            let host = UIHostingController(rootView: coord.rootView())
-            nav.pushViewController(host, animated: true)
+            tabBar.selectedIndex = 0
 
         case .openMapWithPOI(_):
             tabBar.selectedIndex = 1
@@ -383,55 +454,64 @@ import SwiftUI
 @MainActor
 public final class DIContainer {
     public static let shared = DIContainer()
-    let container = Container() // оставляем internal, чтобы можно было собрать тестовый контейнер
+    let container = Container()
 
     private init() {
-       
-        // MARK: — Core Navigation (глобальная шина маршрутов)
-        container.register(AppRouter.self) { _ in AppRouter() }
-            .inObjectScope(.container)   
-
-        // MARK: — Core
-        container.register(HTTPClientProtocol.self) { _ in HTTPClient() }
+        // 0) AppConfig —
+        let config = AppConfig.makeDefault()
+        container.register(AppConfig.self) { _ in config }
             .inObjectScope(.container)
 
-        // MARK: — Services
+        // 1) Core
+        container.register(HTTPClientProtocol.self) { r in
+            HTTPClient(timeout: r.resolve(AppConfig.self)!.httpTimeout)
+        }.inObjectScope(.container)
+
+        // 2) Services
         container.register(AnalyticsServiceProtocol.self) { _ in AnalyticsService() }
             .inObjectScope(.container)
-       
-        container.register(IAPServiceProtocol.self) { _ in IAPService() }
-          .inObjectScope(.container)
+
+        container.register(IAPServiceProtocol.self) { r in
+            IAPService(config: r.resolve(AppConfig.self)!)
+        }.inObjectScope(.container)
 
         container.register(IAPObserver.self) { r in
-          IAPObserver(iap: r.resolve(IAPServiceProtocol.self)!)
-        }
-       
-        .inObjectScope(.container)
+            IAPObserver(iap: r.resolve(IAPServiceProtocol.self)!)
+        }.inObjectScope(.container)
+
         container.register(NotificationServiceProtocol.self) { _ in NotificationService() }
             .inObjectScope(.container)
-        
 
-        // MARK: — Scene: Onboarding
-        container.register((any OnboardingViewModelProtocol).self) { _ in OnboardingViewModel() }
-        container.register(AnyOnboardingViewModel.self) { r in
-            AnyOnboardingViewModel(r.resolve((any OnboardingViewModelProtocol).self)!)
-        }.inObjectScope(.graph)
-
-        // MARK: — Scene: POIList
+        // 3) POI data stack
         container.register(RemotePOIService.self) { r in
-            RemotePOIService(httpClient: r.resolve(HTTPClientProtocol.self)!)
+            RemotePOIService(
+                httpClient: r.resolve(HTTPClientProtocol.self)!,
+                config: r.resolve(AppConfig.self)!
+            )
+        } // scope по умолчанию .graph — норм
+
+        container.register(LocalPOIService.self) { r in
+            LocalPOIService(config: r.resolve(AppConfig.self)!)
         }
-        container.register(LocalPOIService.self) { _ in LocalPOIService() }
+
         container.register(POICacheProtocol.self) { _ in RealmPOICache() }
 
         container.register(POIServiceProtocol.self) { r in
             POIRepository(
                 remote: r.resolve(RemotePOIService.self)!,
                 local:  r.resolve(LocalPOIService.self)!,
-                cache:  r.resolve(POICacheProtocol.self)!
+                cache:  r.resolve(POICacheProtocol.self)!,
+                ttl:    r.resolve(AppConfig.self)!.poiCacheTTL
             )
-        }.inObjectScope(.container) // repo как фасад поверх remote/local/cache — ок в контейнере
+        }.inObjectScope(.container)
 
+        // 4) Onboarding
+        container.register((any OnboardingViewModelProtocol).self) { _ in OnboardingViewModel() }
+        container.register(AnyOnboardingViewModel.self) { r in
+            AnyOnboardingViewModel(r.resolve((any OnboardingViewModelProtocol).self)!)
+        }.inObjectScope(.graph)
+
+        // 5) POIList scene
         container.register((any POIListViewModelProtocol).self) { r in
             POIListViewModel(repository: r.resolve(POIServiceProtocol.self)!)
         }.inObjectScope(.graph)
@@ -443,7 +523,7 @@ public final class DIContainer {
         container.register(POIListRouter.self) { _ in POIListRouter() }
             .inObjectScope(.graph)
 
-        // MARK: — Scene: Map
+        // 6) Map scene
         container.register((any POIMapViewModelProtocol).self) { r in
             POIMapViewModel(
                 service: r.resolve(POIServiceProtocol.self)!,
@@ -458,7 +538,7 @@ public final class DIContainer {
         container.register(MapRouter.self) { _ in MapRouter() }
             .inObjectScope(.graph)
 
-        // MARK: — Scene: Settings
+        // 7) Settings scene
         container.register((any SettingsViewModelProtocol).self) { r in
             SettingsViewModel(
                 iapService:   r.resolve(IAPServiceProtocol.self)!,
@@ -471,17 +551,18 @@ public final class DIContainer {
             AnySettingsViewModel(r.resolve((any SettingsViewModelProtocol).self)!)
         }.inObjectScope(.graph)
 
-        // MARK: — Scene: POIDetail
+        // 8) AppRouter и Detail
+        container.register(AppRouter.self) { _ in AppRouter() }
+            .inObjectScope(.container)
+
         container.register(POIDetailViewModel.self) { _, poi in
             POIDetailViewModel(poi: poi)
         }
-        // ВАЖНО: координатору даём resolver из Swinject
         container.register(POIDetailCoordinator.self) { r, poi in
             POIDetailCoordinator(poi: poi, resolver: r)
         }.inObjectScope(.graph)
     }
 
-    // Потокобезопасный резолвер (локальный граф зависимостей)
     public var resolver: Resolver { container.synchronize() }
 }
 //
@@ -548,26 +629,48 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 }
 
 //
-//  HTTPClient 2.swift
+//  HTTPClient.swift
 //  TravelBuddy
 //
 //  Created by Niiaz Khasanov on 7/28/25.
 //
 
+// Infrastructure/Networking/HTTPClient.swift
 import Foundation
 import Combine
 
 public final class HTTPClient: HTTPClientProtocol {
-  public init() {}
-  public func send<T: Decodable>(_ request: URLRequest) -> AnyPublisher<T, Error> {
-    URLSession.shared.dataTaskPublisher(for: request)
-      .map(\.data)
-      .decode(type: T.self, decoder: JSONDecoder())
-      .eraseToAnyPublisher()
-  }
+    private let timeout: TimeInterval
+    private let decoder: JSONDecoder
+
+    public init(timeout: TimeInterval = 15,
+                decoder: JSONDecoder = .init()) {
+        self.timeout = timeout
+        self.decoder = decoder
+    }
+
+    public func send<T: Decodable>(_ requestIn: URLRequest) -> AnyPublisher<T, Error> {
+        var request = requestIn
+        // если у запроса не задан таймаут – подставим дефолт из клиента
+        if request.timeoutInterval == 0 {
+            request.timeoutInterval = timeout
+        }
+
+        return URLSession.shared.dataTaskPublisher(for: request)
+            .tryMap { output -> Data in
+                // маппим network-ошибки и статусы
+                if let http = output.response as? HTTPURLResponse,
+                   !(200...299).contains(http.statusCode) {
+                    throw URLError(.badServerResponse)
+                }
+                return output.data
+            }
+            .decode(type: T.self, decoder: decoder)
+            .eraseToAnyPublisher()
+    }
 }
 //
-//  HTTPClient.swift
+//  HTTPClientProtocol.swift
 //  TravelBuddy
 //
 //  Created by Niiaz Khasanov on 6/20/25.
@@ -596,9 +699,7 @@ public final class POIRepository: POIServiceProtocol {
     private let remote: POIServiceProtocol
     private let local: POIServiceProtocol
     private let cache: POICacheProtocol
-
-    // TTL для обновления (можешь менять: 5 минут = 300 сек)
-    private let ttl: TimeInterval = 300
+    private let ttl: TimeInterval
 
     // in-flight общий publisher для дедупликации конкурентных запросов
     private let stateQueue = DispatchQueue(label: "poi.repo.state")
@@ -608,12 +709,14 @@ public final class POIRepository: POIServiceProtocol {
     private let lastRefreshKey = "poi.cache.lastRefreshAt"
 
     public init(remote: POIServiceProtocol,
-                local: POIServiceProtocol,
-                cache: POICacheProtocol) {
-        self.remote = remote
-        self.local  = local
-        self.cache  = cache
-    }
+                 local: POIServiceProtocol,
+                 cache: POICacheProtocol,
+                 ttl: TimeInterval) {
+         self.remote = remote
+         self.local  = local
+         self.cache  = cache
+         self.ttl    = ttl
+     }
 
     public func fetchPOIs() -> AnyPublisher<[POI], Error> {
         let cached = loadCacheAsync()
@@ -640,6 +743,7 @@ public final class POIRepository: POIServiceProtocol {
 
         // cacheThenRefresh: сначала кэш, затем сеть
         return cached
+            .filter { !$0.isEmpty }
             .append(refresh)
             .eraseToAnyPublisher()
     }
@@ -776,16 +880,17 @@ import Combine
 
 public final class RemotePOIService: POIServiceProtocol {
     private let httpClient: HTTPClientProtocol
-    private let endpoint = URL(string: "https://api.example.com/pois")!
+    private let baseURL: URL
 
-    public init(httpClient: HTTPClientProtocol) {
+    public init(httpClient: HTTPClientProtocol, config: AppConfig) {
         self.httpClient = httpClient
+        self.baseURL = config.apiBaseURL
     }
 
     public func fetchPOIs() -> AnyPublisher<[POI], Error> {
-        httpClient.send(URLRequest(url: endpoint))
+        let url = baseURL.appendingPathComponent("pois")
+        return httpClient.send(URLRequest(url: url))
     }
-
 }
 //
 //  LocalPOIService.swift
@@ -799,11 +904,12 @@ import Combine
 
 public final class LocalPOIService: POIServiceProtocol {
     private let jsonName: String
-
-    public init(jsonName: String = "mock_pois_local") {
-        self.jsonName = jsonName
+    
+    public init(config: AppConfig) {
+        self.jsonName = config.localPOIJSONName
     }
-
+    
+    
     public func fetchPOIs() -> AnyPublisher<[POI], Error> {
         Deferred {
             Future<[POI], Error> { promise in
@@ -825,32 +931,6 @@ public final class LocalPOIService: POIServiceProtocol {
         }
         .eraseToAnyPublisher()
     }
-}
-//
-//  POIService.swift
-//  TravelBuddy
-//
-//  Created by Niiaz Khasanov on 6/20/25.
-//
-
-import Foundation
-import Combine
-
-
-public final class POIService: POIServiceProtocol {
-  private let httpClient: HTTPClientProtocol
-  private let baseURL = URL(string: "https://api.example.com")!
-
-  public init(httpClient: HTTPClientProtocol) {
-    self.httpClient = httpClient
-  }
-
-  public func fetchPOIs() -> AnyPublisher<[POI], Error> {
-    let req = URLRequest(url: baseURL.appendingPathComponent("pois"))
-    return httpClient.send(req)
-      .logError("POIService")
-      .eraseToAnyPublisher()
-  }
 }
 //
 //  NotificationServiceProtocol.swift
@@ -975,80 +1055,83 @@ import StoreKit
 import Combine
 
 public final class IAPService: IAPServiceProtocol {
-  public init() {}
-
-  public func fetchProducts() -> AnyPublisher<[Product], Error> {
-    Deferred {
-      Future { promise in
-        Task {
-          do {
-            let ids: Set<String> = ["com.travelbuddy.premium"]
-            let products = try await Product.products(for: ids)
-            promise(.success(products))
-          } catch { promise(.failure(error)) }
-        }
-      }
+    private let productID: String
+    public init(config: AppConfig) {
+        self.productID = config.iap.premiumProductID
     }
-    .eraseToAnyPublisher()
-  }
-
-  public func purchase(_ product: Product) -> AnyPublisher<Transaction, Error> {
-    Deferred {
-      Future { promise in
-        Task {
-          do {
-            let result = try await product.purchase()
-            switch result {
-            case .success(let verification):
-              let tx: Transaction = try self.verify(verification)
-              await tx.finish()
-              promise(.success(tx))
-            case .userCancelled:
-              let err = NSError(domain: "IAP", code: NSUserCancelledError,
-                                userInfo: [NSLocalizedDescriptionKey: "Purchase cancelled"])
-              promise(.failure(err))
-            case .pending:
-              let err = NSError(domain: "IAP", code: -1,
-                                userInfo: [NSLocalizedDescriptionKey: "Purchase pending"])
-              promise(.failure(err))
-            @unknown default:
-              let err = NSError(domain: "IAP", code: -2,
-                                userInfo: [NSLocalizedDescriptionKey: "Unknown purchase result"])
-              promise(.failure(err))
+    
+    public func fetchProducts() -> AnyPublisher<[Product], Error> {
+        Deferred {
+            Future { promise in
+                Task {
+                    do {
+                        let ids: Set<String> = [self.productID]
+                        let products = try await Product.products(for: ids)
+                        promise(.success(products))
+                    } catch { promise(.failure(error)) }
+                }
             }
-          } catch { promise(.failure(error)) }
         }
-      }
+        .eraseToAnyPublisher()
     }
-    .eraseToAnyPublisher()
-  }
-
-  // MARK: - NEW
-  public func verify<T>(_ result: VerificationResult<T>) throws -> T {
-    switch result {
-    case .verified(let safe): return safe
-    case .unverified(_, let error): throw error
-    }
-  }
-
-  public func readCurrentPremiumEntitlement() -> AnyPublisher<Bool, Never> {
-    Deferred {
-      Future<Bool, Never> { promise in
-        Task {
-          var hasPremium = false
-          for await entitlement in Transaction.currentEntitlements {
-            if case .verified(let tx) = entitlement,
-               tx.productID == "com.travelbuddy.premium" {
-              hasPremium = true
-              break
+    
+    public func purchase(_ product: Product) -> AnyPublisher<Transaction, Error> {
+        Deferred {
+            Future { promise in
+                Task {
+                    do {
+                        let result = try await product.purchase()
+                        switch result {
+                        case .success(let verification):
+                            let tx: Transaction = try self.verify(verification)
+                            await tx.finish()
+                            promise(.success(tx))
+                        case .userCancelled:
+                            let err = NSError(domain: "IAP", code: NSUserCancelledError,
+                                              userInfo: [NSLocalizedDescriptionKey: "Purchase cancelled"])
+                            promise(.failure(err))
+                        case .pending:
+                            let err = NSError(domain: "IAP", code: -1,
+                                              userInfo: [NSLocalizedDescriptionKey: "Purchase pending"])
+                            promise(.failure(err))
+                        @unknown default:
+                            let err = NSError(domain: "IAP", code: -2,
+                                              userInfo: [NSLocalizedDescriptionKey: "Unknown purchase result"])
+                            promise(.failure(err))
+                        }
+                    } catch { promise(.failure(error)) }
+                }
             }
-          }
-          promise(.success(hasPremium))
         }
-      }
+        .eraseToAnyPublisher()
     }
-    .eraseToAnyPublisher()
-  }
+    
+    // MARK: - NEW
+    public func verify<T>(_ result: VerificationResult<T>) throws -> T {
+        switch result {
+        case .verified(let safe): return safe
+        case .unverified(_, let error): throw error
+        }
+    }
+    
+    public func readCurrentPremiumEntitlement() -> AnyPublisher<Bool, Never> {
+        Deferred {
+            Future<Bool, Never> { promise in
+                Task {
+                    var hasPremium = false
+                    for await entitlement in Transaction.currentEntitlements {
+                        if case .verified(let tx) = entitlement,
+                           tx.productID == self.productID {
+                            hasPremium = true
+                            break
+                        }
+                    }
+                    promise(.success(hasPremium))
+                }
+            }
+        }
+        .eraseToAnyPublisher()
+    }
 }
 //
 //  AnalyticsServiceProtocol.swift
@@ -1156,21 +1239,21 @@ import SwiftUI
 public struct SettingsView<VM: SettingsViewModelProtocol>: View {
   @ObservedObject var vm: VM
 
-  public init(vm: VM) {
-    self.vm = vm
-  }
+  public init(vm: VM) { self.vm = vm }
 
   public var body: some View {
     NavigationView {
       Form {
-        Toggle("Dark Mode", isOn: Binding(
-          get:  { vm.isDarkMode },
-          set: { _ in vm.toggleDarkMode() }
-        ))
-        Toggle("Notifications", isOn: Binding(
-          get:  { vm.notificationsEnabled },
-          set: { _ in vm.toggleNotifications() }
-        ))
+          Toggle("Dark Mode", isOn: Binding(
+            get:  { vm.isDarkMode },
+            set:  { vm.setDarkMode($0) }
+          ))
+
+          Toggle("Notifications", isOn: Binding(
+            get:  { vm.notificationsEnabled },
+            set:  { vm.setNotifications($0) }
+          ))
+
         Button(action: { vm.purchasePremium() }) {
           Text(vm.premiumUnlocked ? "Premium Unlocked" : "Unlock Premium")
         }
@@ -1178,19 +1261,14 @@ public struct SettingsView<VM: SettingsViewModelProtocol>: View {
       }
       .navigationTitle("Settings")
       .alert(item: Binding(
-        get: {
-          vm.errorMessage.map { AlertError(message: $0) }
-        },
-        set: { _ in
-          vm.clearError()
-        }
+        get: { vm.errorMessage.map { AlertError(message: $0) } },
+        set: { _ in vm.clearError() }
       )) { alertError in
         Alert(title: Text("Error"), message: Text(alertError.message))
       }
     }
   }
 }
-
 
 private struct AlertError: Identifiable {
   let id = UUID()
@@ -1209,62 +1287,75 @@ import SwiftUI
 
 public protocol SettingsViewModelProtocol: ObservableObject {
     var objectWillChange: ObservableObjectPublisher { get }
-    
+
     var isDarkMode: Bool { get }
     var notificationsEnabled: Bool { get }
     var premiumUnlocked: Bool { get }
     var errorMessage: String? { get }
 
-    func toggleDarkMode()
-    func toggleNotifications()
+    func setDarkMode(_ isOn: Bool)
+    func setNotifications(_ isOn: Bool)
+
     func purchasePremium()
     func clearError()
 }
 
 
 public final class SettingsViewModel: SettingsViewModelProtocol {
-  public let objectWillChange = ObservableObjectPublisher()
+    public let objectWillChange = ObservableObjectPublisher()
 
-  @Published public private(set) var isDarkMode = false
-  @Published public private(set) var notificationsEnabled = false
-  @Published public private(set) var premiumUnlocked = false
-  @Published public private(set) var errorMessage: String?
+     @Published public private(set) var isDarkMode = UserDefaults.standard.bool(forKey: "settings.darkMode")
+     @Published public private(set) var notificationsEnabled = UserDefaults.standard.bool(forKey: "settings.notificationsEnabled")
+     @Published public private(set) var premiumUnlocked = false
+     @Published public private(set) var errorMessage: String?
 
-  private let iapService: IAPServiceProtocol
-  private let analytics: AnalyticsServiceProtocol
-  private let notification: NotificationServiceProtocol
-  private var bag = Set<AnyCancellable>()
+     private let iapService: IAPServiceProtocol
+     private let analytics: AnalyticsServiceProtocol
+     private let notification: NotificationServiceProtocol
+     private var bag = Set<AnyCancellable>()
 
-  public init(iapService: IAPServiceProtocol,
-              analytics: AnalyticsServiceProtocol,
-              notification: NotificationServiceProtocol) {
-    self.iapService = iapService
-    self.analytics = analytics
-    self.notification = notification
+     public init(iapService: IAPServiceProtocol,
+                 analytics: AnalyticsServiceProtocol,
+                 notification: NotificationServiceProtocol) {
+       self.iapService = iapService
+       self.analytics  = analytics
+       self.notification = notification
 
-    
-    iapService.readCurrentPremiumEntitlement()
-      .receive(on: DispatchQueue.main)
-      .sink { [weak self] has in self?.premiumUnlocked = has }
-      .store(in: &bag)
+       iapService.readCurrentPremiumEntitlement()
+         .receive(on: DispatchQueue.main)
+         .sink { [weak self] has in self?.premiumUnlocked = has }
+         .store(in: &bag)
 
-    
-    NotificationCenter.default.publisher(for: .iapEntitlementsChanged)
-      .flatMap { [iapService] _ in iapService.readCurrentPremiumEntitlement() }
-      .receive(on: DispatchQueue.main)
-      .sink { [weak self] has in self?.premiumUnlocked = has }
-      .store(in: &bag)
-  }
+       NotificationCenter.default.publisher(for: .iapEntitlementsChanged)
+         .flatMap { [iapService] _ in iapService.readCurrentPremiumEntitlement() }
+         .receive(on: DispatchQueue.main)
+         .sink { [weak self] has in self?.premiumUnlocked = has }
+         .store(in: &bag)
+     }
 
-  public func toggleDarkMode() { isDarkMode.toggle() }
-  public func toggleNotifications() { notificationsEnabled.toggle() }
+     public func setDarkMode(_ isOn: Bool) {
+       guard isDarkMode != isOn else { return }
+       isDarkMode = isOn
+       UserDefaults.standard.set(isOn, forKey: "settings.darkMode")
+       analytics.logEvent(name: "settings_dark_mode_changed", parameters: ["value": isOn])
+     }
 
+     public func setNotifications(_ isOn: Bool) {
+       guard notificationsEnabled != isOn else { return }
+       notificationsEnabled = isOn
+       UserDefaults.standard.set(isOn, forKey: "settings.notificationsEnabled")
+       analytics.logEvent(name: "settings_notifications_changed", parameters: ["value": isOn])
+       if isOn {
+         notification.requestAuthorization().sink { _ in }.store(in: &bag)
+       }
+     }
+  // — остальной код IAP без изменений
   public func purchasePremium() {
     errorMessage = nil
 
     iapService.fetchProducts()
       .tryMap { products -> Product in
-        guard let p = products.first(where: { $0.id == "com.travelbuddy.premium" }) else {
+        guard let p = products.first else {
           throw NSError(domain: "IAP", code: -3, userInfo: [NSLocalizedDescriptionKey: "Product not found"])
         }
         return p
@@ -1291,13 +1382,11 @@ public final class SettingsViewModel: SettingsViewModelProtocol {
 //  TravelBuddy
 //
 //  Created by Niiaz Khasanov on 6/24/25.
-//
+
 
 import Combine
 import StoreKit
 import SwiftUI
-
-
 
 final class AnySettingsViewModel: ObservableObject, SettingsViewModelProtocol {
     private let wrapped: any SettingsViewModelProtocol
@@ -1313,11 +1402,16 @@ final class AnySettingsViewModel: ObservableObject, SettingsViewModelProtocol {
     init(_ wrapped: any SettingsViewModelProtocol) {
         self.wrapped = wrapped
 
-        // Теперь здесь гарантированно совпадают типы
+        // Важно: objectWillChange у wrapped — это willSet.
+        // Синхронизируемся на следующий runloop-так, чтобы читать уже обновлённые значения.
         wrapped.objectWillChange
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.syncProperties()
-                self?.objectWillChange.send()
+                DispatchQueue.main.async {
+                    guard let self else { return }
+                    self.syncProperties()
+                    self.objectWillChange.send()
+                }
             }
             .store(in: &cancellables)
 
@@ -1331,10 +1425,24 @@ final class AnySettingsViewModel: ObservableObject, SettingsViewModelProtocol {
         errorMessage = wrapped.errorMessage
     }
 
-    func toggleDarkMode() { wrapped.toggleDarkMode() }
-    func toggleNotifications() { wrapped.toggleNotifications() }
+    func setDarkMode(_ isOn: Bool) {
+        if isDarkMode != isOn {
+            isDarkMode = isOn          // мгновенно для SwiftUI
+            objectWillChange.send()    // на случай, если где-то нужен немедленный импульс
+        }
+        wrapped.setDarkMode(isOn)      // источник истины
+    }
+
+    func setNotifications(_ isOn: Bool) {
+        if notificationsEnabled != isOn {
+            notificationsEnabled = isOn
+            objectWillChange.send()
+        }
+        wrapped.setNotifications(isOn)
+    }
+
     func purchasePremium() { wrapped.purchasePremium() }
-    func clearError() { wrapped.clearError() }
+    func clearError()      { wrapped.clearError() }
 }
 //
 //  POIDetailViewModelProtocol.swift
@@ -1795,20 +1903,24 @@ final class MapRouter: ObservableObject {
 
 import SwiftUI
 import Combine
+import MapKit
 
 @MainActor
 final class MapCoordinator {
     private let vm: AnyPOIMapViewModel
     private let router: MapRouter
-    
+    private let defaultRegionMeters: CLLocationDistance
+
     init(vm: AnyPOIMapViewModel, router: MapRouter) {
         self.vm     = vm
         self.router = router
+     
+        let config = DIContainer.shared.resolver.resolve(AppConfig.self)!
+        self.defaultRegionMeters = config.defaultRegionMeters
     }
     
-    /// Отдаём единственный корневой view
     func rootView() -> some View {
-        MapContainer(vm: vm, router: router)
+        MapContainer(vm: vm, router: router, defaultRegionMeters: defaultRegionMeters)
     }
 }
 
@@ -1899,12 +2011,12 @@ struct POISnippetView: View {
 //
 
 
-
 import SwiftUI
 import MapKit
 
 struct MapViewRepresentable: UIViewRepresentable {
     let annotations: [POIAnnotation]
+    let defaultRegionMeters: CLLocationDistance
     let onSelect: (POIAnnotation) -> Void
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -1914,32 +2026,42 @@ struct MapViewRepresentable: UIViewRepresentable {
         map.delegate = context.coordinator
         map.register(MKMarkerAnnotationView.self,
                      forAnnotationViewWithReuseIdentifier: "marker")
-        map.showsUserLocation       = true
-        map.pointOfInterestFilter   = .excludingAll
+        map.showsUserLocation     = true
+        map.pointOfInterestFilter = .excludingAll
         return map
     }
 
     func updateUIView(_ map: MKMapView, context: Context) {
-        map.removeAnnotations(map.annotations)
-        map.addAnnotations(annotations)
+        
+        let existing = map.annotations.compactMap { $0 as? POIAnnotation }
+        let existingIDs = Set(existing.map { $0.poi.id })
+        let incomingIDs = Set(annotations.map { $0.poi.id })
 
-        if let first = annotations.first {
+        
+        let toRemove = existing.filter { !incomingIDs.contains($0.poi.id) }
+        if !toRemove.isEmpty { map.removeAnnotations(toRemove) }
+
+        
+        let toAdd = annotations.filter { !existingIDs.contains($0.poi.id) }
+        if !toAdd.isEmpty { map.addAnnotations(toAdd) }
+
+        
+        if map.region.span.latitudeDelta == 0,
+           let first = (existing + toAdd).first ?? annotations.first {
             map.setRegion(
                 .init(center: first.coordinate,
-                      latitudinalMeters: 4000,
-                      longitudinalMeters: 4000),
+                      latitudinalMeters: defaultRegionMeters,
+                      longitudinalMeters: defaultRegionMeters),
                 animated: false
             )
         }
     }
 
-    // MARK: - Coordinator
     final class Coordinator: NSObject, MKMapViewDelegate {
         let parent: MapViewRepresentable
         init(_ parent: MapViewRepresentable) { self.parent = parent }
 
-        func mapView(_ mapView: MKMapView,
-                     didSelect view: MKAnnotationView) {
+        func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
             guard let anno = view.annotation as? POIAnnotation else { return }
             parent.onSelect(anno)
         }
@@ -1948,7 +2070,6 @@ struct MapViewRepresentable: UIViewRepresentable {
                      viewFor annotation: MKAnnotation) -> MKAnnotationView? {
             guard !(annotation is MKClusterAnnotation),
                   annotation is POIAnnotation else { return nil }
-
             let v = mapView.dequeueReusableAnnotationView(withIdentifier: "marker",
                                                           for: annotation) as! MKMarkerAnnotationView
             v.displayPriority      = .defaultHigh
@@ -1975,25 +2096,24 @@ import MapKit
 public struct POIMapView: View {
     @StateObject private var vm: AnyPOIMapViewModel
     @EnvironmentObject private var router: MapRouter
+    private let defaultRegionMeters: CLLocationDistance
 
-    public init(viewModel: AnyPOIMapViewModel) {
+    public init(viewModel: AnyPOIMapViewModel,
+                defaultRegionMeters: CLLocationDistance) {
         _vm = StateObject(wrappedValue: viewModel)
+        self.defaultRegionMeters = defaultRegionMeters
     }
 
     public var body: some View {
         MapViewRepresentable(
             annotations: vm.annotations,
-            onSelect: { annotation in
-                // при выборе точки — отправляем команду в роутер
-                router.goDetail(annotation.poi)
-            }
+            defaultRegionMeters: defaultRegionMeters,
+            onSelect: { annotation in router.goDetail(annotation.poi) }
         )
         .ignoresSafeArea()
         .onAppear { vm.fetch() }
-        //.navigationTitle("Map")
     }
 }
-
 //
 //  MapContainer.swift
 //  TravelBuddy
@@ -2005,28 +2125,29 @@ public struct POIMapView: View {
 import SwiftUI
 import Combine
 import Swinject
+import MapKit
 
 struct MapContainer: View {
     // ---------- State ----------
     @State private var navPath = NavigationPath()
     @StateObject private var router: MapRouter
     @StateObject private var vm: AnyPOIMapViewModel
+    private let defaultRegionMeters: CLLocationDistance
 
-    // ---------- Init ----------
-    init(vm: AnyPOIMapViewModel, router: MapRouter) {
-        _vm     = StateObject(wrappedValue: vm)
+    init(vm: AnyPOIMapViewModel, router: MapRouter, defaultRegionMeters: CLLocationDistance) {
+        _vm = StateObject(wrappedValue: vm)
         _router = StateObject(wrappedValue: router)
+        self.defaultRegionMeters = defaultRegionMeters
     }
 
     // ---------- UI ----------
     var body: some View {
         NavigationStack(path: $navPath) {
-            POIMapView(viewModel: vm)
+            POIMapView(viewModel: vm, defaultRegionMeters: defaultRegionMeters)
                 .navigationDestination(for: MapRoute.self) { route in
                     switch route {
                     case .detail(let poi):
                         let r = DIContainer.shared.resolver
-                        
                         r.resolve(POIDetailCoordinator.self, argument: poi)?
                             .rootView()
                     }
@@ -2107,11 +2228,9 @@ public final class POIListViewModel: ObservableObject, POIListViewModelProtocol 
         
         repository.fetchPOIs()
             .receive(on: DispatchQueue.main)
-            .handleEvents(receiveOutput: { [weak self] _ in
-                self?.isLoading = false
-            })
             .sink { [weak self] completion in
                 guard let self = self else { return }
+                self.isLoading = false
                 if case let .failure(err) = completion {
                     self.errorMessage = err.localizedDescription
                 }

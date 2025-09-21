@@ -3,13 +3,11 @@
 //  TravelBuddy
 //
 //  Created by Niiaz Khasanov on 6/24/25.
-//
+
 
 import Combine
 import StoreKit
 import SwiftUI
-
-
 
 final class AnySettingsViewModel: ObservableObject, SettingsViewModelProtocol {
     private let wrapped: any SettingsViewModelProtocol
@@ -25,11 +23,16 @@ final class AnySettingsViewModel: ObservableObject, SettingsViewModelProtocol {
     init(_ wrapped: any SettingsViewModelProtocol) {
         self.wrapped = wrapped
 
-        // Теперь здесь гарантированно совпадают типы
+        // Важно: objectWillChange у wrapped — это willSet.
+        // Синхронизируемся на следующий runloop-так, чтобы читать уже обновлённые значения.
         wrapped.objectWillChange
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.syncProperties()
-                self?.objectWillChange.send()
+                DispatchQueue.main.async {
+                    guard let self else { return }
+                    self.syncProperties()
+                    self.objectWillChange.send()
+                }
             }
             .store(in: &cancellables)
 
@@ -43,8 +46,22 @@ final class AnySettingsViewModel: ObservableObject, SettingsViewModelProtocol {
         errorMessage = wrapped.errorMessage
     }
 
-    func toggleDarkMode() { wrapped.toggleDarkMode() }
-    func toggleNotifications() { wrapped.toggleNotifications() }
+    func setDarkMode(_ isOn: Bool) {
+        if isDarkMode != isOn {
+            isDarkMode = isOn          // мгновенно для SwiftUI
+            objectWillChange.send()    // на случай, если где-то нужен немедленный импульс
+        }
+        wrapped.setDarkMode(isOn)      // источник истины
+    }
+
+    func setNotifications(_ isOn: Bool) {
+        if notificationsEnabled != isOn {
+            notificationsEnabled = isOn
+            objectWillChange.send()
+        }
+        wrapped.setNotifications(isOn)
+    }
+
     func purchasePremium() { wrapped.purchasePremium() }
-    func clearError() { wrapped.clearError() }
+    func clearError()      { wrapped.clearError() }
 }

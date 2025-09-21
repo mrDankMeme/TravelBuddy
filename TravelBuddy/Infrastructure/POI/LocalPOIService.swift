@@ -10,11 +10,12 @@ import Combine
 
 public final class LocalPOIService: POIServiceProtocol {
     private let jsonName: String
-
-    public init(jsonName: String = "mock_pois_local") {
-        self.jsonName = jsonName
+    
+    public init(config: AppConfig) {
+        self.jsonName = config.localPOIJSONName
     }
-
+    
+    
     public func fetchPOIs() -> AnyPublisher<[POI], Error> {
         Deferred {
             Future<[POI], Error> { promise in
