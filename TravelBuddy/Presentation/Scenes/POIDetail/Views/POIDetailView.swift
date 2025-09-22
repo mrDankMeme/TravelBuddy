@@ -11,7 +11,7 @@ import MapKit
 
 public struct POIDetailView: View {
   @ObservedObject private var vm: POIDetailViewModel
-  @Binding       private var sheetRoute: POIDetailRoute?
+  @Binding private var sheetRoute: POIDetailRoute?
 
   public init(
     viewModel: POIDetailViewModel,

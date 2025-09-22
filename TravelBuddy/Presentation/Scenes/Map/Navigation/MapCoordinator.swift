@@ -16,6 +16,7 @@ final class MapCoordinator {
     private let router: MapRouter
     private let defaultRegionMeters: CLLocationDistance
     private let makeDetail: (POI) -> AnyView
+   
     
     init(vm: AnyPOIMapViewModel, router: MapRouter) {
         self.vm     = vm

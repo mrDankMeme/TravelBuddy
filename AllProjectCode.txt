@@ -1287,15 +1287,15 @@ import SwiftUI
 
 public protocol SettingsViewModelProtocol: ObservableObject {
     var objectWillChange: ObservableObjectPublisher { get }
-
+    
     var isDarkMode: Bool { get }
     var notificationsEnabled: Bool { get }
     var premiumUnlocked: Bool { get }
     var errorMessage: String? { get }
-
+    
     func setDarkMode(_ isOn: Bool)
     func setNotifications(_ isOn: Bool)
-
+    
     func purchasePremium()
     func clearError()
 }
@@ -1303,79 +1303,84 @@ public protocol SettingsViewModelProtocol: ObservableObject {
 
 public final class SettingsViewModel: SettingsViewModelProtocol {
     public let objectWillChange = ObservableObjectPublisher()
-
-     @Published public private(set) var isDarkMode = UserDefaults.standard.bool(forKey: "settings.darkMode")
-     @Published public private(set) var notificationsEnabled = UserDefaults.standard.bool(forKey: "settings.notificationsEnabled")
-     @Published public private(set) var premiumUnlocked = false
-     @Published public private(set) var errorMessage: String?
-
-     private let iapService: IAPServiceProtocol
-     private let analytics: AnalyticsServiceProtocol
-     private let notification: NotificationServiceProtocol
-     private var bag = Set<AnyCancellable>()
-
-     public init(iapService: IAPServiceProtocol,
-                 analytics: AnalyticsServiceProtocol,
-                 notification: NotificationServiceProtocol) {
-       self.iapService = iapService
-       self.analytics  = analytics
-       self.notification = notification
-
-       iapService.readCurrentPremiumEntitlement()
-         .receive(on: DispatchQueue.main)
-         .sink { [weak self] has in self?.premiumUnlocked = has }
-         .store(in: &bag)
-
-       NotificationCenter.default.publisher(for: .iapEntitlementsChanged)
-         .flatMap { [iapService] _ in iapService.readCurrentPremiumEntitlement() }
-         .receive(on: DispatchQueue.main)
-         .sink { [weak self] has in self?.premiumUnlocked = has }
-         .store(in: &bag)
-     }
-
-     public func setDarkMode(_ isOn: Bool) {
-       guard isDarkMode != isOn else { return }
-       isDarkMode = isOn
-       UserDefaults.standard.set(isOn, forKey: "settings.darkMode")
-       analytics.logEvent(name: "settings_dark_mode_changed", parameters: ["value": isOn])
-     }
-
-     public func setNotifications(_ isOn: Bool) {
-       guard notificationsEnabled != isOn else { return }
-       notificationsEnabled = isOn
-       UserDefaults.standard.set(isOn, forKey: "settings.notificationsEnabled")
-       analytics.logEvent(name: "settings_notifications_changed", parameters: ["value": isOn])
-       if isOn {
-         notification.requestAuthorization().sink { _ in }.store(in: &bag)
-       }
-     }
-  // — остальной код IAP без изменений
-  public func purchasePremium() {
-    errorMessage = nil
-
-    iapService.fetchProducts()
-      .tryMap { products -> Product in
-        guard let p = products.first else {
-          throw NSError(domain: "IAP", code: -3, userInfo: [NSLocalizedDescriptionKey: "Product not found"])
-        }
-        return p
-      }
-      .flatMap { [iapService] product in
-        iapService.purchase(product)
-      }
-      .flatMap { [iapService] _ in
+    
+    private enum Keys {
+        static let darkMode = "settings.darkMode"
+        static let notificationsEnabled = "settings.notificationsEnabled"
+    }
+    
+    @Published public private(set) var isDarkMode = UserDefaults.standard.bool(forKey: Keys.darkMode)
+    @Published public private(set) var notificationsEnabled = UserDefaults.standard.bool(forKey: Keys.notificationsEnabled)
+    @Published public private(set) var premiumUnlocked = false
+    @Published public private(set) var errorMessage: String?
+    
+    private let iapService: IAPServiceProtocol
+    private let analytics: AnalyticsServiceProtocol
+    private let notification: NotificationServiceProtocol
+    private var bag = Set<AnyCancellable>()
+    
+    public init(iapService: IAPServiceProtocol,
+                analytics: AnalyticsServiceProtocol,
+                notification: NotificationServiceProtocol) {
+        self.iapService = iapService
+        self.analytics  = analytics
+        self.notification = notification
+        
         iapService.readCurrentPremiumEntitlement()
-      }
-      .receive(on: DispatchQueue.main)
-      .sink(receiveCompletion: { [weak self] comp in
-        if case let .failure(err) = comp { self?.errorMessage = err.localizedDescription }
-      }, receiveValue: { [weak self] has in
-        self?.premiumUnlocked = has
-      })
-      .store(in: &bag)
-  }
-
-  public func clearError() { errorMessage = nil }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] has in self?.premiumUnlocked = has }
+            .store(in: &bag)
+        
+        NotificationCenter.default.publisher(for: .iapEntitlementsChanged)
+            .flatMap { [iapService] _ in iapService.readCurrentPremiumEntitlement() }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] has in self?.premiumUnlocked = has }
+            .store(in: &bag)
+    }
+    
+    public func setDarkMode(_ isOn: Bool) {
+        guard isDarkMode != isOn else { return }
+        isDarkMode = isOn
+        UserDefaults.standard.set(isOn, forKey: Keys.darkMode)
+        analytics.logEvent(name: "settings_dark_mode_changed", parameters: ["value": isOn])
+    }
+    
+    public func setNotifications(_ isOn: Bool) {
+        guard notificationsEnabled != isOn else { return }
+        notificationsEnabled = isOn
+        UserDefaults.standard.set(isOn, forKey: Keys.notificationsEnabled )
+        analytics.logEvent(name: "settings_notifications_changed", parameters: ["value": isOn])
+        if isOn {
+            notification.requestAuthorization().sink { _ in }.store(in: &bag)
+        }
+    }
+    // — остальной код IAP без изменений
+    public func purchasePremium() {
+        errorMessage = nil
+        
+        iapService.fetchProducts()
+            .tryMap { products -> Product in
+                guard let p = products.first else {
+                    throw NSError(domain: "IAP", code: -3, userInfo: [NSLocalizedDescriptionKey: "Product not found"])
+                }
+                return p
+            }
+            .flatMap { [iapService] product in
+                iapService.purchase(product)
+            }
+            .flatMap { [iapService] _ in
+                iapService.readCurrentPremiumEntitlement()
+            }
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { [weak self] comp in
+                if case let .failure(err) = comp { self?.errorMessage = err.localizedDescription }
+            }, receiveValue: { [weak self] has in
+                self?.premiumUnlocked = has
+            })
+            .store(in: &bag)
+    }
+    
+    public func clearError() { errorMessage = nil }
 }
 //
 //  AnySettingsViewModel.swift
@@ -1701,7 +1706,7 @@ import MapKit
 
 public struct POIDetailView: View {
   @ObservedObject private var vm: POIDetailViewModel
-  @Binding       private var sheetRoute: POIDetailRoute?
+  @Binding private var sheetRoute: POIDetailRoute?
 
   public init(
     viewModel: POIDetailViewModel,
@@ -1910,17 +1915,26 @@ final class MapCoordinator {
     private let vm: AnyPOIMapViewModel
     private let router: MapRouter
     private let defaultRegionMeters: CLLocationDistance
-
+    private let makeDetail: (POI) -> AnyView
+   
+    
     init(vm: AnyPOIMapViewModel, router: MapRouter) {
         self.vm     = vm
         self.router = router
-     
+        
         let config = DIContainer.shared.resolver.resolve(AppConfig.self)!
         self.defaultRegionMeters = config.defaultRegionMeters
+        let resolver = DIContainer.shared.resolver
+        self.makeDetail = { poi in
+            guard let coord = resolver.resolve(POIDetailCoordinator.self, argument: poi) else {
+                return AnyView(EmptyView())
+            }
+            return AnyView(coord.rootView())
+        }
     }
     
     func rootView() -> some View {
-        MapContainer(vm: vm, router: router, defaultRegionMeters: defaultRegionMeters)
+        MapContainer(vm: vm, router: router, defaultRegionMeters: defaultRegionMeters, makeDetail: makeDetail)
     }
 }
 
@@ -1973,10 +1987,9 @@ import MapKit
 
 struct POISnippetView: View {
     let poi: POI
- 
-    @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var appRouter: AppRouter
-    
+    var onDetails: () -> Void
+    var onRoute:   () -> Void
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(poi.name).font(.title2).bold()
@@ -1984,25 +1997,16 @@ struct POISnippetView: View {
             if let desc = poi.description { Text(desc).lineLimit(3) }
 
             HStack {
-                Button("Details") {
-                    appRouter.send(.openPOIDetail(poi))
-                    dismiss()
-                }
-                .buttonStyle(.borderedProminent)
+                Button("Details", action: onDetails)
+                    .buttonStyle(.borderedProminent)
 
                 Spacer()
-                Button("Route") {
-                    let coord = CLLocationCoordinate2D(latitude: poi.latitude,
-                                                        longitude: poi.longitude)
-                    MKMapItem(placemark: MKPlacemark(coordinate: coord))
-                        .openInMaps()
-                }
+                Button("Route", action: onRoute)
             }
         }
         .padding()
     }
 }
-
 //
 //  MapViewRepresentable.swift
 //  TravelBuddy
@@ -2026,7 +2030,9 @@ struct MapViewRepresentable: UIViewRepresentable {
         map.delegate = context.coordinator
         map.register(MKMarkerAnnotationView.self,
                      forAnnotationViewWithReuseIdentifier: "marker")
-        map.showsUserLocation     = true
+        map.register(MKMarkerAnnotationView.self,
+                     forAnnotationViewWithReuseIdentifier: "cluster")
+        map.showsUserLocation = true
         map.pointOfInterestFilter = .excludingAll
         return map
     }
@@ -2046,20 +2052,32 @@ struct MapViewRepresentable: UIViewRepresentable {
         if !toAdd.isEmpty { map.addAnnotations(toAdd) }
 
         
-        if map.region.span.latitudeDelta == 0,
-           let first = (existing + toAdd).first ?? annotations.first {
-            map.setRegion(
-                .init(center: first.coordinate,
-                      latitudinalMeters: defaultRegionMeters,
-                      longitudinalMeters: defaultRegionMeters),
-                animated: false
-            )
-        }
+        if !context.coordinator.hasSetInitialRegion, !map.annotations.isEmpty {
+               context.coordinator.hasSetInitialRegion = true
+
+               let poiAnnos = map.annotations.compactMap { $0 as? POIAnnotation }
+               if poiAnnos.count == 1, let only = poiAnnos.first {
+                   let region = MKCoordinateRegion(
+                       center: only.coordinate,
+                       latitudinalMeters: defaultRegionMeters,
+                       longitudinalMeters: defaultRegionMeters
+                   )
+                   map.setRegion(region, animated: false)
+               } else {
+                   map.showAnnotations(poiAnnos, animated: false)
+                   let insets = UIEdgeInsets(top: 80, left: 40, bottom: 160, right: 40)
+                   map.setVisibleMapRect(map.visibleMapRect, edgePadding: insets, animated: false)
+               }
+           }
     }
 
     final class Coordinator: NSObject, MKMapViewDelegate {
+        var hasSetInitialRegion = false
         let parent: MapViewRepresentable
+        
         init(_ parent: MapViewRepresentable) { self.parent = parent }
+        
+        
 
         func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
             guard let anno = view.annotation as? POIAnnotation else { return }
@@ -2068,8 +2086,21 @@ struct MapViewRepresentable: UIViewRepresentable {
 
         func mapView(_ mapView: MKMapView,
                      viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-            guard !(annotation is MKClusterAnnotation),
-                  annotation is POIAnnotation else { return nil }
+            // 1) Кластеры — свой вид с числом
+            if let cluster = annotation as? MKClusterAnnotation {
+                let v = mapView.dequeueReusableAnnotationView(withIdentifier: "cluster",
+                                                              for: annotation) as! MKMarkerAnnotationView
+                v.displayPriority = .required
+                v.markerTintColor = .systemBlue
+                v.glyphText       = "\(cluster.memberAnnotations.count)"
+                v.titleVisibility = .hidden
+                v.subtitleVisibility = .hidden
+                v.canShowCallout  = false
+                return v
+            }
+
+            // 2) Обычные POI — маркер с пином и включённой кластеризацией
+            guard annotation is POIAnnotation else { return nil }
             let v = mapView.dequeueReusableAnnotationView(withIdentifier: "marker",
                                                           for: annotation) as! MKMarkerAnnotationView
             v.displayPriority      = .defaultHigh
@@ -2078,6 +2109,7 @@ struct MapViewRepresentable: UIViewRepresentable {
             v.glyphImage           = UIImage(systemName: "mappin")
             v.canShowCallout       = false
             return v
+            
         }
     }
 }
@@ -2097,21 +2129,49 @@ public struct POIMapView: View {
     @StateObject private var vm: AnyPOIMapViewModel
     @EnvironmentObject private var router: MapRouter
     private let defaultRegionMeters: CLLocationDistance
-
+    
     public init(viewModel: AnyPOIMapViewModel,
                 defaultRegionMeters: CLLocationDistance) {
         _vm = StateObject(wrappedValue: viewModel)
         self.defaultRegionMeters = defaultRegionMeters
     }
-
+    
     public var body: some View {
         MapViewRepresentable(
             annotations: vm.annotations,
             defaultRegionMeters: defaultRegionMeters,
-            onSelect: { annotation in router.goDetail(annotation.poi) }
+            onSelect: { annotation in
+                vm.select(annotation: annotation)
+            }
         )
         .ignoresSafeArea()
         .onAppear { vm.fetch() }
+        .sheet(item: Binding(
+            get: {
+                vm.selectedPOI
+            },
+            set: { newValue in
+                vm.selectedPOI = newValue
+            }
+        )) { poi in
+            POISnippetView(
+                poi: poi,
+                onDetails: {
+                    vm.selectedPOI = nil
+                    DispatchQueue.main.async {
+                        router.goDetail(poi)
+                    }
+                },
+                onRoute: {
+                    let coord = CLLocationCoordinate2D(latitude: poi.latitude, longitude: poi.longitude)
+                    let item = MKMapItem(placemark: MKPlacemark(coordinate: coord))
+                    item.name = poi.name
+                    item.openInMaps(launchOptions: nil)
+                }
+            )
+            .presentationDetents([.height(200), .medium])
+        }
+        
     }
 }
 //
@@ -2130,16 +2190,22 @@ import MapKit
 struct MapContainer: View {
     // ---------- State ----------
     @State private var navPath = NavigationPath()
+    @State private var lastPushedPOIId: Int?
+    @State private var isNavigating = false
+    
     @StateObject private var router: MapRouter
     @StateObject private var vm: AnyPOIMapViewModel
+    
     private let defaultRegionMeters: CLLocationDistance
-
-    init(vm: AnyPOIMapViewModel, router: MapRouter, defaultRegionMeters: CLLocationDistance) {
+    private let makeDetail: (POI) -> AnyView
+    
+    init(vm: AnyPOIMapViewModel, router: MapRouter, defaultRegionMeters: CLLocationDistance,makeDetail: @escaping (POI) -> AnyView) {
         _vm = StateObject(wrappedValue: vm)
         _router = StateObject(wrappedValue: router)
         self.defaultRegionMeters = defaultRegionMeters
+        self.makeDetail = makeDetail
     }
-
+    
     // ---------- UI ----------
     var body: some View {
         NavigationStack(path: $navPath) {
@@ -2150,6 +2216,7 @@ struct MapContainer: View {
                         let r = DIContainer.shared.resolver
                         r.resolve(POIDetailCoordinator.self, argument: poi)?
                             .rootView()
+                        makeDetail(poi)
                     }
                 }
         }
@@ -2157,11 +2224,18 @@ struct MapContainer: View {
         .onReceive(router.routes) { command in
             switch command {
             case .detail(let poi):
+                // анти-дубль: не пушим тот же POI в один "тик" и подряд
+                guard !isNavigating, lastPushedPOIId != poi.id else { return }
+                
+                isNavigating = true
                 navPath.append(MapRoute.detail(poi))
-
+                lastPushedPOIId = poi.id
+                
+                // сбросим флажок сразу в следующий runloop-тик
+                DispatchQueue.main.async { isNavigating = false }
             case .back:
                 if !navPath.isEmpty { navPath.removeLast() }
-
+                
             case .reset:
                 navPath.removeLast(navPath.count)
             }
@@ -2368,15 +2442,23 @@ import SwiftUI
 final class POIListCoordinator {
     private let viewModel: AnyPOIListViewModel
     private let router: POIListRouter
-
+    private let makeDetail: (POI) -> AnyView
+    
     init(viewModel: AnyPOIListViewModel, router: POIListRouter) {
         self.viewModel = viewModel
         self.router = router
+        let resolver = DIContainer.shared.resolver
+        self.makeDetail = { poi in
+            guard let coord = resolver.resolve(POIDetailCoordinator.self, argument: poi) else {
+                return AnyView(EmptyView())
+            }
+            return AnyView(coord.rootView())
+        }
     }
-
+    
     @ViewBuilder
     func rootView() -> some View {
-        POIListContainer(vm: viewModel, router: router)
+        POIListContainer(vm: viewModel, router: router, makeDetail: makeDetail)
     }
 }
 //
@@ -2434,18 +2516,17 @@ public struct POIImageView: View {
 import SwiftUI
 import Combine
 
-/// Обёртка сцены списка:
-/// — владеет NavigationPath,
-/// — слушает POIListRouter и применяет команды к $path,
-/// — лениво резолвит координатор деталки.
+
 struct POIListContainer: View {
     @State private var path = NavigationPath()
     @StateObject private var vm: AnyPOIListViewModel
     @StateObject private var router: POIListRouter
-
-    init(vm: AnyPOIListViewModel, router: POIListRouter) {
+    private let makeDetail: (POI) -> AnyView
+    
+    init(vm: AnyPOIListViewModel, router: POIListRouter, makeDetail: @escaping (POI) -> AnyView) {
         _vm = StateObject(wrappedValue: vm)
         _router = StateObject(wrappedValue: router)
+        self.makeDetail = makeDetail
     }
 
     var body: some View {
@@ -2457,6 +2538,7 @@ struct POIListContainer: View {
                         DIContainer.shared.resolver
                             .resolve(POIDetailCoordinator.self, argument: poi)!
                             .rootView()
+                        makeDetail(poi)
                     }
                 }
         }

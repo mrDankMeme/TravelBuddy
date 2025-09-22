@@ -13,13 +13,23 @@ import MapKit
 
 struct MapContainer: View {
     // ---------- State ----------
-    @State private var navPath = NavigationPath()
+    // ⬇️ было: private var navPath = NavigationPath()
+    @State private var path: [MapRoute] = []             // ✅ типизированный путь
+    @State private var prevPathCount: Int = 0            // ✅ следим за уменьшением стека
+
+    @State private var lastPushedPOIId: Int?
+    @State private var isNavigating = false
+
     @StateObject private var router: MapRouter
     @StateObject private var vm: AnyPOIMapViewModel
+
     private let defaultRegionMeters: CLLocationDistance
     private let makeDetail: (POI) -> AnyView
 
-    init(vm: AnyPOIMapViewModel, router: MapRouter, defaultRegionMeters: CLLocationDistance,makeDetail: @escaping (POI) -> AnyView) {
+    init(vm: AnyPOIMapViewModel,
+         router: MapRouter,
+         defaultRegionMeters: CLLocationDistance,
+         makeDetail: @escaping (POI) -> AnyView) {
         _vm = StateObject(wrappedValue: vm)
         _router = StateObject(wrappedValue: router)
         self.defaultRegionMeters = defaultRegionMeters
@@ -28,15 +38,12 @@ struct MapContainer: View {
 
     // ---------- UI ----------
     var body: some View {
-        NavigationStack(path: $navPath) {
+        NavigationStack(path: $path) {
             POIMapView(viewModel: vm, defaultRegionMeters: defaultRegionMeters)
                 .navigationDestination(for: MapRoute.self) { route in
                     switch route {
                     case .detail(let poi):
-                        let r = DIContainer.shared.resolver
-                        r.resolve(POIDetailCoordinator.self, argument: poi)?
-                            .rootView()
-                        makeDetail(poi)
+                        makeDetail(poi)                    // ← один-единственный экран
                     }
                 }
         }
@@ -44,15 +51,32 @@ struct MapContainer: View {
         .onReceive(router.routes) { command in
             switch command {
             case .detail(let poi):
-                navPath.append(MapRoute.detail(poi))
+                guard !isNavigating, lastPushedPOIId != poi.id else { return }
+                isNavigating = true
+                path.append(.detail(poi))                 // ← работаем с типизированным путём
+                lastPushedPOIId = poi.id
+                DispatchQueue.main.async { isNavigating = false }
 
             case .back:
-                if !navPath.isEmpty { navPath.removeLast() }
+                if !path.isEmpty { path.removeLast() }
+                lastPushedPOIId = nil
+                isNavigating = false
 
             case .reset:
-                navPath.removeLast(navPath.count)
+                path.removeAll()
+                lastPushedPOIId = nil
+                isNavigating = false
             }
         }
-        .environmentObject(router)   // нужен внутри POIMapView
+        // ✅ КЛЮЧ: если пользователь вернулся назад «системно» (жест/кнопка Back),
+        // стек уменьшится — сбрасываем lastPushedPOIId, чтобы снова можно было открыть тот же POI.
+        .onChange(of: path) { newValue in
+            if newValue.count < prevPathCount {
+                lastPushedPOIId = nil
+                isNavigating = false
+            }
+            prevPathCount = newValue.count
+        }
+        .environmentObject(router)
     }
 }

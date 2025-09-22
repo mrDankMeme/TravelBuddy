@@ -9,10 +9,7 @@
 import SwiftUI
 import Combine
 
-/// Обёртка сцены списка:
-/// — владеет NavigationPath,
-/// — слушает POIListRouter и применяет команды к $path,
-/// — лениво резолвит координатор деталки.
+
 struct POIListContainer: View {
     @State private var path = NavigationPath()
     @StateObject private var vm: AnyPOIListViewModel

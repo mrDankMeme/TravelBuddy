@@ -12,10 +12,9 @@ import MapKit
 
 struct POISnippetView: View {
     let poi: POI
- 
-    @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var appRouter: AppRouter
-    
+    var onDetails: () -> Void
+    var onRoute:   () -> Void
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(poi.name).font(.title2).bold()
@@ -23,22 +22,13 @@ struct POISnippetView: View {
             if let desc = poi.description { Text(desc).lineLimit(3) }
 
             HStack {
-                Button("Details") {
-                    appRouter.send(.openPOIDetail(poi))
-                    dismiss()
-                }
-                .buttonStyle(.borderedProminent)
+                Button("Details", action: onDetails)
+                    .buttonStyle(.borderedProminent)
 
                 Spacer()
-                Button("Route") {
-                    let coord = CLLocationCoordinate2D(latitude: poi.latitude,
-                                                        longitude: poi.longitude)
-                    MKMapItem(placemark: MKPlacemark(coordinate: coord))
-                        .openInMaps()
-                }
+                Button("Route", action: onRoute)
             }
         }
         .padding()
     }
 }
-
