@@ -5,19 +5,27 @@
 //  Created by Niiaz Khasanov on 7/7/25.
 //
 
-
-
 import SwiftUI
 import MapKit
 
+/// Владеет `AnyPOIMapViewModel`, показывает карту и сниппет.
+/// Управление фокусом и центрированием приходит сверху через биндинги.
 public struct POIMapView: View {
     @StateObject private var vm: AnyPOIMapViewModel
     @EnvironmentObject private var router: MapRouter
     private let defaultRegionMeters: CLLocationDistance
 
-    public init(viewModel: AnyPOIMapViewModel, defaultRegionMeters: CLLocationDistance) {
+    /// Прокидываем из `MapContainer` запросы центра/фокуса
+    @Binding private var centerRequest: CLLocationCoordinate2D?
+
+    public init(
+        viewModel: AnyPOIMapViewModel,
+        defaultRegionMeters: CLLocationDistance,
+        centerRequest: Binding<CLLocationCoordinate2D?>
+    ) {
         _vm = StateObject(wrappedValue: viewModel)
         self.defaultRegionMeters = defaultRegionMeters
+        self._centerRequest = centerRequest
     }
 
     public var body: some View {
@@ -25,15 +33,15 @@ public struct POIMapView: View {
             annotations: vm.annotations,
             defaultRegionMeters: defaultRegionMeters,
             selectedId: Binding(
-                get: { vm.selectedPOI?.id },                                  // ← биндим id
+                get: { vm.selectedPOI?.id },
                 set: { newId in
-                    // выбор на карте → находим POI и кладём в VM (для сниппета)
                     vm.selectedPOI = newId.flatMap { id in
                         vm.annotations.first(where: { $0.poi.id == id })?.poi
                     }
                 }
             ),
-            onSelect: { _ in } // выбор обрабатываем через биндинг; прямой коллбек не нужен
+            centerRequest: $centerRequest,
+            onSelect: { _ in }
         )
         .ignoresSafeArea()
         .onAppear { vm.fetch() }
@@ -41,15 +49,12 @@ public struct POIMapView: View {
             get: { vm.selectedPOI },
             set: { vm.selectedPOI = $0 }
         ), onDismiss: {
-            // 🔑 Закрыли сниппет → биндинг selectedId станет nil → MapView снимет highlight
             vm.selectedPOI = nil
         }) { poi in
             POISnippetView(
                 poi: poi,
                 onDetails: {
-                    // 1) закрыть сниппет (это снимет выделение пина через биндинг)
                     vm.selectedPOI = nil
-                    // 2) навигация командой в роутер (как и раньше)
                     DispatchQueue.main.async { router.goDetail(poi) }
                 },
                 onRoute: {

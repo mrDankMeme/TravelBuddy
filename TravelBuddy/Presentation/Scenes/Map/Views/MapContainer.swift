@@ -5,17 +5,18 @@
 //  Created by Niiaz Khasanov on 7/17/25.
 //
 
-
 import SwiftUI
 import Combine
 import Swinject
 import MapKit
 
+/// Контейнер управляет:
+/// - NavigationStack (деталью)
+/// - подпиской на команды MapRouter (detail/back/reset/center/focusPOI)
+/// - согласованием deeplink-команд с VM (выбор POI) и MapView (центрирование)
 struct MapContainer: View {
-    // ---------- State ----------
-    // ⬇️ было: private var navPath = NavigationPath()
-    @State private var path: [MapRoute] = []             // ✅ типизированный путь
-    @State private var prevPathCount: Int = 0            // ✅ следим за уменьшением стека
+    @State private var path: [MapRoute] = []
+    @State private var prevPathCount: Int = 0
 
     @State private var lastPushedPOIId: Int?
     @State private var isNavigating = false
@@ -26,34 +27,45 @@ struct MapContainer: View {
     private let defaultRegionMeters: CLLocationDistance
     private let makeDetail: (POI) -> AnyView
 
-    init(vm: AnyPOIMapViewModel,
-         router: MapRouter,
-         defaultRegionMeters: CLLocationDistance,
-         makeDetail: @escaping (POI) -> AnyView) {
+    // deeplink-команда центрирования — одноразовый триггер для MapViewRepresentable
+    @State private var centerRequest: CLLocationCoordinate2D? = nil
+
+    // pending focus, если аннотации еще не загружены
+    @State private var pendingFocusId: Int? = nil
+
+    init(
+        vm: AnyPOIMapViewModel,
+        router: MapRouter,
+        defaultRegionMeters: CLLocationDistance,
+        makeDetail: @escaping (POI) -> AnyView
+    ) {
         _vm = StateObject(wrappedValue: vm)
         _router = StateObject(wrappedValue: router)
         self.defaultRegionMeters = defaultRegionMeters
         self.makeDetail = makeDetail
     }
 
-    // ---------- UI ----------
     var body: some View {
         NavigationStack(path: $path) {
-            POIMapView(viewModel: vm, defaultRegionMeters: defaultRegionMeters)
-                .navigationDestination(for: MapRoute.self) { route in
-                    switch route {
-                    case .detail(let poi):
-                        makeDetail(poi)                    // ← один-единственный экран
-                    }
+            POIMapView(
+                viewModel: vm,
+                defaultRegionMeters: defaultRegionMeters,
+                centerRequest: $centerRequest
+            )
+            .navigationDestination(for: MapRoute.self) { route in
+                switch route {
+                case .detail(let poi):
+                    makeDetail(poi)
                 }
+            }
         }
-        // -------- Router → NavigationPath --------
+        // Router → Navigation & Map actions
         .onReceive(router.routes) { command in
             switch command {
             case .detail(let poi):
                 guard !isNavigating, lastPushedPOIId != poi.id else { return }
                 isNavigating = true
-                path.append(.detail(poi))                 // ← работаем с типизированным путём
+                path.append(.detail(poi))
                 lastPushedPOIId = poi.id
                 DispatchQueue.main.async { isNavigating = false }
 
@@ -66,9 +78,24 @@ struct MapContainer: View {
                 path.removeAll()
                 lastPushedPOIId = nil
                 isNavigating = false
+
+            case .center(let coord):
+                // Однократно центрируем карту
+                centerRequest = coord
+
+            case .focusPOI(let id):
+                // Если аннотации уже есть — выставим selectedPOI сразу,
+                // иначе отложим до прихода данных
+                if let poi = vm.annotations.first(where: { $0.poi.id == id })?.poi {
+                    vm.selectedPOI = poi
+                } else {
+                    pendingFocusId = id
+                    // если данные еще не загружены — инициируем
+                    vm.fetch()
+                }
             }
         }
-   
+        // Пользователь вернулся Back системно — разрешим повторное открытие того же POI
         .onChange(of: path) { newValue in
             if newValue.count < prevPathCount {
                 lastPushedPOIId = nil
@@ -76,7 +103,14 @@ struct MapContainer: View {
             }
             prevPathCount = newValue.count
         }
+        // Как только подъехали аннотации — обработаем отложенный focus
+        .onChange(of: vm.annotations) { _ in
+            if let id = pendingFocusId,
+               let poi = vm.annotations.first(where: { $0.poi.id == id })?.poi {
+                pendingFocusId = nil
+                vm.selectedPOI = poi
+            }
+        }
         .environmentObject(router)
     }
 }
-

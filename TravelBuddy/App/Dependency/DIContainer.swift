@@ -22,6 +22,11 @@ public final class DIContainer {
         let config = AppConfig.makeDefault()
         container.register(AppConfig.self) { _ in config }
             .inObjectScope(.container)
+      
+        // DeepLink
+        container.register(DeepLinkHandling.self) { _ in
+            DeepLinkService()
+        }.inObjectScope(.container)
 
         // 1) Core
         container.register(HTTPClientProtocol.self) { r in

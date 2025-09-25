@@ -5,19 +5,24 @@
 //  Created by Niiaz Khasanov on 7/7/25.
 //
 
-
-// Presentation/Scenes/Map/Views/MapViewRepresentable.swift
 import SwiftUI
 import MapKit
 
+/// UIKit-карта с управлением:
+/// - дифф аннотаций
+/// - синхронизация выделения по `selectedId`
+/// - внешняя команда центрирования через `centerRequest`
 struct MapViewRepresentable: UIViewRepresentable {
     let annotations: [POIAnnotation]
     let defaultRegionMeters: CLLocationDistance
 
-    // ✅ Новый единый источник правды для выделения
+    /// Единый источник правды для выделения пина
     @Binding var selectedId: Int?
 
-    // (оставим коллбек для совместимости; передадим noop)
+    /// Внешняя команда центрирования карты (однократная) — после применения сбрасывается в nil
+    @Binding var centerRequest: CLLocationCoordinate2D?
+
+    /// Доп. коллбек (сохраняем для совместимости; чаще всего noop)
     let onSelect: (POIAnnotation) -> Void
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -33,7 +38,7 @@ struct MapViewRepresentable: UIViewRepresentable {
     }
 
     func updateUIView(_ map: MKMapView, context: Context) {
-        // --- дифф аннотаций (как у тебя было) ---
+        // --- дифф аннотаций ---
         let existing = map.annotations.compactMap { $0 as? POIAnnotation }
         let existingIDs = Set(existing.map { $0.poi.id })
         let incomingIDs = Set(annotations.map { $0.poi.id })
@@ -44,7 +49,7 @@ struct MapViewRepresentable: UIViewRepresentable {
         let toAdd = annotations.filter { !existingIDs.contains($0.poi.id) }
         if !toAdd.isEmpty { map.addAnnotations(toAdd) }
 
-        // --- первичная установка региона (как у тебя было) ---
+        // --- первичная установка региона ---
         if !context.coordinator.hasSetInitialRegion, !map.annotations.isEmpty {
             context.coordinator.hasSetInitialRegion = true
             let poiAnnos = map.annotations.compactMap { $0 as? POIAnnotation }
@@ -62,10 +67,11 @@ struct MapViewRepresentable: UIViewRepresentable {
             }
         }
 
-        // --- 🔑 синхронизация выделения ---
+        // --- синхронизация выделения ---
         if let id = selectedId {
-            // выбрать соответствующую аннотацию, если ещё не выбрана
-            if let anno = map.annotations.compactMap({ $0 as? POIAnnotation }).first(where: { $0.poi.id == id }) {
+            if let anno = map.annotations
+                .compactMap({ $0 as? POIAnnotation })
+                .first(where: { $0.poi.id == id }) {
                 let already = map.selectedAnnotations.contains {
                     guard let a = $0 as? POIAnnotation else { return false }
                     return a.poi.id == id
@@ -73,12 +79,27 @@ struct MapViewRepresentable: UIViewRepresentable {
                 if !already { map.selectAnnotation(anno, animated: true) }
             }
         } else {
-            // снять выделение, если что-то выбрано
             if !map.selectedAnnotations.isEmpty {
                 map.selectedAnnotations.forEach { map.deselectAnnotation($0, animated: true) }
             }
         }
+
+        // --- внешняя команда центрирования (deeplink) ---
+        if let center = centerRequest {
+            let region = MKCoordinateRegion(
+                center: center,
+                latitudinalMeters: defaultRegionMeters,
+                longitudinalMeters: defaultRegionMeters
+            )
+            map.setRegion(region, animated: true)
+            // однократное действие — сбрасываем запрос в nil
+            DispatchQueue.main.async {
+                self.centerRequest = nil
+            }
+        }
     }
+
+    // MARK: - Coordinator
 
     final class Coordinator: NSObject, MKMapViewDelegate {
         var hasSetInitialRegion = false
@@ -89,14 +110,10 @@ struct MapViewRepresentable: UIViewRepresentable {
 
         func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
             guard let anno = view.annotation as? POIAnnotation else { return }
-            // анти-дубль от MKMapView
             guard lastSelectedId != anno.poi.id else { return }
             lastSelectedId = anno.poi.id
 
-            // обновляем биндинг (вверх по иерархии)
             parent.selectedId = anno.poi.id
-
-            // совместимость: если снаружи что-то ещё слушают
             parent.onSelect(anno)
         }
 
