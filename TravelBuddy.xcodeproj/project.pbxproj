@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A301D4492E85882500F67A76 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = A301D4482E85882500F67A76 /* README.md */; };
 		A3166E062E0476E700E6E1C2 /* Swinject in Frameworks */ = {isa = PBXBuildFile; productRef = A3166E052E0476E700E6E1C2 /* Swinject */; };
 		A3166E0B2E05613600E6E1C2 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = A3166E0A2E05613600E6E1C2 /* FirebaseAnalytics */; };
 		A3166E0D2E05613600E6E1C2 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = A3166E0C2E05613600E6E1C2 /* FirebaseCrashlytics */; };
@@ -92,6 +93,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A301D4482E85882500F67A76 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		A3166DEC2E04752500E6E1C2 /* TravelBuddy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TravelBuddy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3166E3C2E0589B600E6E1C2 /* Publisher+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publisher+Extensions.swift"; sourceTree = "<group>"; };
 		A3166E3D2E0589B600E6E1C2 /* UIColor+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+Hex.swift"; sourceTree = "<group>"; };
@@ -159,6 +161,11 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		A301D44E2E85882E00F67A76 /* Deeplink */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Deeplink;
+			sourceTree = "<group>";
+		};
 		A31670132E16A8CD00E6E1C2 /* POIImages */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = POIImages;
@@ -318,6 +325,7 @@
 		A3166E562E0589B600E6E1C2 /* TravelBuddy */ = {
 			isa = PBXGroup;
 			children = (
+				A301D4482E85882500F67A76 /* README.md */,
 				A385D5B12E37D0C6009C0251 /* App */,
 				A385D58D2E37A14F009C0251 /* Presentation */,
 				A3166E4C2E0589B600E6E1C2 /* Infrastructure */,
@@ -609,6 +617,7 @@
 		A385D5B12E37D0C6009C0251 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				A301D44E2E85882E00F67A76 /* Deeplink */,
 				A3166E4D2E0589B600E6E1C2 /* AppDelegate.swift */,
 				A3166E542E0589B600E6E1C2 /* SceneDelegate.swift */,
 				A385D5AE2E37D0C6009C0251 /* Coordinators */,
@@ -678,6 +687,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				A301D44E2E85882E00F67A76 /* Deeplink */,
 				A31670132E16A8CD00E6E1C2 /* POIImages */,
 			);
 			name = TravelBuddy;
@@ -740,6 +750,7 @@
 				A3166E5E2E0589B600E6E1C2 /* Assets.xcassets in Resources */,
 				A3166E602E0589B600E6E1C2 /* LaunchScreen.storyboard in Resources */,
 				A3166F0A2E10396E00E6E1C2 /* mock_pois_local.json in Resources */,
+				A301D4492E85882500F67A76 /* README.md in Resources */,
 				A3166E612E0589B600E6E1C2 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
