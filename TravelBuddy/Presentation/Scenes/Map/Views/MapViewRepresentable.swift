@@ -86,6 +86,8 @@ struct MapViewRepresentable: UIViewRepresentable {
 
         // --- внешняя команда центрирования (deeplink) ---
         if let center = centerRequest {
+            // это и есть «наш» стартовый регион — запретим авто-инициализацию позже
+            context.coordinator.hasSetInitialRegion = true
             let region = MKCoordinateRegion(
                 center: center,
                 latitudinalMeters: defaultRegionMeters,

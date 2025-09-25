@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		A301D4492E85882500F67A76 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = A301D4482E85882500F67A76 /* README.md */; };
-		A301D4582E85887500F67A76 /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = A301D4532E85887500F67A76 /* DeepLink.swift */; };
+		A301D4582E85887500F67A76 /* DeepLinkParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A301D4532E85887500F67A76 /* DeepLinkParser.swift */; };
 		A301D4592E85887500F67A76 /* DeepLinkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A301D4542E85887500F67A76 /* DeepLinkService.swift */; };
 		A301D45A2E85887500F67A76 /* DeepLinkTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = A301D4552E85887500F67A76 /* DeepLinkTab.swift */; };
 		A301D45B2E85887500F67A76 /* MapIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A301D4562E85887500F67A76 /* MapIntent.swift */; };
@@ -98,7 +98,7 @@
 
 /* Begin PBXFileReference section */
 		A301D4482E85882500F67A76 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		A301D4532E85887500F67A76 /* DeepLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLink.swift; sourceTree = "<group>"; };
+		A301D4532E85887500F67A76 /* DeepLinkParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkParser.swift; sourceTree = "<group>"; };
 		A301D4542E85887500F67A76 /* DeepLinkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkService.swift; sourceTree = "<group>"; };
 		A301D4552E85887500F67A76 /* DeepLinkTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkTab.swift; sourceTree = "<group>"; };
 		A301D4562E85887500F67A76 /* MapIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapIntent.swift; sourceTree = "<group>"; };
@@ -195,7 +195,7 @@
 		A301D4572E85887500F67A76 /* Deeplink */ = {
 			isa = PBXGroup;
 			children = (
-				A301D4532E85887500F67A76 /* DeepLink.swift */,
+				A301D4532E85887500F67A76 /* DeepLinkParser.swift */,
 				A301D4542E85887500F67A76 /* DeepLinkService.swift */,
 				A301D4552E85887500F67A76 /* DeepLinkTab.swift */,
 				A301D4562E85887500F67A76 /* MapIntent.swift */,
@@ -824,7 +824,7 @@
 				A323AE252E1C0D0C0055264E /* POIMapViewModel.swift in Sources */,
 				A3166E5C2E0589B600E6E1C2 /* SceneDelegate.swift in Sources */,
 				A323AE3E2E213F930055264E /* POIDetailModel.swift in Sources */,
-				A301D4582E85887500F67A76 /* DeepLink.swift in Sources */,
+				A301D4582E85887500F67A76 /* DeepLinkParser.swift in Sources */,
 				A301D4592E85887500F67A76 /* DeepLinkService.swift in Sources */,
 				A301D45A2E85887500F67A76 /* DeepLinkTab.swift in Sources */,
 				A301D45B2E85887500F67A76 /* MapIntent.swift in Sources */,
