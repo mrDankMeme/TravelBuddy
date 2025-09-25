@@ -290,6 +290,7 @@ import UIKit
 import SwiftUI
 import Combine
 import Swinject
+import CoreLocation
 
 protocol Coordinator {
     func start()
@@ -297,7 +298,7 @@ protocol Coordinator {
 
 @MainActor
 final class AppCoordinator: Coordinator {
-    // MARK: — Dependencies
+    // MARK: - Dependencies
     private let window: UIWindow
     private let container: DIContainer
 
@@ -305,10 +306,15 @@ final class AppCoordinator: Coordinator {
     private let iapObserver: IAPObserver
     private let iapService: IAPServiceProtocol
 
-    // MARK: — UI State
+    // MARK: - UI State
     private let tabBar = UITabBarController()
     private var cancellables = Set<AnyCancellable>()
 
+    // Навигация/роутеры, доступные из разных обработчиков
+    private var appRouter: AppRouter!
+    private var mapRouter: MapRouter!      // общий экземпляр для вкладки "Map"
+
+    // MARK: - Init
     init(window: UIWindow, container: DIContainer? = nil) {
         self.window = window
         self.container = container ?? DIContainer.shared
@@ -323,7 +329,7 @@ final class AppCoordinator: Coordinator {
         self.iapService  = iapSvc
     }
 
-    // MARK: — Start
+    // MARK: - Start
     func start() {
         window.makeKeyAndVisible()
 
@@ -334,7 +340,7 @@ final class AppCoordinator: Coordinator {
         }
     }
 
-    // MARK: — Onboarding Flow
+    // MARK: - Onboarding
     private func showOnboarding() {
         guard let onboardingVM = container.resolver.resolve(AnyOnboardingViewModel.self) else {
             preconditionFailure("Swinject: AnyOnboardingViewModel не зарегистрирован")
@@ -353,14 +359,15 @@ final class AppCoordinator: Coordinator {
             .store(in: &cancellables)
     }
 
-    // MARK: — Main Interface
+    // MARK: - Main UI
     private func showMainInterface() {
-        // AppRouter
+        // AppRouter — один на все табы
         guard let appRouter = container.resolver.resolve(AppRouter.self) else {
             preconditionFailure("Swinject: AppRouter не зарегистрирован")
         }
+        self.appRouter = appRouter
 
-        // — POIList Tab
+        // --- Places tab
         guard
             let poiListVM     = container.resolver.resolve(AnyPOIListViewModel.self),
             let poiListRouter = container.resolver.resolve(POIListRouter.self)
@@ -368,72 +375,97 @@ final class AppCoordinator: Coordinator {
             preconditionFailure("Swinject: нет регистрации AnyPOIListViewModel или POIListRouter")
         }
         let poiListCoord = POIListCoordinator(viewModel: poiListVM, router: poiListRouter)
-        let poiListHost  = UIHostingController(rootView: poiListCoord.rootView().environmentObject(appRouter))
-        //let poiListNav   = UINavigationController(rootViewController: poiListHost)
-        poiListHost.tabBarItem = UITabBarItem(title: "Places", image: UIImage(systemName: "map"), tag: 0)
+        let placesVC = UIHostingController(
+            rootView: poiListCoord.rootView().environmentObject(appRouter)
+        )
+        placesVC.tabBarItem = UITabBarItem(title: "Places", image: UIImage(systemName: "map"), tag: 0)
 
-        // — Map Tab
+        // --- Map tab
         guard
             let mapVM     = container.resolver.resolve(AnyPOIMapViewModel.self),
             let mapRouter = container.resolver.resolve(MapRouter.self)
         else {
             preconditionFailure("Swinject: нет регистрации AnyPOIMapViewModel или MapRouter")
         }
+        self.mapRouter = mapRouter // <— сохраняем ссылку для диплинков/роутинга
         let mapCoord = MapCoordinator(vm: mapVM, router: mapRouter)
-        let mapHost  = UIHostingController(rootView: mapCoord.rootView().environmentObject(appRouter))
-        //let mapNav   = UINavigationController(rootViewController: mapHost)
-        mapHost.tabBarItem = UITabBarItem(title: "Map", image: UIImage(systemName: "map.fill"), tag: 1)
+        let mapVC = UIHostingController(
+            rootView: mapCoord.rootView().environmentObject(appRouter)
+        )
+        mapVC.tabBarItem = UITabBarItem(title: "Map", image: UIImage(systemName: "map.fill"), tag: 1)
 
-        
+        // --- Settings tab
         guard let settingsVM = container.resolver.resolve(AnySettingsViewModel.self) else {
             preconditionFailure("Swinject: AnySettingsViewModel не зарегистрирован")
         }
-        let settingsHost = UIHostingController(rootView: SettingsView(vm: settingsVM).environmentObject(appRouter))
-        //let settingsNav  = UINavigationController(rootViewController: settingsHost)
-        settingsHost.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gearshape"), tag: 2)
+        let settingsVC = UIHostingController(
+            rootView: SettingsView(vm: settingsVM).environmentObject(appRouter)
+        )
+        settingsVC.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gearshape"), tag: 2)
 
-        
-        tabBar.viewControllers = [poiListHost, mapHost, settingsHost]
+        // --- Assemble
+        tabBar.viewControllers = [placesVC, mapVC, settingsVC]
         window.rootViewController = tabBar
 
-        
+        // --- Bindings
         bindAppRouter(appRouter)
+        bindDeepLinks()
 
-        // ---- IAP: запускаем наблюдателя и делаем первичную синхронизацию прав
+        // --- IAP
         iapObserver.start()
-
         iapService.readCurrentPremiumEntitlement()
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] hasPremium in
-                // TODO: запиши флаг туда, где у тебя хранится глобальное состояние.
-                // Например, прокинуть в SettingsViewModel через DI/стор,
-                // или послать нотификацию об изменении entitlement'ов.
-                _ = self // placeholder, если пока никуда не пишем
-            }
+            .sink { _ in }
             .store(in: &cancellables)
     }
 
-    // MARK: — AppRouter binding
+    // MARK: - Bind AppRouter
     private func bindAppRouter(_ appRouter: AppRouter) {
         appRouter.events
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] route in
                 self?.handle(route)
             }
             .store(in: &cancellables)
     }
 
-    // MARK: — Route handling
+    // MARK: - Bind Deep Links
+    private func bindDeepLinks() {
+        guard let deeplinkService = container.resolver.resolve(DeepLinkHandling.self) else { return }
+        deeplinkService
+            .events
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] link in
+                self?.handleDeepLink(link)
+            }
+            .store(in: &cancellables)
+    }
+
+    // MARK: - Handle AppRoute (из списков/настроек и т.п.)
     private func handle(_ route: AppRoute) {
         switch route {
-        case .openPOIDetail(let poi):
+        case .openPOIDetail:
             tabBar.selectedIndex = 0
 
-        case .openMapWithPOI(_):
+        case .openMapWithPOI(let id):
             tabBar.selectedIndex = 1
-            // при желании можно прокинуть команду в MapRouter для автофокуса/детали
+            mapRouter?.focusPOI(id)
 
         case .openSettings:
             tabBar.selectedIndex = 2
+        }
+    }
+
+    // MARK: - Handle Deep Link
+    private func handleDeepLink(_ deeplink: DeepLink) {
+        switch deeplink {
+        case .mapCenter(let coord):
+            tabBar.selectedIndex = 1
+            mapRouter?.center(on: coord)
+
+        case .poi(let id):
+            tabBar.selectedIndex = 1
+            mapRouter?.focusPOI(id)
         }
     }
 }
@@ -461,6 +493,11 @@ public final class DIContainer {
         let config = AppConfig.makeDefault()
         container.register(AppConfig.self) { _ in config }
             .inObjectScope(.container)
+      
+        // DeepLink
+        container.register(DeepLinkHandling.self) { _ in
+            DeepLinkService()
+        }.inObjectScope(.container)
 
         // 1) Core
         container.register(HTTPClientProtocol.self) { r in
@@ -601,6 +638,81 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 }
 
+// Core/DeepLink/DeepLinkTab.swift
+public enum DeepLinkTab { case list, map, settings }// Core/DeepLink/DeepLink.swift
+import Foundation
+import CoreLocation
+
+public enum DeepLink {
+    case mapCenter(CLLocationCoordinate2D)
+    case poi(id: Int)
+}
+
+public struct DeepLinkParser {
+    public init() {}
+
+    public func parse(url: URL) -> DeepLink? {
+        guard url.scheme?.lowercased() == "travelbuddy" else { return nil }
+        switch url.host?.lowercased() {
+        case "map":
+            guard
+                let comps = URLComponents(url: url, resolvingAgainstBaseURL: false),
+                let latStr = comps.queryItems?.first(where: { $0.name == "lat" })?.value,
+                let lonStr = comps.queryItems?.first(where: { $0.name == "lon" })?.value,
+                let lat = Double(latStr), let lon = Double(lonStr)
+            else { return nil }
+            return .mapCenter(.init(latitude: lat, longitude: lon))
+
+        case "poi":
+            guard let id = Int(url.lastPathComponent) else { return nil }
+            return .poi(id: id)
+
+        default:
+            return nil
+        }
+    }
+}
+// Core/DeepLink/MapIntent.swift
+import CoreLocation
+
+public enum MapIntent {
+    case center(CLLocationCoordinate2D)
+    case focusPOI(id: Int)
+}//
+//  DeepLinkService.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/7/25.
+//
+
+import Foundation
+import CoreLocation
+import Combine
+
+public protocol DeepLinkHandling {
+    func handle(url: URL)
+    var events: AnyPublisher<DeepLink, Never> { get }
+}
+
+public final class DeepLinkService: DeepLinkHandling {
+    private let parser = DeepLinkParser()
+
+    // было: private let subject = PassthroughSubject<DeepLink, Never>()
+    private let subject = CurrentValueSubject<DeepLink?, Never>(nil)
+
+    public init() {}
+
+    public func handle(url: URL) {
+        guard let dl = parser.parse(url: url) else { return }
+        subject.value = dl
+    }
+
+    public var events: AnyPublisher<DeepLink, Never> {
+        subject
+            .compactMap { $0 }
+            .eraseToAnyPublisher()
+    }
+}
 //
 //  SceneDelegate.swift
 //  TravelBuddy
@@ -613,21 +725,33 @@ import UIKit
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
     var coordinator: AppCoordinator?
+
     func scene(_ scene: UIScene,
                willConnectTo session: UISceneSession,
                options connectionOptions: UIScene.ConnectionOptions) {
         guard let ws = (scene as? UIWindowScene) else { return }
         let window = UIWindow(windowScene: ws)
         self.window = window
-        
-        // Инициализируем и запускаем координатор
+
         coordinator = AppCoordinator(window: window)
-        if let coordinator = coordinator {
-            coordinator.start()
+        coordinator?.start()
+
+        // 🔗 обрабатываем диплинк при холодном старте
+        if let url = connectionOptions.urlContexts.first?.url {
+            DIContainer.shared.resolver
+                .resolve(DeepLinkHandling.self)?
+                .handle(url: url)
         }
     }
-}
 
+    // 🔗 диплинки в уже запущенное приложение
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        guard let url = URLContexts.first?.url else { return }
+        DIContainer.shared.resolver
+            .resolve(DeepLinkHandling.self)?
+            .handle(url: url)
+    }
+}
 //
 //  HTTPClient.swift
 //  TravelBuddy
@@ -1868,9 +1992,9 @@ public final class AnyPOIMapViewModel: ObservableObject {
 //  Created by Niiaz Khasanov on 7/11/25.
 //
 
-
 import SwiftUI
 import Combine
+import CoreLocation
 
 enum MapRoute: Hashable {
     case detail(POI)
@@ -1880,6 +2004,8 @@ enum MapNavigationCommand {
     case detail(POI)
     case back
     case reset
+    case center(CLLocationCoordinate2D) // deeplink: travelbuddy://map?lat&lon
+    case focusPOI(Int)                  // deeplink: travelbuddy://poi/<id>
 }
 
 @MainActor
@@ -1887,18 +2013,30 @@ final class MapRouter: ObservableObject {
     fileprivate var cancellables = Set<AnyCancellable>()
     let routes = PassthroughSubject<MapNavigationCommand, Never>()
 
-    func goDetail(_ poi: POI) {
-        routes.send(MapNavigationCommand.detail(poi))
+    // Буфер для команд, пришедших до подписки UI
+    private var pending: [MapNavigationCommand] = []
+
+    // Единая точка эмита: и шлём, и буферизуем
+    private func emit(_ cmd: MapNavigationCommand) {
+        pending.append(cmd)
+        routes.send(cmd)
     }
 
-    func goBack() {
-        routes.send(MapNavigationCommand.back)
+    // Забрать и обнулить буфер (для MapContainer.onAppear)
+    func consumePending() -> [MapNavigationCommand] {
+        let items = pending
+        pending.removeAll()
+        return items
     }
 
-    func reset() {
-        routes.send(MapNavigationCommand.reset)
-    }
-}//
+    // MARK: — High-level API
+    func goDetail(_ poi: POI)       { emit(.detail(poi)) }
+    func goBack()                    { emit(.back) }
+    func reset()                     { emit(.reset) }
+    func center(on coord: CLLocationCoordinate2D) { emit(.center(coord)) }
+    func focusPOI(_ id: Int)         { emit(.focusPOI(id)) }
+}
+//
 //  MapCoordinator.swift
 //  TravelBuddy
 //
@@ -2014,13 +2152,24 @@ struct POISnippetView: View {
 //  Created by Niiaz Khasanov on 7/7/25.
 //
 
-
 import SwiftUI
 import MapKit
 
+/// UIKit-карта с управлением:
+/// - дифф аннотаций
+/// - синхронизация выделения по `selectedId`
+/// - внешняя команда центрирования через `centerRequest`
 struct MapViewRepresentable: UIViewRepresentable {
     let annotations: [POIAnnotation]
     let defaultRegionMeters: CLLocationDistance
+
+    /// Единый источник правды для выделения пина
+    @Binding var selectedId: Int?
+
+    /// Внешняя команда центрирования карты (однократная) — после применения сбрасывается в nil
+    @Binding var centerRequest: CLLocationCoordinate2D?
+
+    /// Доп. коллбек (сохраняем для совместимости; чаще всего noop)
     let onSelect: (POIAnnotation) -> Void
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -2028,88 +2177,118 @@ struct MapViewRepresentable: UIViewRepresentable {
     func makeUIView(context: Context) -> MKMapView {
         let map = MKMapView()
         map.delegate = context.coordinator
-        map.register(MKMarkerAnnotationView.self,
-                     forAnnotationViewWithReuseIdentifier: "marker")
-        map.register(MKMarkerAnnotationView.self,
-                     forAnnotationViewWithReuseIdentifier: "cluster")
+        map.register(MKMarkerAnnotationView.self, forAnnotationViewWithReuseIdentifier: "marker")
+        map.register(MKMarkerAnnotationView.self, forAnnotationViewWithReuseIdentifier: "cluster")
         map.showsUserLocation = true
         map.pointOfInterestFilter = .excludingAll
         return map
     }
 
     func updateUIView(_ map: MKMapView, context: Context) {
-        
+        // --- дифф аннотаций ---
         let existing = map.annotations.compactMap { $0 as? POIAnnotation }
         let existingIDs = Set(existing.map { $0.poi.id })
         let incomingIDs = Set(annotations.map { $0.poi.id })
 
-        
         let toRemove = existing.filter { !incomingIDs.contains($0.poi.id) }
         if !toRemove.isEmpty { map.removeAnnotations(toRemove) }
 
-        
         let toAdd = annotations.filter { !existingIDs.contains($0.poi.id) }
         if !toAdd.isEmpty { map.addAnnotations(toAdd) }
 
-        
+        // --- первичная установка региона ---
         if !context.coordinator.hasSetInitialRegion, !map.annotations.isEmpty {
-               context.coordinator.hasSetInitialRegion = true
+            context.coordinator.hasSetInitialRegion = true
+            let poiAnnos = map.annotations.compactMap { $0 as? POIAnnotation }
+            if poiAnnos.count == 1, let only = poiAnnos.first {
+                let region = MKCoordinateRegion(
+                    center: only.coordinate,
+                    latitudinalMeters: defaultRegionMeters,
+                    longitudinalMeters: defaultRegionMeters
+                )
+                map.setRegion(region, animated: false)
+            } else {
+                map.showAnnotations(poiAnnos, animated: false)
+                let insets = UIEdgeInsets(top: 80, left: 40, bottom: 160, right: 40)
+                map.setVisibleMapRect(map.visibleMapRect, edgePadding: insets, animated: false)
+            }
+        }
 
-               let poiAnnos = map.annotations.compactMap { $0 as? POIAnnotation }
-               if poiAnnos.count == 1, let only = poiAnnos.first {
-                   let region = MKCoordinateRegion(
-                       center: only.coordinate,
-                       latitudinalMeters: defaultRegionMeters,
-                       longitudinalMeters: defaultRegionMeters
-                   )
-                   map.setRegion(region, animated: false)
-               } else {
-                   map.showAnnotations(poiAnnos, animated: false)
-                   let insets = UIEdgeInsets(top: 80, left: 40, bottom: 160, right: 40)
-                   map.setVisibleMapRect(map.visibleMapRect, edgePadding: insets, animated: false)
-               }
-           }
+        // --- синхронизация выделения ---
+        if let id = selectedId {
+            if let anno = map.annotations
+                .compactMap({ $0 as? POIAnnotation })
+                .first(where: { $0.poi.id == id }) {
+                let already = map.selectedAnnotations.contains {
+                    guard let a = $0 as? POIAnnotation else { return false }
+                    return a.poi.id == id
+                }
+                if !already { map.selectAnnotation(anno, animated: true) }
+            }
+        } else {
+            if !map.selectedAnnotations.isEmpty {
+                map.selectedAnnotations.forEach { map.deselectAnnotation($0, animated: true) }
+            }
+        }
+
+        // --- внешняя команда центрирования (deeplink) ---
+        if let center = centerRequest {
+            let region = MKCoordinateRegion(
+                center: center,
+                latitudinalMeters: defaultRegionMeters,
+                longitudinalMeters: defaultRegionMeters
+            )
+            map.setRegion(region, animated: true)
+            // однократное действие — сбрасываем запрос в nil
+            DispatchQueue.main.async {
+                self.centerRequest = nil
+            }
+        }
     }
+
+    // MARK: - Coordinator
 
     final class Coordinator: NSObject, MKMapViewDelegate {
         var hasSetInitialRegion = false
         let parent: MapViewRepresentable
-        
+        private var lastSelectedId: Int?
+
         init(_ parent: MapViewRepresentable) { self.parent = parent }
-        
-        
 
         func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
             guard let anno = view.annotation as? POIAnnotation else { return }
+            guard lastSelectedId != anno.poi.id else { return }
+            lastSelectedId = anno.poi.id
+
+            parent.selectedId = anno.poi.id
             parent.onSelect(anno)
         }
 
-        func mapView(_ mapView: MKMapView,
-                     viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-            // 1) Кластеры — свой вид с числом
+        func mapView(_ mapView: MKMapView, didDeselect view: MKAnnotationView) {
+            guard let anno = view.annotation as? POIAnnotation else { return }
+            if lastSelectedId == anno.poi.id { lastSelectedId = nil }
+            if parent.selectedId == anno.poi.id { parent.selectedId = nil }
+        }
+
+        func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
             if let cluster = annotation as? MKClusterAnnotation {
-                let v = mapView.dequeueReusableAnnotationView(withIdentifier: "cluster",
-                                                              for: annotation) as! MKMarkerAnnotationView
+                let v = mapView.dequeueReusableAnnotationView(withIdentifier: "cluster", for: annotation) as! MKMarkerAnnotationView
                 v.displayPriority = .required
                 v.markerTintColor = .systemBlue
-                v.glyphText       = "\(cluster.memberAnnotations.count)"
+                v.glyphText = "\(cluster.memberAnnotations.count)"
                 v.titleVisibility = .hidden
                 v.subtitleVisibility = .hidden
-                v.canShowCallout  = false
+                v.canShowCallout = false
                 return v
             }
-
-            // 2) Обычные POI — маркер с пином и включённой кластеризацией
             guard annotation is POIAnnotation else { return nil }
-            let v = mapView.dequeueReusableAnnotationView(withIdentifier: "marker",
-                                                          for: annotation) as! MKMarkerAnnotationView
+            let v = mapView.dequeueReusableAnnotationView(withIdentifier: "marker", for: annotation) as! MKMarkerAnnotationView
             v.displayPriority      = .defaultHigh
             v.clusteringIdentifier = "poi"
             v.markerTintColor      = .systemBlue
             v.glyphImage           = UIImage(systemName: "mappin")
             v.canShowCallout       = false
             return v
-            
         }
     }
 }
@@ -2120,58 +2299,67 @@ struct MapViewRepresentable: UIViewRepresentable {
 //  Created by Niiaz Khasanov on 7/7/25.
 //
 
-
-
 import SwiftUI
 import MapKit
 
+/// Владеет `AnyPOIMapViewModel`, показывает карту и сниппет.
+/// Управление фокусом и центрированием приходит сверху через биндинги.
 public struct POIMapView: View {
     @StateObject private var vm: AnyPOIMapViewModel
     @EnvironmentObject private var router: MapRouter
     private let defaultRegionMeters: CLLocationDistance
-    
-    public init(viewModel: AnyPOIMapViewModel,
-                defaultRegionMeters: CLLocationDistance) {
+
+    /// Прокидываем из `MapContainer` запросы центра/фокуса
+    @Binding private var centerRequest: CLLocationCoordinate2D?
+
+    public init(
+        viewModel: AnyPOIMapViewModel,
+        defaultRegionMeters: CLLocationDistance,
+        centerRequest: Binding<CLLocationCoordinate2D?>
+    ) {
         _vm = StateObject(wrappedValue: viewModel)
         self.defaultRegionMeters = defaultRegionMeters
+        self._centerRequest = centerRequest
     }
-    
+
     public var body: some View {
         MapViewRepresentable(
             annotations: vm.annotations,
             defaultRegionMeters: defaultRegionMeters,
-            onSelect: { annotation in
-                vm.select(annotation: annotation)
-            }
+            selectedId: Binding(
+                get: { vm.selectedPOI?.id },
+                set: { newId in
+                    vm.selectedPOI = newId.flatMap { id in
+                        vm.annotations.first(where: { $0.poi.id == id })?.poi
+                    }
+                }
+            ),
+            centerRequest: $centerRequest,
+            onSelect: { _ in }
         )
         .ignoresSafeArea()
         .onAppear { vm.fetch() }
         .sheet(item: Binding(
-            get: {
-                vm.selectedPOI
-            },
-            set: { newValue in
-                vm.selectedPOI = newValue
-            }
-        )) { poi in
+            get: { vm.selectedPOI },
+            set: { vm.selectedPOI = $0 }
+        ), onDismiss: {
+            vm.selectedPOI = nil
+        }) { poi in
             POISnippetView(
                 poi: poi,
                 onDetails: {
                     vm.selectedPOI = nil
-                    DispatchQueue.main.async {
-                        router.goDetail(poi)
-                    }
+                    DispatchQueue.main.async { router.goDetail(poi) }
                 },
                 onRoute: {
                     let coord = CLLocationCoordinate2D(latitude: poi.latitude, longitude: poi.longitude)
                     let item = MKMapItem(placemark: MKPlacemark(coordinate: coord))
                     item.name = poi.name
-                    item.openInMaps(launchOptions: nil)
+                    item.openInMaps()
                 }
             )
             .presentationDetents([.height(200), .medium])
         }
-        
     }
 }
 //
@@ -2181,68 +2369,121 @@ public struct POIMapView: View {
 //  Created by Niiaz Khasanov on 7/17/25.
 //
 
-
 import SwiftUI
 import Combine
 import Swinject
 import MapKit
 
+/// Контейнер управляет:
+/// - NavigationStack (деталью)
+/// - подпиской на команды MapRouter (detail/back/reset/center/focusPOI)
+/// - согласованием deeplink-команд с VM (выбор POI) и MapView (центрирование)
 struct MapContainer: View {
-    // ---------- State ----------
-    @State private var navPath = NavigationPath()
+    @State private var path: [MapRoute] = []
+    @State private var prevPathCount: Int = 0
+
     @State private var lastPushedPOIId: Int?
     @State private var isNavigating = false
-    
+
     @StateObject private var router: MapRouter
     @StateObject private var vm: AnyPOIMapViewModel
-    
+
     private let defaultRegionMeters: CLLocationDistance
     private let makeDetail: (POI) -> AnyView
-    
-    init(vm: AnyPOIMapViewModel, router: MapRouter, defaultRegionMeters: CLLocationDistance,makeDetail: @escaping (POI) -> AnyView) {
+
+    // deeplink-команда центрирования — одноразовый триггер для MapViewRepresentable
+    @State private var centerRequest: CLLocationCoordinate2D? = nil
+
+    // pending focus, если аннотации еще не загружены
+    @State private var pendingFocusId: Int? = nil
+
+    init(
+        vm: AnyPOIMapViewModel,
+        router: MapRouter,
+        defaultRegionMeters: CLLocationDistance,
+        makeDetail: @escaping (POI) -> AnyView
+    ) {
         _vm = StateObject(wrappedValue: vm)
         _router = StateObject(wrappedValue: router)
         self.defaultRegionMeters = defaultRegionMeters
         self.makeDetail = makeDetail
     }
-    
-    // ---------- UI ----------
+
     var body: some View {
-        NavigationStack(path: $navPath) {
-            POIMapView(viewModel: vm, defaultRegionMeters: defaultRegionMeters)
+            NavigationStack(path: $path) {
+                POIMapView(
+                    viewModel: vm,
+                    defaultRegionMeters: defaultRegionMeters,
+                    centerRequest: $centerRequest
+                )
                 .navigationDestination(for: MapRoute.self) { route in
                     switch route {
                     case .detail(let poi):
-                        let r = DIContainer.shared.resolver
-                        r.resolve(POIDetailCoordinator.self, argument: poi)?
-                            .rootView()
                         makeDetail(poi)
                     }
                 }
+            }
+            // 1) горячие — как было
+            .onReceive(router.routes) { command in
+                handle(command)
+            }
+            // 2) холодные — забрать из буфера при первом появлении
+            .onAppear {
+                router.consumePending().forEach { cmd in
+                    handle(cmd)
+                }
+            }
+            // остальное без изменений ...
+            .onChange(of: path) { newValue in
+                if newValue.count < prevPathCount {
+                    lastPushedPOIId = nil
+                    isNavigating = false
+                }
+                prevPathCount = newValue.count
+            }
+            .onChange(of: vm.annotations) { _ in
+                if let id = pendingFocusId,
+                   let poi = vm.annotations.first(where: { $0.poi.id == id })?.poi {
+                    pendingFocusId = nil
+                    vm.selectedPOI = poi
+                }
+            }
+            .environmentObject(router)
         }
-        // -------- Router → NavigationPath --------
-        .onReceive(router.routes) { command in
+
+        // Единая обработка команд — используем и для горячих, и для холодных
+        private func handle(_ command: MapNavigationCommand) {
             switch command {
             case .detail(let poi):
-                // анти-дубль: не пушим тот же POI в один "тик" и подряд
                 guard !isNavigating, lastPushedPOIId != poi.id else { return }
-                
                 isNavigating = true
-                navPath.append(MapRoute.detail(poi))
+                path.append(.detail(poi))
                 lastPushedPOIId = poi.id
-                
-                // сбросим флажок сразу в следующий runloop-тик
                 DispatchQueue.main.async { isNavigating = false }
+
             case .back:
-                if !navPath.isEmpty { navPath.removeLast() }
-                
+                if !path.isEmpty { path.removeLast() }
+                lastPushedPOIId = nil
+                isNavigating = false
+
             case .reset:
-                navPath.removeLast(navPath.count)
+                path.removeAll()
+                lastPushedPOIId = nil
+                isNavigating = false
+
+            case .center(let coord):
+                centerRequest = coord   // триггер для MapViewRepresentable
+
+            case .focusPOI(let id):
+                if let poi = vm.annotations.first(where: { $0.poi.id == id })?.poi {
+                    vm.selectedPOI = poi
+                } else {
+                    pendingFocusId = id
+                    vm.fetch()
+                }
             }
         }
-        .environmentObject(router)   // нужен внутри POIMapView
     }
-}
 //
 //  POIListViewModel.swift
 //  TravelBuddy

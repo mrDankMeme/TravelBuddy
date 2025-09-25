@@ -46,21 +46,49 @@ struct MapContainer: View {
     }
 
     var body: some View {
-        NavigationStack(path: $path) {
-            POIMapView(
-                viewModel: vm,
-                defaultRegionMeters: defaultRegionMeters,
-                centerRequest: $centerRequest
-            )
-            .navigationDestination(for: MapRoute.self) { route in
-                switch route {
-                case .detail(let poi):
-                    makeDetail(poi)
+            NavigationStack(path: $path) {
+                POIMapView(
+                    viewModel: vm,
+                    defaultRegionMeters: defaultRegionMeters,
+                    centerRequest: $centerRequest
+                )
+                .navigationDestination(for: MapRoute.self) { route in
+                    switch route {
+                    case .detail(let poi):
+                        makeDetail(poi)
+                    }
                 }
             }
+            // 1) горячие — как было
+            .onReceive(router.routes) { command in
+                handle(command)
+            }
+            // 2) холодные — забрать из буфера при первом появлении
+            .onAppear {
+                router.consumePending().forEach { cmd in
+                    handle(cmd)
+                }
+            }
+            // остальное без изменений ...
+            .onChange(of: path) { newValue in
+                if newValue.count < prevPathCount {
+                    lastPushedPOIId = nil
+                    isNavigating = false
+                }
+                prevPathCount = newValue.count
+            }
+            .onChange(of: vm.annotations) { _ in
+                if let id = pendingFocusId,
+                   let poi = vm.annotations.first(where: { $0.poi.id == id })?.poi {
+                    pendingFocusId = nil
+                    vm.selectedPOI = poi
+                }
+            }
+            .environmentObject(router)
         }
-        // Router → Navigation & Map actions
-        .onReceive(router.routes) { command in
+
+        // Единая обработка команд — используем и для горячих, и для холодных
+        private func handle(_ command: MapNavigationCommand) {
             switch command {
             case .detail(let poi):
                 guard !isNavigating, lastPushedPOIId != poi.id else { return }
@@ -80,37 +108,15 @@ struct MapContainer: View {
                 isNavigating = false
 
             case .center(let coord):
-                // Однократно центрируем карту
-                centerRequest = coord
+                centerRequest = coord   // триггер для MapViewRepresentable
 
             case .focusPOI(let id):
-                // Если аннотации уже есть — выставим selectedPOI сразу,
-                // иначе отложим до прихода данных
                 if let poi = vm.annotations.first(where: { $0.poi.id == id })?.poi {
                     vm.selectedPOI = poi
                 } else {
                     pendingFocusId = id
-                    // если данные еще не загружены — инициируем
                     vm.fetch()
                 }
             }
         }
-        // Пользователь вернулся Back системно — разрешим повторное открытие того же POI
-        .onChange(of: path) { newValue in
-            if newValue.count < prevPathCount {
-                lastPushedPOIId = nil
-                isNavigating = false
-            }
-            prevPathCount = newValue.count
-        }
-        // Как только подъехали аннотации — обработаем отложенный focus
-        .onChange(of: vm.annotations) { _ in
-            if let id = pendingFocusId,
-               let poi = vm.annotations.first(where: { $0.poi.id == id })?.poi {
-                pendingFocusId = nil
-                vm.selectedPOI = poi
-            }
-        }
-        .environmentObject(router)
     }
-}
