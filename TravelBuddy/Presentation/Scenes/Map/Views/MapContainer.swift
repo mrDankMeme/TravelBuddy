@@ -68,8 +68,7 @@ struct MapContainer: View {
                 isNavigating = false
             }
         }
-        // ✅ КЛЮЧ: если пользователь вернулся назад «системно» (жест/кнопка Back),
-        // стек уменьшится — сбрасываем lastPushedPOIId, чтобы снова можно было открыть тот же POI.
+   
         .onChange(of: path) { newValue in
             if newValue.count < prevPathCount {
                 lastPushedPOIId = nil
@@ -80,3 +79,4 @@ struct MapContainer: View {
         .environmentObject(router)
     }
 }
+
