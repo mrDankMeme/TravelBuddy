@@ -17,8 +17,8 @@ enum MapNavigationCommand {
     case detail(POI)
     case back
     case reset
-    case center(CLLocationCoordinate2D) // deeplink: travelbuddy://map?lat&lon
-    case focusPOI(Int)                  // deeplink: travelbuddy://poi/<id>
+    case center(CLLocationCoordinate2D)
+    case focusPOI(Int)
 }
 
 @MainActor

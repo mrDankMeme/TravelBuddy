@@ -10,8 +10,6 @@
 		A301D4492E85882500F67A76 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = A301D4482E85882500F67A76 /* README.md */; };
 		A301D4582E85887500F67A76 /* DeepLinkParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A301D4532E85887500F67A76 /* DeepLinkParser.swift */; };
 		A301D4592E85887500F67A76 /* DeepLinkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A301D4542E85887500F67A76 /* DeepLinkService.swift */; };
-		A301D45A2E85887500F67A76 /* DeepLinkTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = A301D4552E85887500F67A76 /* DeepLinkTab.swift */; };
-		A301D45B2E85887500F67A76 /* MapIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A301D4562E85887500F67A76 /* MapIntent.swift */; };
 		A3166E062E0476E700E6E1C2 /* Swinject in Frameworks */ = {isa = PBXBuildFile; productRef = A3166E052E0476E700E6E1C2 /* Swinject */; };
 		A3166E0B2E05613600E6E1C2 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = A3166E0A2E05613600E6E1C2 /* FirebaseAnalytics */; };
 		A3166E0D2E05613600E6E1C2 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = A3166E0C2E05613600E6E1C2 /* FirebaseCrashlytics */; };
@@ -100,8 +98,6 @@
 		A301D4482E85882500F67A76 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		A301D4532E85887500F67A76 /* DeepLinkParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkParser.swift; sourceTree = "<group>"; };
 		A301D4542E85887500F67A76 /* DeepLinkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkService.swift; sourceTree = "<group>"; };
-		A301D4552E85887500F67A76 /* DeepLinkTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkTab.swift; sourceTree = "<group>"; };
-		A301D4562E85887500F67A76 /* MapIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapIntent.swift; sourceTree = "<group>"; };
 		A3166DEC2E04752500E6E1C2 /* TravelBuddy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TravelBuddy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3166E3C2E0589B600E6E1C2 /* Publisher+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publisher+Extensions.swift"; sourceTree = "<group>"; };
 		A3166E3D2E0589B600E6E1C2 /* UIColor+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+Hex.swift"; sourceTree = "<group>"; };
@@ -197,8 +193,6 @@
 			children = (
 				A301D4532E85887500F67A76 /* DeepLinkParser.swift */,
 				A301D4542E85887500F67A76 /* DeepLinkService.swift */,
-				A301D4552E85887500F67A76 /* DeepLinkTab.swift */,
-				A301D4562E85887500F67A76 /* MapIntent.swift */,
 			);
 			path = Deeplink;
 			sourceTree = "<group>";
@@ -826,8 +820,6 @@
 				A323AE3E2E213F930055264E /* POIDetailModel.swift in Sources */,
 				A301D4582E85887500F67A76 /* DeepLinkParser.swift in Sources */,
 				A301D4592E85887500F67A76 /* DeepLinkService.swift in Sources */,
-				A301D45A2E85887500F67A76 /* DeepLinkTab.swift in Sources */,
-				A301D45B2E85887500F67A76 /* MapIntent.swift in Sources */,
 				A3166E672E05982A00E6E1C2 /* NotificationService.swift in Sources */,
 				A3B449132E7B0FAC00F13CC1 /* IAPObserver.swift in Sources */,
 				A3166F032E0D6E0F00E6E1C2 /* Scalable.swift in Sources */,
