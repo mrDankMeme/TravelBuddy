@@ -19,7 +19,9 @@ enum MapNavigationCommand {
     case reset
     case center(CLLocationCoordinate2D)
     case focusPOI(Int)
+    case showError(String)
 }
+
 
 @MainActor
 final class MapRouter: ObservableObject {
@@ -48,4 +50,5 @@ final class MapRouter: ObservableObject {
     func reset()                     { emit(.reset) }
     func center(on coord: CLLocationCoordinate2D) { emit(.center(coord)) }
     func focusPOI(_ id: Int)         { emit(.focusPOI(id)) }
+    func showError(_ message: String) { emit(.showError(message)) }
 }

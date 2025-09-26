@@ -151,14 +151,24 @@ final class AppCoordinator: Coordinator {
     // MARK: - Bind Deep Links
     private func bindDeepLinks() {
         guard let deeplinkService = container.resolver.resolve(DeepLinkHandling.self) else { return }
-        deeplinkService
-            .events
+
+        // успехи — как было
+        deeplinkService.events
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] link in
-                self?.handleDeepLink(link)
+            .sink { [weak self] link in self?.handleDeepLink(link) }
+            .store(in: &cancellables)
+
+        // НОВОЕ: ошибки парсинга → вкладка Map + алерт
+        deeplinkService.errorEvents
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] err in
+                guard let self else { return }
+                self.tabBar.selectedIndex = 1
+                self.mapRouter?.showError(err.userMessage)
             }
             .store(in: &cancellables)
     }
+
 
     // MARK: - Handle AppRoute (из списков/настроек и т.п.)
     private func handle(_ route: AppRoute) {
