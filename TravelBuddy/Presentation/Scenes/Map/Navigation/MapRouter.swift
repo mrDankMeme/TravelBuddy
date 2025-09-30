@@ -16,7 +16,6 @@ enum MapRoute: Hashable {
 /// Только UI-ошибки карты, готовые к показу.
 enum MapUIError: Equatable {
     case poiNotFound(Int)
-    /// На крайний случай: строка УЖЕ локализована у вызывающего
     case plain(String)
 
     var localizedMessage: String {

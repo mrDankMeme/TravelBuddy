@@ -21,6 +21,24 @@ enum L10n {
 
     static var navSettingsTitle: String { NSLocalizedString("nav.settings.title", comment: "Navigation title for Settings") }
     static var navPlacesTitle: String { NSLocalizedString("nav.places.title", comment: "Navigation title for Places") }
+    
+    // MARK: - Settings
+    static var settingsDarkMode: String {
+        NSLocalizedString("settings.darkmode", comment: "Dark mode toggle in Settings")
+    }
+
+    static var settingsNotifications: String {
+        NSLocalizedString("settings.notifications", comment: "Notifications toggle in Settings")
+    }
+
+    static var settingsPremiumUnlock: String {
+        NSLocalizedString("settings.premium.unlock", comment: "Unlock Premium button")
+    }
+
+    static var settingsPremiumUnlocked: String {
+        NSLocalizedString("settings.premium.unlocked", comment: "Premium already unlocked label")
+    }
+
 
     // MARK: - List screen
     static var listCategoryTitle: String { NSLocalizedString("list.category.title", comment: "Category picker title") }

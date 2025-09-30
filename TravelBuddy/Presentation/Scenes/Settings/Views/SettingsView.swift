@@ -8,40 +8,52 @@
 import SwiftUI
 
 public struct SettingsView<VM: SettingsViewModelProtocol>: View {
-  @ObservedObject var vm: VM
+    @ObservedObject private var vm: VM
 
-  public init(vm: VM) { self.vm = vm }
+    public init(vm: VM) { self.vm = vm }
 
-  public var body: some View {
-    NavigationView {
-      Form {
-          Toggle("Dark Mode", isOn: Binding(
-            get:  { vm.isDarkMode },
-            set:  { vm.setDarkMode($0) }
-          ))
+    public var body: some View {
+        NavigationView {
+            Form {
+                // Dark Mode
+                Toggle(L10n.settingsDarkMode, isOn: Binding(
+                    get:  { vm.isDarkMode },
+                    set:  { vm.setDarkMode($0) }
+                ))
+                .accessibilityIdentifier("settings.darkmode.toggle")
 
-          Toggle("Notifications", isOn: Binding(
-            get:  { vm.notificationsEnabled },
-            set:  { vm.setNotifications($0) }
-          ))
+                // Notifications
+                Toggle(L10n.settingsNotifications, isOn: Binding(
+                    get:  { vm.notificationsEnabled },
+                    set:  { vm.setNotifications($0) }
+                ))
+                .accessibilityIdentifier("settings.notifications.toggle")
 
-        Button(action: { vm.purchasePremium() }) {
-          Text(vm.premiumUnlocked ? "Premium Unlocked" : "Unlock Premium")
+                // Premium
+                Button(action: { vm.purchasePremium() }) {
+                    Text(vm.premiumUnlocked
+                         ? L10n.settingsPremiumUnlocked
+                         : L10n.settingsPremiumUnlock)
+                }
+                .disabled(vm.premiumUnlocked)
+                .accessibilityIdentifier("settings.premium.button")
+            }
+            .navigationTitle(L10n.navSettingsTitle)
+            .alert(item: Binding(
+                get: { vm.errorMessage.map { AlertError(message: $0) } },
+                set: { _ in vm.clearError() }
+            )) { alertError in
+                Alert(
+                    title: Text(L10n.alertErrorTitle),
+                    message: Text(alertError.message),
+                    dismissButton: .default(Text(L10n.alertOk))
+                )
+            }
         }
-        .disabled(vm.premiumUnlocked)
-      }
-      .navigationTitle("Settings")
-      .alert(item: Binding(
-        get: { vm.errorMessage.map { AlertError(message: $0) } },
-        set: { _ in vm.clearError() }
-      )) { alertError in
-        Alert(title: Text("Error"), message: Text(alertError.message))
-      }
     }
-  }
 }
 
 private struct AlertError: Identifiable {
-  let id = UUID()
-  let message: String
+    let id = UUID()
+    let message: String
 }

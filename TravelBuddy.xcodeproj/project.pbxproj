@@ -12,7 +12,6 @@
 		A301D4592E85887500F67A76 /* DeepLinkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A301D4542E85887500F67A76 /* DeepLinkService.swift */; };
 		A301D4662E898ADC00F67A76 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = A301D4652E898ADC00F67A76 /* L10n.swift */; };
 		A301D46B2E8994E600F67A76 /* UITabBarController+Alert.swift in Sources */ = {isa = PBXBuildFile; fileRef = A301D46A2E8994E600F67A76 /* UITabBarController+Alert.swift */; };
-		A301D46E2E8C071800F67A76 /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = A301D46C2E8C071800F67A76 /* Localizable.stringsdict */; };
 		A301D4772E8C08A900F67A76 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A301D4732E8C08A900F67A76 /* Localizable.strings */; };
 		A301D4782E8C08A900F67A76 /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = A301D4742E8C08A900F67A76 /* Localizable.stringsdict */; };
 		A3166E062E0476E700E6E1C2 /* Swinject in Frameworks */ = {isa = PBXBuildFile; productRef = A3166E052E0476E700E6E1C2 /* Swinject */; };
@@ -105,7 +104,6 @@
 		A301D4542E85887500F67A76 /* DeepLinkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkService.swift; sourceTree = "<group>"; };
 		A301D4652E898ADC00F67A76 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
 		A301D46A2E8994E600F67A76 /* UITabBarController+Alert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UITabBarController+Alert.swift"; sourceTree = "<group>"; };
-		A301D46D2E8C071800F67A76 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = en; path = en.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
 		A301D4752E8C08A900F67A76 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = ru; path = ru.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
 		A301D4762E8C08A900F67A76 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A301D4792E8C08C000F67A76 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = en; path = en.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
@@ -220,7 +218,6 @@
 		A3166DE32E04752500E6E1C2 = {
 			isa = PBXGroup;
 			children = (
-				A301D46C2E8C071800F67A76 /* Localizable.stringsdict */,
 				A3166E562E0589B600E6E1C2 /* TravelBuddy */,
 				A3166E4E2E0589B600E6E1C2 /* Assets.xcassets */,
 				A3166E512E0589B600E6E1C2 /* LaunchScreen.storyboard */,
@@ -786,7 +783,6 @@
 				A3166E602E0589B600E6E1C2 /* LaunchScreen.storyboard in Resources */,
 				A3166F0A2E10396E00E6E1C2 /* mock_pois_local.json in Resources */,
 				A301D4492E85882500F67A76 /* README.md in Resources */,
-				A301D46E2E8C071800F67A76 /* Localizable.stringsdict in Resources */,
 				A3166E612E0589B600E6E1C2 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -866,14 +862,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
-		A301D46C2E8C071800F67A76 /* Localizable.stringsdict */ = {
-			isa = PBXVariantGroup;
-			children = (
-				A301D46D2E8C071800F67A76 /* en */,
-			);
-			name = Localizable.stringsdict;
-			sourceTree = "<group>";
-		};
 		A301D4732E8C08A900F67A76 /* Localizable.strings */ = {
 			isa = PBXVariantGroup;
 			children = (

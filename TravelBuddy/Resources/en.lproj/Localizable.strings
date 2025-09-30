@@ -55,3 +55,9 @@
 /* Images */
 "image.noimage" = "No image";
 "image.invalid.path" = "Invalid path: %@";
+
+/* Settings */
+"settings.darkmode" = "Dark Mode";
+"settings.notifications" = "Notifications";
+"settings.premium.unlock" = "Unlock Premium";
+"settings.premium.unlocked" = "Premium Unlocked";

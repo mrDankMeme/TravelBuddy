@@ -55,3 +55,9 @@
 /* Images */
 "image.noimage" = "Нет изображения";
 "image.invalid.path" = "Неверный путь: %@";
+
+/* Settings */
+"settings.darkmode" = "Тёмная тема";
+"settings.notifications" = "Уведомления";
+"settings.premium.unlock" = "Разблокировать Премиум";
+"settings.premium.unlocked" = "Премиум разблокирован";

@@ -11,20 +11,18 @@ import SwiftUI
 public struct POIListView: View {
     @ObservedObject var viewModel: AnyPOIListViewModel
     @EnvironmentObject var router: POIListRouter
-    
+
     public init(viewModel: AnyPOIListViewModel) {
         self.viewModel = viewModel
     }
-    
+
     public var body: some View {
         ZStack {
             content
             if viewModel.isLoading {
-                // Полноэкранный индикатор, когда пусто
                 if viewModel.pois.isEmpty {
                     ProgressView().scaleEffect(1.2)
                 } else {
-                    // Компактный индикатор поверх уже показанного списка
                     VStack { Spacer() }
                         .overlay(
                             ProgressView()
@@ -37,26 +35,32 @@ public struct POIListView: View {
                 }
             }
         }
-        .navigationTitle("Places")
+        .navigationTitle(L10n.navPlacesTitle)
         .onAppear { viewModel.fetchPOIs() }
     }
-    
+
     @ViewBuilder
     private var content: some View {
         if let err = viewModel.errorMessage {
             VStack(spacing: 16) {
-                Text("Error: \(err)").multilineTextAlignment(.center)
-                Button("Retry") { viewModel.fetchPOIs() }
+                Text(err).multilineTextAlignment(.center)
+                Button(L10n.listRetry) { viewModel.fetchPOIs() }
             }
             .padding()
         } else {
             VStack {
-                Picker("Category", selection: $viewModel.filter) {
-                    ForEach(POICategoryFilter.allCases) { Text($0.rawValue).tag($0) }
+                Picker(L10n.listCategoryTitle, selection: $viewModel.filter) {
+                    ForEach(POICategoryFilter.allCases) { Text($0.localizedTitle).tag($0) }
                 }
                 .pickerStyle(.segmented)
                 .padding(.vertical)
-                
+
+                // Пример использования plural (если хочешь — покажем над списком)
+                if !viewModel.pois.isEmpty {
+                    Text(L10n.listPlacesCount(viewModel.pois.count))
+                        .font(.footnote).foregroundColor(.secondary)
+                }
+
                 List(viewModel.pois) { poi in
                     Button { router.goDetail(poi) } label: {
                         HStack {

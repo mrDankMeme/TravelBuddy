@@ -97,7 +97,7 @@ final class AppCoordinator: Coordinator {
         let placesVC = UIHostingController(
             rootView: poiListCoord.rootView().environmentObject(appRouter)
         )
-        placesVC.tabBarItem = UITabBarItem(title: "Places", image: UIImage(systemName: "map"), tag: 0)
+        placesVC.tabBarItem = UITabBarItem(title: L10n.tabPlaces, image: UIImage(systemName: "map"), tag: 0)
 
         // --- Map tab
         guard
@@ -111,8 +111,8 @@ final class AppCoordinator: Coordinator {
         let mapVC = UIHostingController(
             rootView: mapCoord.rootView().environmentObject(appRouter)
         )
-        mapVC.tabBarItem = UITabBarItem(title: "Map", image: UIImage(systemName: "map.fill"), tag: 1)
-
+        mapVC.tabBarItem    = UITabBarItem(title: L10n.tabMap, image: UIImage(systemName: "map.fill"), tag: 1)
+        
         // --- Settings tab
         guard let settingsVM = container.resolver.resolve(AnySettingsViewModel.self) else {
             preconditionFailure("Swinject: AnySettingsViewModel не зарегистрирован")
@@ -120,7 +120,7 @@ final class AppCoordinator: Coordinator {
         let settingsVC = UIHostingController(
             rootView: SettingsView(vm: settingsVM).environmentObject(appRouter)
         )
-        settingsVC.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gearshape"), tag: 2)
+        settingsVC.tabBarItem = UITabBarItem(title: L10n.tabSettings, image: UIImage(systemName: "gearshape"), tag: 2)
 
         // --- Assemble
         tabBar.viewControllers = [placesVC, mapVC, settingsVC]
