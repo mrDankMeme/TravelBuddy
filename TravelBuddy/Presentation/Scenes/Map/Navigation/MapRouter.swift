@@ -13,7 +13,6 @@ enum MapRoute: Hashable {
     case detail(POI)
 }
 
-/// Только UI-ошибки карты, готовые к показу.
 enum MapUIError: Equatable {
     case poiNotFound(Int)
     case plain(String)

@@ -30,19 +30,19 @@ public struct POIDetailView: View {
         }
       }
 
-      Text(vm.model.poi.name)
-        .font(.largeTitle)
+      Text(vm.model.poi.name).font(.largeTitle)
 
       if vm.isLoadingAddress {
-        ProgressView("Loading address…")
+        ProgressView(L10n.detailLoadingAddress)
       } else if let addr = vm.address {
         Text(addr).italic()
       } else if let err = vm.errorMessage {
+        // Экранная подсветка + route-алерт прилетит из координатора
         Text(err).foregroundColor(.red)
       }
 
-      Button("Share",        action: vm.didTapShare)
-      Button("Open in Maps", action: vm.didTapOpenInMaps)
+      Button(L10n.detailShare,        action: vm.didTapShare)
+      Button(L10n.detailOpenInMaps,   action: vm.didTapOpenInMaps)
       Spacer()
     }
     .padding()
@@ -58,6 +58,7 @@ public struct POIDetailView: View {
     }
   }
 }
+
 
 // UIKit wrapper
 struct ActivityViewController: UIViewControllerRepresentable {

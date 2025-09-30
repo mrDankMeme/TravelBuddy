@@ -38,25 +38,13 @@ public final class OnboardingViewModel: OnboardingViewModelProtocol {
     public init() {
         // Страницы онбординга
         self.pages = [
-            OnboardingPage(
-                id: 0,
-                imageName: "onb1",
-                title: "Welcome to TravelBuddy",
-                description: "Discover new places and plan your journeys with ease."
-            ),
-            OnboardingPage(
-                id: 1,
-                imageName: "onb2",
-                title: "Track Your Route",
-                description: "Use our interactive map to mark and save your favorite spots."
-            ),
-            OnboardingPage(
-                id: 2,
-                imageName: "onb3",
-                title: "Stay Notified",
-                description: "Get reminders about upcoming trips and special offers."
-            )
-        ]
+                   OnboardingPage(id: 0, imageName: "onb1",
+                                  title: L10n.onbPage1Title, description: L10n.onbPage1Desc),
+                   OnboardingPage(id: 1, imageName: "onb2",
+                                  title: L10n.onbPage2Title, description: L10n.onbPage2Desc),
+                   OnboardingPage(id: 2, imageName: "onb3",
+                                  title: L10n.onbPage3Title, description: L10n.onbPage3Desc)
+               ]
         self.hasCompletedOnboarding = UserDefaults.standard.hasCompletedOnboarding
     }
     

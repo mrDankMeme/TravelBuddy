@@ -1,4 +1,11 @@
-// Presentation/Scenes/POIDetail/Navigation/POIDetailCoordinator.swift
+//
+//  POIDetailCoordinator.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/11/25.
+//
+
+
 import SwiftUI
 import Combine
 import Swinject
@@ -12,10 +19,12 @@ public final class POIDetailCoordinator: ObservableObject {
     private let router: POIDetailRouter
     private var cancellables = Set<AnyCancellable>()
 
-    
+    // UI error state
+    @Published private var failAlert: FailAlert?
+    private struct FailAlert: Identifiable { let id = UUID(); let message: String }
+
     public init(poi: POI, resolver: Resolver? = nil) {
         let r = resolver ?? DIContainer.shared.resolver
-        // получаем конкретную VM через переданный resolver
         guard let vm = r.resolve(POIDetailViewModel.self, argument: poi) else {
             preconditionFailure("Swinject: POIDetailViewModel не зарегистрирован для \(POI.self)")
         }
@@ -24,7 +33,6 @@ public final class POIDetailCoordinator: ObservableObject {
         self.router    = POIDetailRouter(viewModel: vm)
         self.model     = vm.model
 
-        // Навигация
         router.routes
             .sink { [weak self] route in
                 switch route {
@@ -35,11 +43,15 @@ public final class POIDetailCoordinator: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // Синхронизация модели
-        vm.modelPublisher
-            .sink { [weak self] newModel in
-                self?.model = newModel
+        // централизованный показ ошибок
+        router.uiErrors
+            .sink { [weak self] uiError in
+                self?.failAlert = .init(message: uiError.localizedMessage)
             }
+            .store(in: &cancellables)
+
+        vm.modelPublisher
+            .sink { [weak self] newModel in self?.model = newModel }
             .store(in: &cancellables)
     }
 
@@ -50,5 +62,15 @@ public final class POIDetailCoordinator: ObservableObject {
             set: { self.sheetRoute = $0 }
         )
         POIDetailView(viewModel: viewModel, sheetRoute: binding)
+            .alert(item: Binding(
+                get: { self.failAlert },
+                set: { _ in self.failAlert = nil }
+            )) { alert in
+                Alert(
+                    title: Text(L10n.alertErrorTitle),
+                    message: Text(alert.message),
+                    dismissButton: .default(Text(L10n.alertOk))
+                )
+            }
     }
 }

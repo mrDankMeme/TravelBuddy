@@ -36,31 +36,84 @@ public enum DesignTokens {
 import Foundation
 
 enum L10n {
+
     // MARK: - Common
-    static var alertOk: String {
-        NSLocalizedString("alert.ok", comment: "OK button")
-    }
-    static var alertErrorTitle: String {
-        NSLocalizedString("alert.error.title", comment: "Error alert title")
+    static var alertOk: String { NSLocalizedString("alert.ok", comment: "OK button") }
+    static var alertErrorTitle: String { NSLocalizedString("alert.error.title", comment: "Generic error alert title") }
+
+    // MARK: - Tabs / Titles
+    static var tabPlaces: String { NSLocalizedString("tab.places", comment: "Tab title: Places") }
+    static var tabMap: String { NSLocalizedString("tab.map", comment: "Tab title: Map") }
+    static var tabSettings: String { NSLocalizedString("tab.settings", comment: "Tab title: Settings") }
+
+    static var navSettingsTitle: String { NSLocalizedString("nav.settings.title", comment: "Navigation title for Settings") }
+    static var navPlacesTitle: String { NSLocalizedString("nav.places.title", comment: "Navigation title for Places") }
+    
+    // MARK: - Settings
+    static var settingsDarkMode: String {
+        NSLocalizedString("settings.darkmode", comment: "Dark mode toggle in Settings")
     }
 
+    static var settingsNotifications: String {
+        NSLocalizedString("settings.notifications", comment: "Notifications toggle in Settings")
+    }
+
+    static var settingsPremiumUnlock: String {
+        NSLocalizedString("settings.premium.unlock", comment: "Unlock Premium button")
+    }
+
+    static var settingsPremiumUnlocked: String {
+        NSLocalizedString("settings.premium.unlocked", comment: "Premium already unlocked label")
+    }
+
+
+    // MARK: - List screen
+    static var listCategoryTitle: String { NSLocalizedString("list.category.title", comment: "Category picker title") }
+    static var listRetry: String { NSLocalizedString("list.retry", comment: "Retry button") }
+    static func listPlacesCount(_ n: Int) -> String {
+        let fmt = NSLocalizedString("list.places.count", comment: "Pluralized count of places")
+        return String.localizedStringWithFormat(fmt, n)
+    }
+
+    // Category display names
+    static var catAll: String { NSLocalizedString("category.all", comment: "All category") }
+    static var catMonument: String { NSLocalizedString("category.monument", comment: "Monument category") }
+    static var catMuseum: String { NSLocalizedString("category.museum", comment: "Museum category") }
+    static var catCafe: String { NSLocalizedString("category.cafe", comment: "Cafe category") }
+
+    // MARK: - POI Detail
+    static var detailLoadingAddress: String { NSLocalizedString("detail.loading.address", comment: "Loading address…") }
+    static var detailShare: String { NSLocalizedString("detail.share", comment: "Share button") }
+    static var detailOpenInMaps: String { NSLocalizedString("detail.openinmaps", comment: "Open in Maps button") }
+
+    // MARK: - Onboarding
+    static var onbNext: String { NSLocalizedString("onb.next", comment: "Next button") }
+    static var onbBack: String { NSLocalizedString("onb.back", comment: "Back button") }
+    static var onbGetStarted: String { NSLocalizedString("onb.getstarted", comment: "Get Started button") }
+
+    static var onbPage1Title: String { NSLocalizedString("onb.p1.title", comment: "Onboarding page 1 title") }
+    static var onbPage1Desc: String { NSLocalizedString("onb.p1.desc", comment: "Onboarding page 1 description") }
+    static var onbPage2Title: String { NSLocalizedString("onb.p2.title", comment: "Onboarding page 2 title") }
+    static var onbPage2Desc: String { NSLocalizedString("onb.p2.desc", comment: "Onboarding page 2 description") }
+    static var onbPage3Title: String { NSLocalizedString("onb.p3.title", comment: "Onboarding page 3 title") }
+    static var onbPage3Desc: String { NSLocalizedString("onb.p3.desc", comment: "Onboarding page 3 description") }
+
     // MARK: - DeepLink parsing errors
-    static var deeplinkUnknownHost: String {
-        NSLocalizedString("deeplink.unknown_host", comment: "Unsupported link host")
-    }
-    static var deeplinkInvalidCoords: String {
-        NSLocalizedString("deeplink.invalid_coords", comment: "Invalid coordinates in deeplink")
-    }
-    static var deeplinkUnsupportedScheme: String {
-        NSLocalizedString("deeplink.unsupported_scheme", comment: "Unsupported url scheme")
-    }
+    static var deeplinkUnknownHost: String { NSLocalizedString("deeplink.unknown_host", comment: "Unsupported link host") }
+    static var deeplinkInvalidCoords: String { NSLocalizedString("deeplink.invalid_coords", comment: "Invalid coordinates in deeplink") }
+    static var deeplinkUnsupportedScheme: String { NSLocalizedString("deeplink.unsupported_scheme", comment: "Unsupported url scheme") }
 
     // MARK: - DeepLink business errors
     static func deeplinkPoiNotFound(_ id: Int) -> String {
-        let format = NSLocalizedString("deeplink.poi.not_found",
-                                       comment: "POI not found by ID")
-        // ВАЖНО: используем arguments: [id] и в строках %d
+        let format = NSLocalizedString("deeplink.poi.not_found", comment: "POI not found by ID")
         return String(format: format, locale: Locale.current, arguments: [id])
+    }
+
+    // MARK: - Misc UI
+    static var imageNoImage: String { NSLocalizedString("image.noimage", comment: "No image placeholder") }
+    static func imageInvalidPath(_ path: String) -> String {
+        let format = NSLocalizedString("image.invalid.path", comment: "Invalid image path message")
+        return String(format: format, path)
     }
 }
 //
@@ -433,7 +486,7 @@ final class AppCoordinator: Coordinator {
         let placesVC = UIHostingController(
             rootView: poiListCoord.rootView().environmentObject(appRouter)
         )
-        placesVC.tabBarItem = UITabBarItem(title: "Places", image: UIImage(systemName: "map"), tag: 0)
+        placesVC.tabBarItem = UITabBarItem(title: L10n.tabPlaces, image: UIImage(systemName: "map"), tag: 0)
 
         // --- Map tab
         guard
@@ -447,8 +500,8 @@ final class AppCoordinator: Coordinator {
         let mapVC = UIHostingController(
             rootView: mapCoord.rootView().environmentObject(appRouter)
         )
-        mapVC.tabBarItem = UITabBarItem(title: "Map", image: UIImage(systemName: "map.fill"), tag: 1)
-
+        mapVC.tabBarItem    = UITabBarItem(title: L10n.tabMap, image: UIImage(systemName: "map.fill"), tag: 1)
+        
         // --- Settings tab
         guard let settingsVM = container.resolver.resolve(AnySettingsViewModel.self) else {
             preconditionFailure("Swinject: AnySettingsViewModel не зарегистрирован")
@@ -456,7 +509,7 @@ final class AppCoordinator: Coordinator {
         let settingsVC = UIHostingController(
             rootView: SettingsView(vm: settingsVM).environmentObject(appRouter)
         )
-        settingsVC.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gearshape"), tag: 2)
+        settingsVC.tabBarItem = UITabBarItem(title: L10n.tabSettings, image: UIImage(systemName: "gearshape"), tag: 2)
 
         // --- Assemble
         tabBar.viewControllers = [placesVC, mapVC, settingsVC]
@@ -488,7 +541,7 @@ final class AppCoordinator: Coordinator {
     private func bindDeepLinks() {
         guard let deeplinkService = container.resolver.resolve(DeepLinkHandling.self) else { return }
 
-        // Успех
+        // Успех — маршрутизируем в карту/табы
         deeplinkService
             .events
             .receive(on: DispatchQueue.main)
@@ -497,7 +550,7 @@ final class AppCoordinator: Coordinator {
             }
             .store(in: &cancellables)
 
-        // Ошибки
+        // Ошибки парсинга/валидации диплинков — показываем глобальный алерт
         deeplinkService
             .errors
             .receive(on: DispatchQueue.main)
@@ -507,7 +560,8 @@ final class AppCoordinator: Coordinator {
             .store(in: &cancellables)
     }
 
-    //MARK: - Show errors
+    // MARK: - Show errors (GLOBAL)
+    /// Глобальные ошибки диплинков (scheme/host/coords) — вне контекста Map-сцены.
     private func presentDeepLinkError(_ error: DeepLinkError) {
         let message: String
         switch error {
@@ -526,7 +580,6 @@ final class AppCoordinator: Coordinator {
         )
     }
 
-
     // MARK: - Handle AppRoute (из списков/настроек и т.п.)
     private func handle(_ route: AppRoute) {
         switch route {
@@ -542,7 +595,7 @@ final class AppCoordinator: Coordinator {
         }
     }
 
-    // MARK: - Handle Deep Link
+    // MARK: - Handle Deep Link (SUCCESS)
     private func handleDeepLink(_ deeplink: DeepLink) {
         switch deeplink {
         case .mapCenter(let coord):
@@ -551,12 +604,12 @@ final class AppCoordinator: Coordinator {
 
         case .poi(let id):
             tabBar.selectedIndex = 1
+            // если такого POI в итоге нет — MapContainer сам покажет локализованный алерт
+            // через router.showError(.poiNotFound(id)) по таймауту
             mapRouter?.focusPOI(id)
         }
     }
 }
-    
-
 //
 //  DIContainer.swift
 //  TravelBuddy
@@ -1415,6 +1468,7 @@ public final class AnalyticsService: AnalyticsServiceProtocol {
 //  Created by Niiaz Khasanov on 7/1/25.
 //
 
+
 import Foundation
 
 public enum POICategoryFilter: String, CaseIterable, Identifiable {
@@ -1422,7 +1476,16 @@ public enum POICategoryFilter: String, CaseIterable, Identifiable {
     public var id: String { rawValue }
 }
 
-
+public extension POICategoryFilter {
+    var localizedTitle: String {
+        switch self {
+        case .all: return L10n.catAll
+        case .monument: return L10n.catMonument
+        case .museum: return L10n.catMuseum
+        case .cafe: return L10n.catCafe
+        }
+    }
+}
 //
 //  POI.swift
 //  TravelBuddy
@@ -1478,42 +1541,54 @@ public protocol POICacheProtocol: AnyObject {
 import SwiftUI
 
 public struct SettingsView<VM: SettingsViewModelProtocol>: View {
-  @ObservedObject var vm: VM
+    @ObservedObject private var vm: VM
 
-  public init(vm: VM) { self.vm = vm }
+    public init(vm: VM) { self.vm = vm }
 
-  public var body: some View {
-    NavigationView {
-      Form {
-          Toggle("Dark Mode", isOn: Binding(
-            get:  { vm.isDarkMode },
-            set:  { vm.setDarkMode($0) }
-          ))
+    public var body: some View {
+        NavigationView {
+            Form {
+                // Dark Mode
+                Toggle(L10n.settingsDarkMode, isOn: Binding(
+                    get:  { vm.isDarkMode },
+                    set:  { vm.setDarkMode($0) }
+                ))
+                .accessibilityIdentifier("settings.darkmode.toggle")
 
-          Toggle("Notifications", isOn: Binding(
-            get:  { vm.notificationsEnabled },
-            set:  { vm.setNotifications($0) }
-          ))
+                // Notifications
+                Toggle(L10n.settingsNotifications, isOn: Binding(
+                    get:  { vm.notificationsEnabled },
+                    set:  { vm.setNotifications($0) }
+                ))
+                .accessibilityIdentifier("settings.notifications.toggle")
 
-        Button(action: { vm.purchasePremium() }) {
-          Text(vm.premiumUnlocked ? "Premium Unlocked" : "Unlock Premium")
+                // Premium
+                Button(action: { vm.purchasePremium() }) {
+                    Text(vm.premiumUnlocked
+                         ? L10n.settingsPremiumUnlocked
+                         : L10n.settingsPremiumUnlock)
+                }
+                .disabled(vm.premiumUnlocked)
+                .accessibilityIdentifier("settings.premium.button")
+            }
+            .navigationTitle(L10n.navSettingsTitle)
+            .alert(item: Binding(
+                get: { vm.errorMessage.map { AlertError(message: $0) } },
+                set: { _ in vm.clearError() }
+            )) { alertError in
+                Alert(
+                    title: Text(L10n.alertErrorTitle),
+                    message: Text(alertError.message),
+                    dismissButton: .default(Text(L10n.alertOk))
+                )
+            }
         }
-        .disabled(vm.premiumUnlocked)
-      }
-      .navigationTitle("Settings")
-      .alert(item: Binding(
-        get: { vm.errorMessage.map { AlertError(message: $0) } },
-        set: { _ in vm.clearError() }
-      )) { alertError in
-        Alert(title: Text("Error"), message: Text(alertError.message))
-      }
     }
-  }
 }
 
 private struct AlertError: Identifiable {
-  let id = UUID()
-  let message: String
+    let id = UUID()
+    let message: String
 }
 //
 //  SettingsViewModel.swift
@@ -2117,44 +2192,54 @@ enum MapRoute: Hashable {
     case detail(POI)
 }
 
+enum MapUIError: Equatable {
+    case poiNotFound(Int)
+    case plain(String)
+
+    var localizedMessage: String {
+        switch self {
+        case .poiNotFound(let id):
+            return L10n.deeplinkPoiNotFound(id)
+        case .plain(let message):
+            return message
+        }
+    }
+}
+
 enum MapNavigationCommand {
     case detail(POI)
     case back
     case reset
     case center(CLLocationCoordinate2D)
     case focusPOI(Int)
-    case showError(String)
+    case showError(MapUIError)
 }
-
 
 @MainActor
 final class MapRouter: ObservableObject {
-    fileprivate var cancellables = Set<AnyCancellable>()
     let routes = PassthroughSubject<MapNavigationCommand, Never>()
-
-    // Буфер для команд, пришедших до подписки UI
     private var pending: [MapNavigationCommand] = []
 
-    // Единая точка эмита: и шлём, и буферизуем
     private func emit(_ cmd: MapNavigationCommand) {
         pending.append(cmd)
         routes.send(cmd)
     }
 
-    // Забрать и обнулить буфер (для MapContainer.onAppear)
     func consumePending() -> [MapNavigationCommand] {
         let items = pending
         pending.removeAll()
         return items
     }
 
-    // MARK: — High-level API
-    func goDetail(_ poi: POI)       { emit(.detail(poi)) }
-    func goBack()                    { emit(.back) }
-    func reset()                     { emit(.reset) }
+    // MARK: High-level API
+    func goDetail(_ poi: POI)                 { emit(.detail(poi)) }
+    func goBack()                              { emit(.back) }
+    func reset()                               { emit(.reset) }
     func center(on coord: CLLocationCoordinate2D) { emit(.center(coord)) }
-    func focusPOI(_ id: Int)         { emit(.focusPOI(id)) }
-    func showError(_ message: String) { emit(.showError(message)) }
+    func focusPOI(_ id: Int)                   { emit(.focusPOI(id)) }
+
+    // Единый способ показать ошибку на карте
+    func showError(_ error: MapUIError)        { emit(.showError(error)) }
 }
 //
 //  MapCoordinator.swift
@@ -2491,41 +2576,36 @@ public struct POIMapView: View {
 //  Created by Niiaz Khasanov on 7/17/25.
 //
 
+
 import SwiftUI
 import Combine
 import Swinject
 import MapKit
 
-/// Контейнер управляет:
-/// - NavigationStack (деталью)
-/// - подпиской на команды MapRouter (detail/back/reset/center/focusPOI)
-/// - согласованием deeplink-команд с VM (выбор POI) и MapView (центрирование)
 struct MapContainer: View {
     @State private var path: [MapRoute] = []
     @State private var prevPathCount: Int = 0
-    
+
     @State private var lastPushedPOIId: Int?
     @State private var isNavigating = false
-    
+
     @StateObject private var router: MapRouter
     @StateObject private var vm: AnyPOIMapViewModel
-    
+
     private let defaultRegionMeters: CLLocationDistance
     private let makeDetail: (POI) -> AnyView
-    
-    // deeplink-команда центрирования — одноразовый триггер для MapViewRepresentable
+
     @State private var centerRequest: CLLocationCoordinate2D? = nil
-    
-    // pending focus, если аннотации еще не загружены
+
     @State private var pendingFocusId: Int? = nil
     @State private var focusTimeoutWorkItem: DispatchWorkItem? = nil
     @State private var failAlert: FailAlert? = nil
-    
+
     private struct FailAlert: Identifiable {
         let id = UUID()
         let message: String
     }
-    
+
     init(
         vm: AnyPOIMapViewModel,
         router: MapRouter,
@@ -2537,7 +2617,7 @@ struct MapContainer: View {
         self.defaultRegionMeters = defaultRegionMeters
         self.makeDetail = makeDetail
     }
-    
+
     var body: some View {
         NavigationStack(path: $path) {
             POIMapView(
@@ -2556,9 +2636,7 @@ struct MapContainer: View {
             handle(command)
         }
         .onAppear {
-            router.consumePending().forEach { cmd in
-                handle(cmd)
-            }
+            router.consumePending().forEach { handle($0) }
         }
         .onChange(of: path) { newValue in
             if newValue.count < prevPathCount {
@@ -2568,7 +2646,6 @@ struct MapContainer: View {
             prevPathCount = newValue.count
         }
         .onChange(of: vm.annotations) { _ in
-            // если ждали конкретный id — пробуем резолвнуть сейчас
             if let id = pendingFocusId,
                let poi = vm.annotations.first(where: { $0.poi.id == id })?.poi {
                 pendingFocusId = nil
@@ -2585,41 +2662,38 @@ struct MapContainer: View {
         }
         .environmentObject(router)
     }
-    
-    //Place not found вспомогательные методы
+
+    // MARK: - Helpers
+
     private func scheduleFocusTimeout(for id: Int, seconds: Double = 2.5) {
         cancelFocusTimeout()
-
-        let work = DispatchWorkItem {   // ВАЖНО: без [weak self], это struct
-            // если всё ещё ждём этот же id, а selected не совпал — показываем фэйл
+        let work = DispatchWorkItem {
             if pendingFocusId == id, vm.selectedPOI?.id != id {
-               
-                let msg = L10n.deeplinkPoiNotFound(id)
-                failAlert = .init(message: msg)
-            
-                // чуть подвинем карту, чтобы не оставлять «никуда»
+                // единый путь показа ошибки — через Router
+                router.showError(.poiNotFound(id))
+
+                // подвинем карту, чтобы не оставлять «никуда»
                 if let anyAnno = vm.annotations.first {
                     centerRequest = anyAnno.coordinate
                 }
 
-                // (опционально) лог
+                // (опционально) метрика
                 DIContainer.shared.resolver
                     .resolve(AnalyticsServiceProtocol.self)?
                     .logEvent(name: "deeplink_poi_not_found", parameters: ["id": id])
 
-                // сброс ожидания
                 pendingFocusId = nil
             }
         }
-
         focusTimeoutWorkItem = work
         DispatchQueue.main.asyncAfter(deadline: .now() + seconds, execute: work)
     }
-    
+
     private func cancelFocusTimeout() {
         focusTimeoutWorkItem?.cancel()
         focusTimeoutWorkItem = nil
     }
+
     private func handle(_ command: MapNavigationCommand) {
         switch command {
         case .detail(let poi):
@@ -2628,37 +2702,36 @@ struct MapContainer: View {
             path.append(.detail(poi))
             lastPushedPOIId = poi.id
             DispatchQueue.main.async { isNavigating = false }
-            
+
         case .back:
             if !path.isEmpty { path.removeLast() }
             lastPushedPOIId = nil
             isNavigating = false
-            
+
         case .reset:
             path.removeAll()
             lastPushedPOIId = nil
             isNavigating = false
-            
+
         case .center(let coord):
             centerRequest = coord
-            
+
         case .focusPOI(let id):
-            // пробуем сразу — вдруг уже загружено
             if let poi = vm.annotations.first(where: { $0.poi.id == id })?.poi {
                 vm.selectedPOI = poi
                 cancelFocusTimeout()
             } else {
-                // включаем «ожидание» и таймер fail-safe
                 pendingFocusId = id
-                vm.fetch()                       // подтягиваем аннотации
-                scheduleFocusTimeout(for: id)    // если не приедет — покажем алерт
+                vm.fetch()
+                scheduleFocusTimeout(for: id)
             }
-        case .showError(let message):
-            failAlert = .init(message: message)
+
+        case .showError(let uiError):
+            // Всегда локализовано здесь, в UI-слое
+            failAlert = .init(message: uiError.localizedMessage)
         }
     }
 }
-
 //
 //  POIListViewModel.swift
 //  TravelBuddy
@@ -2981,20 +3054,18 @@ import SwiftUI
 public struct POIListView: View {
     @ObservedObject var viewModel: AnyPOIListViewModel
     @EnvironmentObject var router: POIListRouter
-    
+
     public init(viewModel: AnyPOIListViewModel) {
         self.viewModel = viewModel
     }
-    
+
     public var body: some View {
         ZStack {
             content
             if viewModel.isLoading {
-                // Полноэкранный индикатор, когда пусто
                 if viewModel.pois.isEmpty {
                     ProgressView().scaleEffect(1.2)
                 } else {
-                    // Компактный индикатор поверх уже показанного списка
                     VStack { Spacer() }
                         .overlay(
                             ProgressView()
@@ -3007,26 +3078,32 @@ public struct POIListView: View {
                 }
             }
         }
-        .navigationTitle("Places")
+        .navigationTitle(L10n.navPlacesTitle)
         .onAppear { viewModel.fetchPOIs() }
     }
-    
+
     @ViewBuilder
     private var content: some View {
         if let err = viewModel.errorMessage {
             VStack(spacing: 16) {
-                Text("Error: \(err)").multilineTextAlignment(.center)
-                Button("Retry") { viewModel.fetchPOIs() }
+                Text(err).multilineTextAlignment(.center)
+                Button(L10n.listRetry) { viewModel.fetchPOIs() }
             }
             .padding()
         } else {
             VStack {
-                Picker("Category", selection: $viewModel.filter) {
-                    ForEach(POICategoryFilter.allCases) { Text($0.rawValue).tag($0) }
+                Picker(L10n.listCategoryTitle, selection: $viewModel.filter) {
+                    ForEach(POICategoryFilter.allCases) { Text($0.localizedTitle).tag($0) }
                 }
                 .pickerStyle(.segmented)
                 .padding(.vertical)
-                
+
+                // Пример использования plural (если хочешь — покажем над списком)
+                if !viewModel.pois.isEmpty {
+                    Text(L10n.listPlacesCount(viewModel.pois.count))
+                        .font(.footnote).foregroundColor(.secondary)
+                }
+
                 List(viewModel.pois) { poi in
                     Button { router.goDetail(poi) } label: {
                         HStack {

@@ -5,14 +5,13 @@
 //  Created by Niiaz Khasanov on 7/2/25.
 //
 
+
 import SwiftUI
 
 public struct POIImageView: View {
     let imagePath: String?
 
-    public init(imagePath: String?) {
-        self.imagePath = imagePath
-    }
+    public init(imagePath: String?) { self.imagePath = imagePath }
 
     public var body: some View {
         VStack {
@@ -24,20 +23,18 @@ public struct POIImageView: View {
                     let ext = String(components[1])
                     if let url = Bundle.main.url(forResource: name, withExtension: ext),
                        let uiImage = UIImage(contentsOfFile: url.path) {
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .scaledToFit()
+                        Image(uiImage: uiImage).resizable().scaledToFit()
                     } else {
                         Text("❌ \(name).\(ext)")
                             .foregroundColor(.red)
-                        Text("Path: \(imagePath)")
+                        Text(L10n.imageInvalidPath(imagePath))
                             .font(.caption)
                     }
                 } else {
-                    Text("❌ Invalid path: \(imagePath)")
+                    Text(L10n.imageInvalidPath(imagePath))
                 }
             } else {
-                Text("No image")
+                Text(L10n.imageNoImage)
             }
         }
     }
