@@ -10,6 +10,11 @@
 		A301D4492E85882500F67A76 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = A301D4482E85882500F67A76 /* README.md */; };
 		A301D4582E85887500F67A76 /* DeepLinkParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A301D4532E85887500F67A76 /* DeepLinkParser.swift */; };
 		A301D4592E85887500F67A76 /* DeepLinkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A301D4542E85887500F67A76 /* DeepLinkService.swift */; };
+		A301D4662E898ADC00F67A76 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = A301D4652E898ADC00F67A76 /* L10n.swift */; };
+		A301D46B2E8994E600F67A76 /* UITabBarController+Alert.swift in Sources */ = {isa = PBXBuildFile; fileRef = A301D46A2E8994E600F67A76 /* UITabBarController+Alert.swift */; };
+		A301D46E2E8C071800F67A76 /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = A301D46C2E8C071800F67A76 /* Localizable.stringsdict */; };
+		A301D4772E8C08A900F67A76 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A301D4732E8C08A900F67A76 /* Localizable.strings */; };
+		A301D4782E8C08A900F67A76 /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = A301D4742E8C08A900F67A76 /* Localizable.stringsdict */; };
 		A3166E062E0476E700E6E1C2 /* Swinject in Frameworks */ = {isa = PBXBuildFile; productRef = A3166E052E0476E700E6E1C2 /* Swinject */; };
 		A3166E0B2E05613600E6E1C2 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = A3166E0A2E05613600E6E1C2 /* FirebaseAnalytics */; };
 		A3166E0D2E05613600E6E1C2 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = A3166E0C2E05613600E6E1C2 /* FirebaseCrashlytics */; };
@@ -98,6 +103,13 @@
 		A301D4482E85882500F67A76 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		A301D4532E85887500F67A76 /* DeepLinkParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkParser.swift; sourceTree = "<group>"; };
 		A301D4542E85887500F67A76 /* DeepLinkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkService.swift; sourceTree = "<group>"; };
+		A301D4652E898ADC00F67A76 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
+		A301D46A2E8994E600F67A76 /* UITabBarController+Alert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UITabBarController+Alert.swift"; sourceTree = "<group>"; };
+		A301D46D2E8C071800F67A76 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = en; path = en.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
+		A301D4752E8C08A900F67A76 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = ru; path = ru.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
+		A301D4762E8C08A900F67A76 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
+		A301D4792E8C08C000F67A76 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = en; path = en.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
+		A301D47A2E8C08C000F67A76 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A3166DEC2E04752500E6E1C2 /* TravelBuddy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TravelBuddy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3166E3C2E0589B600E6E1C2 /* Publisher+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publisher+Extensions.swift"; sourceTree = "<group>"; };
 		A3166E3D2E0589B600E6E1C2 /* UIColor+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+Hex.swift"; sourceTree = "<group>"; };
@@ -197,9 +209,18 @@
 			path = Deeplink;
 			sourceTree = "<group>";
 		};
+		A301D4642E898AC900F67A76 /* L10n */ = {
+			isa = PBXGroup;
+			children = (
+				A301D4652E898ADC00F67A76 /* L10n.swift */,
+			);
+			path = L10n;
+			sourceTree = "<group>";
+		};
 		A3166DE32E04752500E6E1C2 = {
 			isa = PBXGroup;
 			children = (
+				A301D46C2E8C071800F67A76 /* Localizable.stringsdict */,
 				A3166E562E0589B600E6E1C2 /* TravelBuddy */,
 				A3166E4E2E0589B600E6E1C2 /* Assets.xcassets */,
 				A3166E512E0589B600E6E1C2 /* LaunchScreen.storyboard */,
@@ -221,6 +242,7 @@
 		A3166E3E2E0589B600E6E1C2 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				A301D46A2E8994E600F67A76 /* UITabBarController+Alert.swift */,
 				A3166E3C2E0589B600E6E1C2 /* Publisher+Extensions.swift */,
 				A3166F062E0DB0B500E6E1C2 /* UserDefaults+AppStorage.swift */,
 				A3166E3D2E0589B600E6E1C2 /* UIColor+Hex.swift */,
@@ -231,6 +253,7 @@
 		A3166E402E0589B600E6E1C2 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				A301D4642E898AC900F67A76 /* L10n */,
 				A3B449142E7D7FD200F13CC1 /* Config */,
 				A3F4F7D22E745978002EEDF2 /* Navigation */,
 				A3166E3E2E0589B600E6E1C2 /* Extensions */,
@@ -315,6 +338,8 @@
 		A3166E4B2E0589B600E6E1C2 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				A301D4732E8C08A900F67A76 /* Localizable.strings */,
+				A301D4742E8C08A900F67A76 /* Localizable.stringsdict */,
 				A3166F082E10395500E6E1C2 /* Mocks */,
 			);
 			path = Resources;
@@ -730,6 +755,7 @@
 			knownRegions = (
 				en,
 				Base,
+				ru,
 			);
 			mainGroup = A3166DE32E04752500E6E1C2;
 			minimizedProjectReferenceProxies = 1;
@@ -754,10 +780,13 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A301D4772E8C08A900F67A76 /* Localizable.strings in Resources */,
+				A301D4782E8C08A900F67A76 /* Localizable.stringsdict in Resources */,
 				A3166E5E2E0589B600E6E1C2 /* Assets.xcassets in Resources */,
 				A3166E602E0589B600E6E1C2 /* LaunchScreen.storyboard in Resources */,
 				A3166F0A2E10396E00E6E1C2 /* mock_pois_local.json in Resources */,
 				A301D4492E85882500F67A76 /* README.md in Resources */,
+				A301D46E2E8C071800F67A76 /* Localizable.stringsdict in Resources */,
 				A3166E612E0589B600E6E1C2 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -778,6 +807,7 @@
 				A3166F072E0DB0B500E6E1C2 /* UserDefaults+AppStorage.swift in Sources */,
 				A323AE2B2E1C0D4A0055264E /* MapViewRepresentable.swift in Sources */,
 				A3166E8D2E09611E00E6E1C2 /* SettingsView.swift in Sources */,
+				A301D4662E898ADC00F67A76 /* L10n.swift in Sources */,
 				A3914C872E290E5100F8740A /* MapContainer.swift in Sources */,
 				A385D5A32E37CB0D009C0251 /* AnalyticsServiceProtocol.swift in Sources */,
 				A323AE232E1C0CF90055264E /* POIAnnotation.swift in Sources */,
@@ -807,6 +837,7 @@
 				A385D5BA2E37D4AC009C0251 /* MapCoordinator.swift in Sources */,
 				A385D5BB2E37D4AC009C0251 /* MapRouter.swift in Sources */,
 				A385D5912E37C4FE009C0251 /* POICacheProtocol.swift in Sources */,
+				A301D46B2E8994E600F67A76 /* UITabBarController+Alert.swift in Sources */,
 				A3166F0C2E103ECC00E6E1C2 /* RemotePOIService.swift in Sources */,
 				A3166F1C2E1577DA00E6E1C2 /* POIImageView.swift in Sources */,
 				A385D59F2E37C99E009C0251 /* IAPServiceProtocol.swift in Sources */,
@@ -835,6 +866,32 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
+		A301D46C2E8C071800F67A76 /* Localizable.stringsdict */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A301D46D2E8C071800F67A76 /* en */,
+			);
+			name = Localizable.stringsdict;
+			sourceTree = "<group>";
+		};
+		A301D4732E8C08A900F67A76 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A301D47A2E8C08C000F67A76 /* en */,
+				A301D4762E8C08A900F67A76 /* ru */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		A301D4742E8C08A900F67A76 /* Localizable.stringsdict */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A301D4792E8C08C000F67A76 /* en */,
+				A301D4752E8C08A900F67A76 /* ru */,
+			);
+			name = Localizable.stringsdict;
+			sourceTree = "<group>";
+		};
 		A3166E512E0589B600E6E1C2 /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (

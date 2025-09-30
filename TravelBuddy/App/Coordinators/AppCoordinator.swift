@@ -152,23 +152,44 @@ final class AppCoordinator: Coordinator {
     private func bindDeepLinks() {
         guard let deeplinkService = container.resolver.resolve(DeepLinkHandling.self) else { return }
 
-        // успехи — как было
-        deeplinkService.events
+        // Успех — маршрутизируем в карту/табы
+        deeplinkService
+            .events
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] link in self?.handleDeepLink(link) }
+            .sink { [weak self] link in
+                self?.handleDeepLink(link)
+            }
             .store(in: &cancellables)
 
-        // НОВОЕ: ошибки парсинга → вкладка Map + алерт
-        deeplinkService.errorEvents
+        // Ошибки парсинга/валидации диплинков — показываем глобальный алерт
+        deeplinkService
+            .errors
             .receive(on: DispatchQueue.main)
             .sink { [weak self] err in
-                guard let self else { return }
-                self.tabBar.selectedIndex = 1
-                self.mapRouter?.showError(err.userMessage)
+                self?.presentDeepLinkError(err)
             }
             .store(in: &cancellables)
     }
 
+    // MARK: - Show errors (GLOBAL)
+    /// Глобальные ошибки диплинков (scheme/host/coords) — вне контекста Map-сцены.
+    private func presentDeepLinkError(_ error: DeepLinkError) {
+        let message: String
+        switch error {
+        case .unsupportedScheme:
+            message = L10n.deeplinkUnsupportedScheme
+        case .unknownHost:
+            message = L10n.deeplinkUnknownHost
+        case .invalidCoordinates:
+            message = L10n.deeplinkInvalidCoords
+        }
+
+        tabBar.presentAlert(
+            title: L10n.alertErrorTitle,
+            message: message,
+            okTitle: L10n.alertOk
+        )
+    }
 
     // MARK: - Handle AppRoute (из списков/настроек и т.п.)
     private func handle(_ route: AppRoute) {
@@ -185,7 +206,7 @@ final class AppCoordinator: Coordinator {
         }
     }
 
-    // MARK: - Handle Deep Link
+    // MARK: - Handle Deep Link (SUCCESS)
     private func handleDeepLink(_ deeplink: DeepLink) {
         switch deeplink {
         case .mapCenter(let coord):
@@ -194,6 +215,8 @@ final class AppCoordinator: Coordinator {
 
         case .poi(let id):
             tabBar.selectedIndex = 1
+            // если такого POI в итоге нет — MapContainer сам покажет локализованный алерт
+            // через router.showError(.poiNotFound(id)) по таймауту
             mapRouter?.focusPOI(id)
         }
     }

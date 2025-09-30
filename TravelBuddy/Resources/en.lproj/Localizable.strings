@@ -1,0 +1,57 @@
+/* 
+  Localizable.strings
+  TravelBuddy
+
+  Created by Niiaz Khasanov on 9/28/25.
+  
+*/
+
+/* Common */
+"alert.ok" = "OK";
+"alert.error.title" = "Error";
+
+/* Tabs / Titles */
+"tab.places" = "Places";
+"tab.map" = "Map";
+"tab.settings" = "Settings";
+"nav.settings.title" = "Settings";
+"nav.places.title" = "Places";
+
+/* List */
+"list.category.title" = "Category";
+"list.retry" = "Retry";
+"list.places.count" = "%d places";
+
+/* Categories */
+"category.all" = "All";
+"category.monument" = "Monument";
+"category.museum" = "Museum";
+"category.cafe" = "Cafe";
+
+/* Detail */
+"detail.loading.address" = "Loading address…";
+"detail.share" = "Share";
+"detail.openinmaps" = "Open in Maps";
+
+/* Onboarding */
+"onb.next" = "Next";
+"onb.back" = "Back";
+"onb.getstarted" = "Get Started";
+"onb.p1.title" = "Welcome to TravelBuddy";
+"onb.p1.desc" = "Discover new places and plan your journeys with ease.";
+"onb.p2.title" = "Track Your Route";
+"onb.p2.desc" = "Use our interactive map to mark and save your favorite spots.";
+"onb.p3.title" = "Stay Notified";
+"onb.p3.desc" = "Get reminders about upcoming trips and special offers.";
+
+/* DeepLink errors */
+"deeplink.unknown_host" = "Unknown host";
+"deeplink.invalid_coords" = "Invalid coordinates";
+"deeplink.unsupported_scheme" = "Unsupported link";
+
+/* DeepLink business error */
+"deeplink.poi.not_found" = "Place with ID %d was not found";
+
+/* Images */
+"image.noimage" = "No image";
+"image.invalid.path" = "Invalid path: %@";

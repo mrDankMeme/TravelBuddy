@@ -12,31 +12,31 @@ import Combine
 public protocol DeepLinkHandling {
     func handle(url: URL)
     var events: AnyPublisher<DeepLink, Never> { get }
-    var errorEvents: AnyPublisher<DeepLinkError, Never> { get }  // NEW
+    var errors: AnyPublisher<DeepLinkError, Never> { get }
 }
 
 public final class DeepLinkService: DeepLinkHandling {
     private let parser = DeepLinkParser()
 
-    private let subject = CurrentValueSubject<DeepLink?, Never>(nil)
-    private let errorSubject = CurrentValueSubject<DeepLinkError?, Never>(nil) // NEW
+    private let successSubject = CurrentValueSubject<DeepLink?, Never>(nil)
+    private let errorSubject = PassthroughSubject<DeepLinkError, Never>()
 
     public init() {}
 
     public func handle(url: URL) {
         switch parser.parse(url: url) {
         case .success(let dl):
-            subject.value = dl
+            successSubject.value = dl
         case .failure(let err):
-            errorSubject.value = err
+            errorSubject.send(err)
         }
     }
 
     public var events: AnyPublisher<DeepLink, Never> {
-        subject.compactMap { $0 }.eraseToAnyPublisher()
+        successSubject.compactMap { $0 }.eraseToAnyPublisher()
     }
 
-    public var errorEvents: AnyPublisher<DeepLinkError, Never> {
-        errorSubject.compactMap { $0 }.eraseToAnyPublisher()
+    public var errors: AnyPublisher<DeepLinkError, Never> {
+        errorSubject.eraseToAnyPublisher()
     }
 }

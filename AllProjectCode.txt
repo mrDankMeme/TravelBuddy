@@ -26,6 +26,44 @@ public enum DesignTokens {
     
 }
 //
+//  L10n.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 9/28/25.
+//
+
+
+import Foundation
+
+enum L10n {
+    // MARK: - Common
+    static var alertOk: String {
+        NSLocalizedString("alert.ok", comment: "OK button")
+    }
+    static var alertErrorTitle: String {
+        NSLocalizedString("alert.error.title", comment: "Error alert title")
+    }
+
+    // MARK: - DeepLink parsing errors
+    static var deeplinkUnknownHost: String {
+        NSLocalizedString("deeplink.unknown_host", comment: "Unsupported link host")
+    }
+    static var deeplinkInvalidCoords: String {
+        NSLocalizedString("deeplink.invalid_coords", comment: "Invalid coordinates in deeplink")
+    }
+    static var deeplinkUnsupportedScheme: String {
+        NSLocalizedString("deeplink.unsupported_scheme", comment: "Unsupported url scheme")
+    }
+
+    // MARK: - DeepLink business errors
+    static func deeplinkPoiNotFound(_ id: Int) -> String {
+        let format = NSLocalizedString("deeplink.poi.not_found",
+                                       comment: "POI not found by ID")
+        // ВАЖНО: используем arguments: [id] и в строках %d
+        return String(format: format, locale: Locale.current, arguments: [id])
+    }
+}
+//
 //  AppConfig.swift
 //  TravelBuddy
 //
@@ -280,6 +318,23 @@ extension UserDefaults {
   }
 }
 //
+//  UITabBarController+Alert.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 9/28/25.
+//
+
+
+import UIKit
+
+extension UITabBarController {
+    func presentAlert(title: String, message: String, okTitle: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: okTitle, style: .default))
+        (selectedViewController ?? presentedViewController ?? self).present(alert, animated: true)
+    }
+}
+//
 //  AppCoordinator.swift
 //  TravelBuddy
 //
@@ -432,6 +487,8 @@ final class AppCoordinator: Coordinator {
     // MARK: - Bind Deep Links
     private func bindDeepLinks() {
         guard let deeplinkService = container.resolver.resolve(DeepLinkHandling.self) else { return }
+
+        // Успех
         deeplinkService
             .events
             .receive(on: DispatchQueue.main)
@@ -439,7 +496,36 @@ final class AppCoordinator: Coordinator {
                 self?.handleDeepLink(link)
             }
             .store(in: &cancellables)
+
+        // Ошибки
+        deeplinkService
+            .errors
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] err in
+                self?.presentDeepLinkError(err)
+            }
+            .store(in: &cancellables)
     }
+
+    //MARK: - Show errors
+    private func presentDeepLinkError(_ error: DeepLinkError) {
+        let message: String
+        switch error {
+        case .unsupportedScheme:
+            message = L10n.deeplinkUnsupportedScheme
+        case .unknownHost:
+            message = L10n.deeplinkUnknownHost
+        case .invalidCoordinates:
+            message = L10n.deeplinkInvalidCoords
+        }
+
+        tabBar.presentAlert(
+            title: L10n.alertErrorTitle,
+            message: message,
+            okTitle: L10n.alertOk
+        )
+    }
+
 
     // MARK: - Handle AppRoute (из списков/настроек и т.п.)
     private func handle(_ route: AppRoute) {
@@ -469,6 +555,8 @@ final class AppCoordinator: Coordinator {
         }
     }
 }
+    
+
 //
 //  DIContainer.swift
 //  TravelBuddy
@@ -638,8 +726,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 }
 
-// Core/DeepLink/DeepLink.swift
-import Foundation
+//
+//  DeepLinkParser.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/17/25.
+//
+
+
 import CoreLocation
 
 public enum DeepLink {
@@ -647,28 +741,50 @@ public enum DeepLink {
     case poi(id: Int)
 }
 
+public enum DeepLinkError: Error {
+    case unsupportedScheme
+    case unknownHost
+    case invalidCoordinates
+}
+
+
+
 public struct DeepLinkParser {
     public init() {}
 
-    public func parse(url: URL) -> DeepLink? {
-        guard url.scheme?.lowercased() == "travelbuddy" else { return nil }
+    public func parse(url: URL) -> Result<DeepLink, DeepLinkError> {
+        let scheme = url.scheme?.lowercased()
+        if scheme == "travelbuddy" {
+            return parseCustomScheme(url)
+        }
+        return .failure(.unsupportedScheme)
+    }
+
+    private func parseCustomScheme(_ url: URL) -> Result<DeepLink, DeepLinkError> {
         switch url.host?.lowercased() {
         case "map":
-            guard
-                let comps = URLComponents(url: url, resolvingAgainstBaseURL: false),
-                let latStr = comps.queryItems?.first(where: { $0.name == "lat" })?.value,
-                let lonStr = comps.queryItems?.first(where: { $0.name == "lon" })?.value,
-                let lat = Double(latStr), let lon = Double(lonStr)
-            else { return nil }
-            return .mapCenter(.init(latitude: lat, longitude: lon))
-
+            return parseMap(url)
         case "poi":
-            guard let id = Int(url.lastPathComponent) else { return nil }
-            return .poi(id: id)
-
+            guard let id = Int(url.lastPathComponent) else {
+                return .failure(.unknownHost)
+            }
+            return .success(.poi(id: id))
         default:
-            return nil
+            return .failure(.unknownHost)
         }
+    }
+
+    private func parseMap(_ url: URL) -> Result<DeepLink, DeepLinkError> {
+        guard
+            let comps = URLComponents(url: url, resolvingAgainstBaseURL: false),
+            let latStr = comps.queryItems?.first(where: { $0.name == "lat" })?.value,
+            let lonStr = comps.queryItems?.first(where: { $0.name == "lon" })?.value,
+            let lat = Double(latStr),
+            let lon = Double(lonStr)
+        else {
+            return .failure(.invalidCoordinates)
+        }
+        return .success(.mapCenter(.init(latitude: lat, longitude: lon)))
     }
 }
 //
@@ -685,25 +801,32 @@ import Combine
 public protocol DeepLinkHandling {
     func handle(url: URL)
     var events: AnyPublisher<DeepLink, Never> { get }
+    var errors: AnyPublisher<DeepLinkError, Never> { get }
 }
 
 public final class DeepLinkService: DeepLinkHandling {
     private let parser = DeepLinkParser()
 
-    // было: private let subject = PassthroughSubject<DeepLink, Never>()
-    private let subject = CurrentValueSubject<DeepLink?, Never>(nil)
+    private let successSubject = CurrentValueSubject<DeepLink?, Never>(nil)
+    private let errorSubject = PassthroughSubject<DeepLinkError, Never>()
 
     public init() {}
 
     public func handle(url: URL) {
-        guard let dl = parser.parse(url: url) else { return }
-        subject.value = dl
+        switch parser.parse(url: url) {
+        case .success(let dl):
+            successSubject.value = dl
+        case .failure(let err):
+            errorSubject.send(err)
+        }
     }
 
     public var events: AnyPublisher<DeepLink, Never> {
-        subject
-            .compactMap { $0 }
-            .eraseToAnyPublisher()
+        successSubject.compactMap { $0 }.eraseToAnyPublisher()
+    }
+
+    public var errors: AnyPublisher<DeepLinkError, Never> {
+        errorSubject.eraseToAnyPublisher()
     }
 }
 //
@@ -745,6 +868,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             .handle(url: url)
     }
 }
+
 //
 //  HTTPClient.swift
 //  TravelBuddy
@@ -1999,7 +2123,9 @@ enum MapNavigationCommand {
     case reset
     case center(CLLocationCoordinate2D)
     case focusPOI(Int)
+    case showError(String)
 }
+
 
 @MainActor
 final class MapRouter: ObservableObject {
@@ -2028,6 +2154,7 @@ final class MapRouter: ObservableObject {
     func reset()                     { emit(.reset) }
     func center(on coord: CLLocationCoordinate2D) { emit(.center(coord)) }
     func focusPOI(_ id: Int)         { emit(.focusPOI(id)) }
+    func showError(_ message: String) { emit(.showError(message)) }
 }
 //
 //  MapCoordinator.swift
@@ -2451,9 +2578,9 @@ struct MapContainer: View {
         }
         .alert(item: $failAlert) { alert in
             Alert(
-                title: Text("Place not found"),
+                title: Text(L10n.alertErrorTitle),
                 message: Text(alert.message),
-                dismissButton: .default(Text("OK"))
+                dismissButton: .default(Text(L10n.alertOk))
             )
         }
         .environmentObject(router)
@@ -2466,10 +2593,10 @@ struct MapContainer: View {
         let work = DispatchWorkItem {   // ВАЖНО: без [weak self], это struct
             // если всё ещё ждём этот же id, а selected не совпал — показываем фэйл
             if pendingFocusId == id, vm.selectedPOI?.id != id {
-                failAlert = .init(
-                    message: "We couldn't open place #\(id). It may be unavailable or not loaded yet."
-                )
-
+               
+                let msg = L10n.deeplinkPoiNotFound(id)
+                failAlert = .init(message: msg)
+            
                 // чуть подвинем карту, чтобы не оставлять «никуда»
                 if let anyAnno = vm.annotations.first {
                     centerRequest = anyAnno.coordinate
@@ -2486,6 +2613,7 @@ struct MapContainer: View {
         }
 
         focusTimeoutWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + seconds, execute: work)
     }
     
     private func cancelFocusTimeout() {
@@ -2525,9 +2653,12 @@ struct MapContainer: View {
                 vm.fetch()                       // подтягиваем аннотации
                 scheduleFocusTimeout(for: id)    // если не приедет — покажем алерт
             }
+        case .showError(let message):
+            failAlert = .init(message: message)
         }
     }
 }
+
 //
 //  POIListViewModel.swift
 //  TravelBuddy
