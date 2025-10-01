@@ -1,0 +1,157 @@
+name: iOS CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build + Lint
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          XCODE="/Applications/Xcode.app"
+          sudo xcode-select -s "$XCODE"
+          xcodebuild -version
+
+      - name: Cache Ruby gems
+        uses: actions/cache@v4
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Install Bundler deps
+        run: bundle install --path vendor/bundle
+
+      - name: Install SwiftLint
+        run: brew install swiftlint || true
+
+      - name: Lint
+        run: swiftlint --strict
+
+      - name: Build (Debug, simulator)
+        run: |
+          set -e
+          xcodebuild \
+            -scheme TravelBuddy \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            -skipPackagePluginValidation \
+            -skipMacroValidation \
+            clean build | xcpretty
+        env:
+          NSUnbufferedIO: YES
+
+      - name: Archive (Release, device)
+        run: |
+          xcodebuild \
+            -scheme TravelBuddy \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath build/TravelBuddy.xcarchive \
+            -skipPackagePluginValidation \
+            -skipMacroValidation \
+            archive | xcpretty
+
+      - name: Export .ipa (ad-hoc)
+        if: ${{ always() }}
+        run: |
+          cat > ExportOptions.plist <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>ad-hoc</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>compileBitcode</key><false/>
+            <key>destination</key><string>export</string>
+            <key>stripSwiftSymbols</key><true/>
+          </dict>
+          </plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath build/TravelBuddy.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath build/export | xcpretty
+        continue-on-error: true
+
+      - name: Upload artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            build/TravelBuddy.xcarchive
+            build/export/*.ipa
+            fastlane/logs
+
+  snapshots:
+    name: UI Snapshots (fastlane)
+    runs-on: macos-15
+    timeout-minutes: 60
+    # если хочешь запускать после успешной сборки — раскомментируй:
+    # needs: [build]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          XCODE="/Applications/Xcode.app"
+          sudo xcode-select -s "$XCODE"
+          xcodebuild -version
+
+      - name: Cache Ruby gems
+        uses: actions/cache@v4
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Install Bundler deps
+        run: bundle install --path vendor/bundle
+
+      - name: List available simulators (for debug)
+        run: xcrun simctl list devices
+
+      - name: Run fastlane snapshots
+        env:
+          FASTLANE_SNAPSHOT: "YES"
+          LC_ALL: en_US.UTF-8
+          LANG: en_US.UTF-8
+        run: bundle exec fastlane snapshots
+
+      - name: Upload screenshots
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-screenshots
+          path: fastlane/screenshots

@@ -1,0 +1,40 @@
+disabled_rules:
+  - trailing_whitespace
+  - todo
+  - identifier_name
+  - line_length
+
+included:
+  - TravelBuddy
+
+excluded:
+  - Carthage
+  - Pods
+  - build
+  - fastlane
+
+opt_in_rules:
+  - empty_count
+  - closure_end_indentation
+  - redundant_nil_coalescing
+  - operator_usage_whitespace
+  - force_unwrapping
+
+reporter: "xcode"
+
+cyclomatic_complexity:
+  warning: 15
+  error: 20
+
+type_body_length:
+  warning: 400
+  error: 600
+
+file_length:
+  warning: 800
+  error: 1200
+
+function_body_length:
+  warning: 80
+  error: 120
+

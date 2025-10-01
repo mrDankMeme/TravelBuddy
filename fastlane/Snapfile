@@ -1,0 +1,18 @@
+# Snapfile — конфиг для fastlane snapshot
+
+scheme("TravelBuddy")
+# workspace("TravelBuddy.xcworkspace") # раскомментируй, если у тебя workspace
+
+devices([
+  "iPhone 15",
+  "iPhone 15 Pro Max"
+])
+
+languages([
+  "en-US",
+  "ru-RU"
+])
+
+output_directory("fastlane/screenshots")
+stop_after_first_error(true)
+clear_previous_screenshots(true)

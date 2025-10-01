@@ -1,28 +1,61 @@
-# This file contains the fastlane.tools configuration
-# You can find the documentation at https://docs.fastlane.tools
-#
-# For a list of all available actions, check out
-#
-#     https://docs.fastlane.tools/actions
-#
-# For a list of all available plugins, check out
-#
-#     https://docs.fastlane.tools/plugins/available-plugins
-#
-
-# Uncomment the line if you want fastlane to automatically update itself
-# update_fastlane
-
-
-default_platform :ios
+default_platform(:ios)
 
 platform :ios do
-  desc "Генерация всех размеров иконок из одного изображения"
-  lane :generate_icons do
-    appicon(
-      appicon_image_file: "Source/AppIconBase.png",   # путь к 1024×1024 PNG
-      appicon_path:       "TravelBuddy/Assets.xcassets",     # путь к каталогу .xcassets
-      appicon_name:       "AppIcon"                          # имя набора иконок
+  desc "Run SwiftLint"
+  lane :lint do
+    sh "swiftlint --strict"
+  end
+
+  desc "Build Debug (simulator)"
+  lane :build_debug do
+    xcbuild = "xcodebuild -scheme TravelBuddy -sdk iphonesimulator -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 15' -skipPackagePluginValidation -skipMacroValidation clean build"
+    sh "#{xcbuild} | xcpretty"
+  end
+
+  desc "Archive Release (device)"
+  lane :archive_release do
+    sh "xcodebuild -scheme TravelBuddy -configuration Release -sdk iphoneos -archivePath build/TravelBuddy.xcarchive -skipPackagePluginValidation -skipMacroValidation archive | xcpretty"
+  end
+
+  desc "Export IPA (ad-hoc)"
+  lane :export_ipa do
+    export_plist = "ExportOptions.plist"
+    File.write(export_plist, <<~PLIST)
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0"><dict>
+        <key>method</key><string>ad-hoc</string>
+        <key>signingStyle</key><string>automatic</string>
+        <key>compileBitcode</key><false/>
+        <key>destination</key><string>export</string>
+        <key>stripSwiftSymbols</key><true/>
+      </dict></plist>
+    PLIST
+    sh "xcodebuild -exportArchive -archivePath build/TravelBuddy.xcarchive -exportOptionsPlist #{export_plist} -exportPath build/export | xcpretty"
+  end
+
+  # -------- SNAPSHOT (локализация) ----------
+  desc "Run UI snapshots via fastlane snapshot"
+  lane :snapshots do
+    clear_derived_data
+    snapshot(
+      scheme: "TravelBuddy",
+      workspace: nil, # укажи, если используешь .xcworkspace
+      devices: ["iPhone 15", "iPhone 15 Pro Max"],
+      languages: ["en-US", "ru-RU"],
+      stop_after_first_error: true,
+      output_directory: "fastlane/screenshots",
+      clean: true
     )
+  end
+
+  desc "CI lane"
+  lane :ci do
+    lint
+    build_debug
+    archive_release
+    export_ipa
+  ensure
+    sh "mkdir -p fastlane/logs"
   end
 end

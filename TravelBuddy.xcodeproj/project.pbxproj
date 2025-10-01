@@ -84,6 +84,16 @@
 		A3F4F7D62E745996002EEDF2 /* AppRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F4F7D52E745996002EEDF2 /* AppRouter.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		A301D4852E8D8EE400F67A76 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A3166DE42E04752500E6E1C2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A3166DEB2E04752500E6E1C2;
+			remoteInfo = TravelBuddy;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		A3166E942E09A9EE00E6E1C2 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -108,6 +118,7 @@
 		A301D4762E8C08A900F67A76 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A301D4792E8C08C000F67A76 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = en; path = en.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
 		A301D47A2E8C08C000F67A76 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		A301D47F2E8D8EE400F67A76 /* TravelBuddyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TravelBuddyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3166DEC2E04752500E6E1C2 /* TravelBuddy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TravelBuddy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3166E3C2E0589B600E6E1C2 /* Publisher+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publisher+Extensions.swift"; sourceTree = "<group>"; };
 		A3166E3D2E0589B600E6E1C2 /* UIColor+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+Hex.swift"; sourceTree = "<group>"; };
@@ -175,6 +186,11 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		A301D4802E8D8EE400F67A76 /* TravelBuddyUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TravelBuddyUITests;
+			sourceTree = "<group>";
+		};
 		A31670132E16A8CD00E6E1C2 /* POIImages */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = POIImages;
@@ -183,6 +199,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		A301D47C2E8D8EE400F67A76 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A3166DE92E04752500E6E1C2 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -223,6 +246,7 @@
 				A3166E512E0589B600E6E1C2 /* LaunchScreen.storyboard */,
 				A3166E532E0589B600E6E1C2 /* Main.storyboard */,
 				A385D5C22E38E61C009C0251 /* Info.plist */,
+				A301D4802E8D8EE400F67A76 /* TravelBuddyUITests */,
 				A3166DED2E04752500E6E1C2 /* Products */,
 				A31670132E16A8CD00E6E1C2 /* POIImages */,
 			);
@@ -232,6 +256,7 @@
 			isa = PBXGroup;
 			children = (
 				A3166DEC2E04752500E6E1C2 /* TravelBuddy.app */,
+				A301D47F2E8D8EE400F67A76 /* TravelBuddyUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -703,6 +728,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		A301D47E2E8D8EE400F67A76 /* TravelBuddyUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A301D4872E8D8EE400F67A76 /* Build configuration list for PBXNativeTarget "TravelBuddyUITests" */;
+			buildPhases = (
+				A301D47B2E8D8EE400F67A76 /* Sources */,
+				A301D47C2E8D8EE400F67A76 /* Frameworks */,
+				A301D47D2E8D8EE400F67A76 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A301D4862E8D8EE400F67A76 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A301D4802E8D8EE400F67A76 /* TravelBuddyUITests */,
+			);
+			name = TravelBuddyUITests;
+			packageProductDependencies = (
+			);
+			productName = TravelBuddyUITests;
+			productReference = A301D47F2E8D8EE400F67A76 /* TravelBuddyUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		A3166DEB2E04752500E6E1C2 /* TravelBuddy */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = A3166DFF2E04752700E6E1C2 /* Build configuration list for PBXNativeTarget "TravelBuddy" */;
@@ -738,9 +786,13 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1600;
+				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
+					A301D47E2E8D8EE400F67A76 = {
+						CreatedOnToolsVersion = 26.0;
+						TestTargetID = A3166DEB2E04752500E6E1C2;
+					};
 					A3166DEB2E04752500E6E1C2 = {
 						CreatedOnToolsVersion = 16.0;
 					};
@@ -768,11 +820,19 @@
 			projectRoot = "";
 			targets = (
 				A3166DEB2E04752500E6E1C2 /* TravelBuddy */,
+				A301D47E2E8D8EE400F67A76 /* TravelBuddyUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		A301D47D2E8D8EE400F67A76 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A3166DEA2E04752500E6E1C2 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -790,6 +850,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		A301D47B2E8D8EE400F67A76 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A3166DE82E04752500E6E1C2 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -861,6 +928,14 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		A301D4862E8D8EE400F67A76 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A3166DEB2E04752500E6E1C2 /* TravelBuddy */;
+			targetProxy = A301D4852E8D8EE400F67A76 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin PBXVariantGroup section */
 		A301D4732E8C08A900F67A76 /* Localizable.strings */ = {
 			isa = PBXVariantGroup;
@@ -899,6 +974,48 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		A301D4882E8D8EE400F67A76 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2NVL5EUMWM;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = niiazkhasanov.TravelBuddyUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = TravelBuddy;
+			};
+			name = Debug;
+		};
+		A301D4892E8D8EE400F67A76 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2NVL5EUMWM;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = niiazkhasanov.TravelBuddyUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = TravelBuddy;
+			};
+			name = Release;
+		};
 		A3166E002E04752700E6E1C2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1085,6 +1202,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		A301D4872E8D8EE400F67A76 /* Build configuration list for PBXNativeTarget "TravelBuddyUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A301D4882E8D8EE400F67A76 /* Debug */,
+				A301D4892E8D8EE400F67A76 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		A3166DE72E04752500E6E1C2 /* Build configuration list for PBXProject "TravelBuddy" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
