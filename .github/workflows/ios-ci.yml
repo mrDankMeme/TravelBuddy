@@ -1,64 +1,63 @@
 name: iOS CI
 
 on:
-    push:
+  push:
     branches: [ main ]
-    pull_request:
+  pull_request:
     branches: [ main ]
 
 permissions:
-    contents: read
+  contents: read
 
 concurrency:
-    group: ios-${{ github.ref }}
-    cancel-in-progress: true
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-    build:
+  build:
     name: Build + Lint
     runs-on: macos-15
     timeout-minutes: 60
     steps:
-        - name: Checkout
+      - name: Checkout
         uses: actions/checkout@v4
-        
-        - name: Select Xcode
+
+      - name: Select Xcode
         run: |
           XCODE="/Applications/Xcode.app"
           sudo xcode-select -s "$XCODE"
           xcodebuild -version
-        
-        - name: Cache Ruby gems
+
+      - name: Cache Ruby gems
         uses: actions/cache@v4
         with:
-            path: vendor/bundle
-            key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-            restore-keys: |
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
             ${{ runner.os }}-gems-
-        
-        - name: Setup Ruby
+
+      - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-            ruby-version: '3.2'
-            bundler-cache: true
-        
-        - name: Install Bundler deps
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Install Bundler deps
         run: bundle install --path vendor/bundle
-        
-        - name: Install SwiftLint
+
+      - name: Install SwiftLint
         run: brew install swiftlint || true
-        
-        - name: Install xcpretty
+
+      - name: Install xcpretty
         run: gem install xcpretty
-        
-        - name: Lint
+
+      - name: Lint
         run: swiftlint
-        
-        
-        - name: Build (Debug, simulator)
+
+      - name: Build (Debug, simulator)
         run: |
-            set -e
-            xcodebuild \
+          set -e
+          xcodebuild \
             -scheme TravelBuddy \
             -sdk iphonesimulator \
             -configuration Debug \
@@ -67,12 +66,11 @@ jobs:
             -skipMacroValidation \
             clean build | xcpretty
         env:
-            NSUnbufferedIO: YES
-        
-        - name: Archive (Release, device)
-        # Если подпись не настроена и это мешает — поставь continue-on-error: true или закомментируй шаг.
+          NSUnbufferedIO: YES
+
+      - name: Archive (Release, device)
         run: |
-            xcodebuild \
+          xcodebuild \
             -scheme TravelBuddy \
             -configuration Release \
             -sdk iphoneos \
@@ -80,8 +78,8 @@ jobs:
             -skipPackagePluginValidation \
             -skipMacroValidation \
             archive | xcpretty
-        
-        - name: Export .ipa (ad-hoc)
+
+      - name: Export .ipa (ad-hoc)
         if: ${{ always() }}
         run: |
           cat > ExportOptions.plist <<'PLIST'
@@ -98,7 +96,7 @@ jobs:
           </plist>
           PLIST
           if [ -d "build/TravelBuddy.xcarchive" ]; then
-              xcodebuild -exportArchive \
+            xcodebuild -exportArchive \
               -archivePath build/TravelBuddy.xcarchive \
               -exportOptionsPlist ExportOptions.plist \
               -exportPath build/export | xcpretty
@@ -106,62 +104,62 @@ jobs:
             echo "Archive not found, skipping export."
           fi
         continue-on-error: true
-        
-        - name: Upload artifacts
+
+      - name: Upload artifacts
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-            name: build-artifacts
-            path: |
+          name: build-artifacts
+          path: |
             build/TravelBuddy.xcarchive
             build/export/*.ipa
             fastlane/logs
-    
-    snapshots:
+
+  snapshots:
     name: UI Snapshots (fastlane)
     runs-on: macos-15
     timeout-minutes: 60
-    needs: [build]  # подождать сборку
+    needs: [build]
     steps:
-        - name: Checkout
+      - name: Checkout
         uses: actions/checkout@v4
-        
-        - name: Select Xcode
+
+      - name: Select Xcode
         run: |
           XCODE="/Applications/Xcode.app"
           sudo xcode-select -s "$XCODE"
           xcodebuild -version
-        
-        - name: Cache Ruby gems
+
+      - name: Cache Ruby gems
         uses: actions/cache@v4
         with:
-            path: vendor/bundle
-            key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-            restore-keys: |
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
             ${{ runner.os }}-gems-
-        
-        - name: Setup Ruby
+
+      - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-            ruby-version: '3.2'
-            bundler-cache: true
-        
-        - name: Install Bundler deps
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Install Bundler deps
         run: bundle install --path vendor/bundle
-        
-        - name: List simulators (debug)
+
+      - name: List simulators (debug)
         run: xcrun simctl list devices
-        
-        - name: Run fastlane snapshots
+
+      - name: Run fastlane snapshots
         env:
-            FASTLANE_SNAPSHOT: "YES"
-            LC_ALL: en_US.UTF-8
-            LANG: en_US.UTF-8
+          FASTLANE_SNAPSHOT: "YES"
+          LC_ALL: en_US.UTF-8
+          LANG: en_US.UTF-8
         run: bundle exec fastlane snapshots
-        
-        - name: Upload screenshots
+
+      - name: Upload screenshots
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-            name: ui-screenshots
-            path: fastlane/screenshots
+          name: ui-screenshots
+          path: fastlane/screenshots
