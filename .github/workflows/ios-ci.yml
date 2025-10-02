@@ -115,11 +115,10 @@ jobs:
 #            build/export/*.ipa
 #            fastlane/logs
 
-  snapshots:
+    snapshots:
     name: UI Snapshots (fastlane)
     runs-on: macos-15
     timeout-minutes: 60
-#    needs: [build]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -150,11 +149,26 @@ jobs:
       - name: List simulators (debug)
         run: xcrun simctl list devices
 
+      # ВАЖНО: заранее резолвим SPM, чтобы snapshot не упирался в зависимостях
+      - name: Resolve SPM
+        run: xcodebuild -resolvePackageDependencies -scheme TravelBuddy -project ./TravelBuddy.xcodeproj
+
+      # (Опционально) предварительно бутим нужные симуляторы из Snapfile
+      - name: Preboot simulators (optional)
+        run: |
+          xcrun simctl boot "iPhone 16 Pro" || true
+          xcrun simctl boot "iPhone 16 Pro Max" || true
+          xcrun simctl bootstatus "iPhone 16 Pro" -b || true
+          xcrun simctl bootstatus "iPhone 16 Pro Max" -b || true
+
       - name: Run fastlane snapshots
         env:
           FASTLANE_SNAPSHOT: "YES"
           LC_ALL: en_US.UTF-8
           LANG: en_US.UTF-8
+          # увеличенные таймауты, чтобы избежать флейков на холодном раннере
+          FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: "30"
+          FASTLANE_XCODEBUILD_SETTINGS_RETRIES: "8"
         run: bundle exec fastlane snapshots
 
       - name: Upload screenshots
