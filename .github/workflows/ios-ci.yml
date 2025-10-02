@@ -39,6 +39,7 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
+          ruby-version: '3.2'
           bundler-cache: true
 
       - name: Install Bundler deps
@@ -46,6 +47,9 @@ jobs:
 
       - name: Install SwiftLint
         run: brew install swiftlint || true
+
+      - name: Install xcpretty
+        run: gem install xcpretty
 
       - name: Lint
         run: swiftlint --strict
@@ -65,6 +69,7 @@ jobs:
           NSUnbufferedIO: YES
 
       - name: Archive (Release, device)
+        # Если подпись не настроена и это мешает — поставь continue-on-error: true или закомментируй шаг.
         run: |
           xcodebuild \
             -scheme TravelBuddy \
@@ -91,10 +96,14 @@ jobs:
           </dict>
           </plist>
           PLIST
-          xcodebuild -exportArchive \
-            -archivePath build/TravelBuddy.xcarchive \
-            -exportOptionsPlist ExportOptions.plist \
-            -exportPath build/export | xcpretty
+          if [ -d "build/TravelBuddy.xcarchive" ]; then
+            xcodebuild -exportArchive \
+              -archivePath build/TravelBuddy.xcarchive \
+              -exportOptionsPlist ExportOptions.plist \
+              -exportPath build/export | xcpretty
+          else
+            echo "Archive not found, skipping export."
+          fi
         continue-on-error: true
 
       - name: Upload artifacts
@@ -111,8 +120,7 @@ jobs:
     name: UI Snapshots (fastlane)
     runs-on: macos-15
     timeout-minutes: 60
-    # если хочешь запускать после успешной сборки — раскомментируй:
-    # needs: [build]
+    needs: [build]  # подождать сборку
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -134,12 +142,13 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
+          ruby-version: '3.2'
           bundler-cache: true
 
       - name: Install Bundler deps
         run: bundle install --path vendor/bundle
 
-      - name: List available simulators (for debug)
+      - name: List simulators (debug)
         run: xcrun simctl list devices
 
       - name: Run fastlane snapshots
