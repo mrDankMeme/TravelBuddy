@@ -141,13 +141,6 @@ jobs:
       - name: Resolve SPM
         run: xcodebuild -resolvePackageDependencies -scheme TravelBuddy -project ./TravelBuddy.xcodeproj
 
-      - name: Preboot simulators (optional)
-        run: |
-          xcrun simctl boot "iPhone 16 Pro" || true
-          xcrun simctl boot "iPhone 16 Pro Max" || true
-          xcrun simctl bootstatus "iPhone 16 Pro" -b || true
-          xcrun simctl bootstatus "iPhone 16 Pro Max" -b || true
-
       - name: Run fastlane snapshots
         env:
           FASTLANE_SNAPSHOT: "YES"
