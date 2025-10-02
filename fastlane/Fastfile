@@ -41,7 +41,7 @@ platform :ios do
     snapshot(
       scheme: "TravelBuddy",
       workspace: nil, # укажи, если используешь .xcworkspace
-      devices: ["iPhone 15", "iPhone 15 Pro Max"],
+      devices: ["iPhone 16 Pro", "iPhone 16 Pro Max"],
       languages: ["en-US", "ru-RU"],
       stop_after_first_error: true,
       output_directory: "fastlane/screenshots",

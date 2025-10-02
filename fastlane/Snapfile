@@ -4,8 +4,8 @@ scheme("TravelBuddy")
 # workspace("TravelBuddy.xcworkspace") # раскомментируй, если у тебя workspace
 
 devices([
-  "iPhone 15",
-  "iPhone 15 Pro Max"
+  "iPhone 16 Pro",
+  "iPhone 16 Pro Max"
 ])
 
 languages([
