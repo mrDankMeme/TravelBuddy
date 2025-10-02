@@ -52,7 +52,7 @@ jobs:
         run: gem install xcpretty
         
         - name: Lint
-    run: swiftlint
+        run: swiftlint
         
         
         - name: Build (Debug, simulator)
