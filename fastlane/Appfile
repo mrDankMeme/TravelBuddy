@@ -1,2 +1,2 @@
 app_identifier("niiazkhasanov.TravelBuddy") # поменяй на свой bundle id при необходимости
-apple_id("niiazkhasanov@gmail.com)     # не обязателен, если не выгружаешь в TestFlight
+apple_id("niyaz.khasanov@gmail.com)     # не обязателен, если не выгружаешь в TestFlight
