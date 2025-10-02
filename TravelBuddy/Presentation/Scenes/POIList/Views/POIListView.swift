@@ -44,7 +44,7 @@ public struct POIListView: View {
         if let err = viewModel.errorMessage {
             VStack(spacing: 16) {
                 Text(err).multilineTextAlignment(.center)
-                Button(L10n.listRetry) { viewModel.fetchPOIs() }
+                Button(L10n.commonRetry) { viewModel.fetchPOIs() }
             }
             .padding()
         } else {

@@ -1,4 +1,519 @@
 //
+//  TravelBuddyUITestsLaunchTests.swift
+//  TravelBuddyUITests
+//
+//  Created by Niiaz Khasanov on 10/1/25.
+//
+
+import XCTest
+
+final class TravelBuddyUITestsLaunchTests: XCTestCase {
+
+    override class var runsForEachTargetApplicationUIConfiguration: Bool {
+        true
+    }
+
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+    }
+
+    @MainActor
+    func testLaunch() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        // Insert steps here to perform after app launch but before taking a screenshot,
+        // such as logging into a test account or navigating somewhere in the app
+
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = "Launch Screen"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+}
+//
+//  SnapshotHelper.swift
+//  Example
+//
+//  Created by Felix Krause on 10/8/15.
+//
+
+// -----------------------------------------------------
+// IMPORTANT: When modifying this file, make sure to
+//            increment the version number at the very
+//            bottom of the file to notify users about
+//            the new SnapshotHelper.swift
+// -----------------------------------------------------
+
+import Foundation
+import XCTest
+
+@MainActor
+func setupSnapshot(_ app: XCUIApplication, waitForAnimations: Bool = true) {
+    Snapshot.setupSnapshot(app, waitForAnimations: waitForAnimations)
+}
+
+@MainActor
+func snapshot(_ name: String, waitForLoadingIndicator: Bool) {
+    if waitForLoadingIndicator {
+        Snapshot.snapshot(name)
+    } else {
+        Snapshot.snapshot(name, timeWaitingForIdle: 0)
+    }
+}
+
+/// - Parameters:
+///   - name: The name of the snapshot
+///   - timeout: Amount of seconds to wait until the network loading indicator disappears. Pass `0` if you don't want to wait.
+@MainActor
+func snapshot(_ name: String, timeWaitingForIdle timeout: TimeInterval = 20) {
+    Snapshot.snapshot(name, timeWaitingForIdle: timeout)
+}
+
+enum SnapshotError: Error, CustomDebugStringConvertible {
+    case cannotFindSimulatorHomeDirectory
+    case cannotRunOnPhysicalDevice
+
+    var debugDescription: String {
+        switch self {
+        case .cannotFindSimulatorHomeDirectory:
+            return "Couldn't find simulator home location. Please, check SIMULATOR_HOST_HOME env variable."
+        case .cannotRunOnPhysicalDevice:
+            return "Can't use Snapshot on a physical device."
+        }
+    }
+}
+
+@objcMembers
+@MainActor
+open class Snapshot: NSObject {
+    static var app: XCUIApplication?
+    static var waitForAnimations = true
+    static var cacheDirectory: URL?
+    static var screenshotsDirectory: URL? {
+        return cacheDirectory?.appendingPathComponent("screenshots", isDirectory: true)
+    }
+    static var deviceLanguage = ""
+    static var currentLocale = ""
+
+    open class func setupSnapshot(_ app: XCUIApplication, waitForAnimations: Bool = true) {
+
+        Snapshot.app = app
+        Snapshot.waitForAnimations = waitForAnimations
+
+        do {
+            let cacheDir = try getCacheDirectory()
+            Snapshot.cacheDirectory = cacheDir
+            setLanguage(app)
+            setLocale(app)
+            setLaunchArguments(app)
+        } catch let error {
+            NSLog(error.localizedDescription)
+        }
+    }
+
+    class func setLanguage(_ app: XCUIApplication) {
+        guard let cacheDirectory = self.cacheDirectory else {
+            NSLog("CacheDirectory is not set - probably running on a physical device?")
+            return
+        }
+
+        let path = cacheDirectory.appendingPathComponent("language.txt")
+
+        do {
+            let trimCharacterSet = CharacterSet.whitespacesAndNewlines
+            deviceLanguage = try String(contentsOf: path, encoding: .utf8).trimmingCharacters(in: trimCharacterSet)
+            app.launchArguments += ["-AppleLanguages", "(\(deviceLanguage))"]
+        } catch {
+            NSLog("Couldn't detect/set language...")
+        }
+    }
+
+    class func setLocale(_ app: XCUIApplication) {
+        guard let cacheDirectory = self.cacheDirectory else {
+            NSLog("CacheDirectory is not set - probably running on a physical device?")
+            return
+        }
+
+        let path = cacheDirectory.appendingPathComponent("locale.txt")
+
+        do {
+            let trimCharacterSet = CharacterSet.whitespacesAndNewlines
+            currentLocale = try String(contentsOf: path, encoding: .utf8).trimmingCharacters(in: trimCharacterSet)
+        } catch {
+            NSLog("Couldn't detect/set locale...")
+        }
+
+        if currentLocale.isEmpty && !deviceLanguage.isEmpty {
+            currentLocale = Locale(identifier: deviceLanguage).identifier
+        }
+
+        if !currentLocale.isEmpty {
+            app.launchArguments += ["-AppleLocale", "\"\(currentLocale)\""]
+        }
+    }
+
+    class func setLaunchArguments(_ app: XCUIApplication) {
+        guard let cacheDirectory = self.cacheDirectory else {
+            NSLog("CacheDirectory is not set - probably running on a physical device?")
+            return
+        }
+
+        let path = cacheDirectory.appendingPathComponent("snapshot-launch_arguments.txt")
+        app.launchArguments += ["-FASTLANE_SNAPSHOT", "YES", "-ui_testing"]
+
+        do {
+            let launchArguments = try String(contentsOf: path, encoding: String.Encoding.utf8)
+            let regex = try NSRegularExpression(pattern: "(\\\".+?\\\"|\\S+)", options: [])
+            let matches = regex.matches(in: launchArguments, options: [], range: NSRange(location: 0, length: launchArguments.count))
+            let results = matches.map { result -> String in
+                (launchArguments as NSString).substring(with: result.range)
+            }
+            app.launchArguments += results
+        } catch {
+            NSLog("Couldn't detect/set launch_arguments...")
+        }
+    }
+
+    open class func snapshot(_ name: String, timeWaitingForIdle timeout: TimeInterval = 20) {
+        if timeout > 0 {
+            waitForLoadingIndicatorToDisappear(within: timeout)
+        }
+
+        NSLog("snapshot: \(name)") // more information about this, check out https://docs.fastlane.tools/actions/snapshot/#how-does-it-work
+
+        if Snapshot.waitForAnimations {
+            sleep(1) // Waiting for the animation to be finished (kind of)
+        }
+
+        #if os(OSX)
+            guard let app = self.app else {
+                NSLog("XCUIApplication is not set. Please call setupSnapshot(app) before snapshot().")
+                return
+            }
+
+            app.typeKey(XCUIKeyboardKeySecondaryFn, modifierFlags: [])
+        #else
+
+            guard self.app != nil else {
+                NSLog("XCUIApplication is not set. Please call setupSnapshot(app) before snapshot().")
+                return
+            }
+
+            let screenshot = XCUIScreen.main.screenshot()
+            #if os(iOS) && !targetEnvironment(macCatalyst)
+            let image = XCUIDevice.shared.orientation.isLandscape ?  fixLandscapeOrientation(image: screenshot.image) : screenshot.image
+            #else
+            let image = screenshot.image
+            #endif
+
+            guard var simulator = ProcessInfo().environment["SIMULATOR_DEVICE_NAME"], let screenshotsDir = screenshotsDirectory else { return }
+
+            do {
+                // The simulator name contains "Clone X of " inside the screenshot file when running parallelized UI Tests on concurrent devices
+                let regex = try NSRegularExpression(pattern: "Clone [0-9]+ of ")
+                let range = NSRange(location: 0, length: simulator.count)
+                simulator = regex.stringByReplacingMatches(in: simulator, range: range, withTemplate: "")
+
+                let path = screenshotsDir.appendingPathComponent("\(simulator)-\(name).png")
+                #if swift(<5.0)
+                    try UIImagePNGRepresentation(image)?.write(to: path, options: .atomic)
+                #else
+                    try image.pngData()?.write(to: path, options: .atomic)
+                #endif
+            } catch let error {
+                NSLog("Problem writing screenshot: \(name) to \(screenshotsDir)/\(simulator)-\(name).png")
+                NSLog(error.localizedDescription)
+            }
+        #endif
+    }
+
+    class func fixLandscapeOrientation(image: UIImage) -> UIImage {
+        #if os(watchOS)
+            return image
+        #else
+            if #available(iOS 10.0, *) {
+                let format = UIGraphicsImageRendererFormat()
+                format.scale = image.scale
+                let renderer = UIGraphicsImageRenderer(size: image.size, format: format)
+                return renderer.image { context in
+                    image.draw(in: CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height))
+                }
+            } else {
+                return image
+            }
+        #endif
+    }
+
+    class func waitForLoadingIndicatorToDisappear(within timeout: TimeInterval) {
+        #if os(tvOS)
+            return
+        #endif
+
+        guard let app = self.app else {
+            NSLog("XCUIApplication is not set. Please call setupSnapshot(app) before snapshot().")
+            return
+        }
+
+        let networkLoadingIndicator = app.otherElements.deviceStatusBars.networkLoadingIndicators.element
+        let networkLoadingIndicatorDisappeared = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: networkLoadingIndicator)
+        _ = XCTWaiter.wait(for: [networkLoadingIndicatorDisappeared], timeout: timeout)
+    }
+
+    class func getCacheDirectory() throws -> URL {
+        let cachePath = "Library/Caches/tools.fastlane"
+        // on OSX config is stored in /Users/<username>/Library
+        // and on iOS/tvOS/WatchOS it's in simulator's home dir
+        #if os(OSX)
+            let homeDir = URL(fileURLWithPath: NSHomeDirectory())
+            return homeDir.appendingPathComponent(cachePath)
+        #elseif arch(i386) || arch(x86_64) || arch(arm64)
+            guard let simulatorHostHome = ProcessInfo().environment["SIMULATOR_HOST_HOME"] else {
+                throw SnapshotError.cannotFindSimulatorHomeDirectory
+            }
+            let homeDir = URL(fileURLWithPath: simulatorHostHome)
+            return homeDir.appendingPathComponent(cachePath)
+        #else
+            throw SnapshotError.cannotRunOnPhysicalDevice
+        #endif
+    }
+}
+
+private extension XCUIElementAttributes {
+    var isNetworkLoadingIndicator: Bool {
+        if hasAllowListedIdentifier { return false }
+
+        let hasOldLoadingIndicatorSize = frame.size == CGSize(width: 10, height: 20)
+        let hasNewLoadingIndicatorSize = frame.size.width.isBetween(46, and: 47) && frame.size.height.isBetween(2, and: 3)
+
+        return hasOldLoadingIndicatorSize || hasNewLoadingIndicatorSize
+    }
+
+    var hasAllowListedIdentifier: Bool {
+        let allowListedIdentifiers = ["GeofenceLocationTrackingOn", "StandardLocationTrackingOn"]
+
+        return allowListedIdentifiers.contains(identifier)
+    }
+
+    func isStatusBar(_ deviceWidth: CGFloat) -> Bool {
+        if elementType == .statusBar { return true }
+        guard frame.origin == .zero else { return false }
+
+        let oldStatusBarSize = CGSize(width: deviceWidth, height: 20)
+        let newStatusBarSize = CGSize(width: deviceWidth, height: 44)
+
+        return [oldStatusBarSize, newStatusBarSize].contains(frame.size)
+    }
+}
+
+private extension XCUIElementQuery {
+    var networkLoadingIndicators: XCUIElementQuery {
+        let isNetworkLoadingIndicator = NSPredicate { (evaluatedObject, _) in
+            guard let element = evaluatedObject as? XCUIElementAttributes else { return false }
+
+            return element.isNetworkLoadingIndicator
+        }
+
+        return self.containing(isNetworkLoadingIndicator)
+    }
+
+    @MainActor
+    var deviceStatusBars: XCUIElementQuery {
+        guard let app = Snapshot.app else {
+            fatalError("XCUIApplication is not set. Please call setupSnapshot(app) before snapshot().")
+        }
+
+        let deviceWidth = app.windows.firstMatch.frame.width
+
+        let isStatusBar = NSPredicate { (evaluatedObject, _) in
+            guard let element = evaluatedObject as? XCUIElementAttributes else { return false }
+
+            return element.isStatusBar(deviceWidth)
+        }
+
+        return self.containing(isStatusBar)
+    }
+}
+
+private extension CGFloat {
+    func isBetween(_ numberA: CGFloat, and numberB: CGFloat) -> Bool {
+        return numberA...numberB ~= self
+    }
+}
+
+// Please don't remove the lines below
+// They are used to detect outdated configuration files
+// SnapshotHelperVersion [1.30]
+//
+//  TravelBuddySnapshotUITests.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 10/1/25.
+//
+
+
+import XCTest
+
+@MainActor
+final class TravelBuddySnapshotUITests: XCTestCase {
+    private var app: XCUIApplication!
+
+    override func setUp() {
+        super.setUp()
+        continueAfterFailure = false
+        app = XCUIApplication()
+
+        // init fastlane-snapshot (из SnapshotHelper.swift)
+        setupSnapshot(app)
+
+        // fastlane snapshot сам выставит AppleLanguages/AppleLocale
+        app.launch()
+    }
+
+    func testSnapshot_Onboarding_List_Map_Settings() {
+        // --- Onboarding ---
+        snapshot("01-Onboarding-Page1")
+
+        tapIfExists(app.buttons["Next"])
+        tapIfExists(app.buttons["Get Started"])
+        if app.buttons["Get Started"].exists { app.buttons["Get Started"].tap() }
+
+        // --- Main Tabs ---
+        XCTAssertTrue(
+            app.navigationBars["Places"].exists ||
+            app.navigationBars["Места"].exists
+        )
+        snapshot("02-Places-List")
+
+        // Открыть первую ячейку и сделать скрин детали (если есть)
+        if app.tables.firstMatch.cells.count > 0 {
+            app.tables.firstMatch.cells.element(boundBy: 0).tap()
+            snapshot("03-POI-Detail")
+            let close = app.buttons["xmark.circle.fill"]
+            if close.exists { close.tap() }
+        }
+
+        // --- Map ---
+        tapTab(labelEn: "Map", labelRu: "Карта")
+        sleep(1)
+        snapshot("04-Map")
+
+        // --- Settings ---
+        tapTab(labelEn: "Settings", labelRu: "Настройки")
+        snapshot("05-Settings")
+    }
+
+    // MARK: - Helpers
+
+    private func tapIfExists(_ el: XCUIElement, timeout: TimeInterval = 0.5) {
+        if el.waitForExistence(timeout: timeout) { el.tap() }
+    }
+
+    private func tapTab(labelEn: String, labelRu: String) {
+        let tabBar = app.tabBars.firstMatch
+        if tabBar.buttons[labelEn].exists {
+            tabBar.buttons[labelEn].tap()
+        } else if tabBar.buttons[labelRu].exists {
+            tabBar.buttons[labelRu].tap()
+        } else if tabBar.buttons.count > 0 {
+            tabBar.buttons.element(boundBy: 0).tap()
+        }
+    }
+}
+//
+//  TravelBuddyUITests.swift
+//  TravelBuddyUITests
+//
+//  Created by Niiaz Khasanov on 10/1/25.
+//
+
+import XCTest
+
+final class TravelBuddyUITests: XCTestCase {
+
+    override func setUpWithError() throws {
+        // Put setup code here. This method is called before the invocation of each test method in the class.
+
+        // In UI tests it is usually best to stop immediately when a failure occurs.
+        continueAfterFailure = false
+
+        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
+    }
+
+    override func tearDownWithError() throws {
+        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    }
+
+    @MainActor
+    func testExample() throws {
+        // UI tests must launch the application that they test.
+        let app = XCUIApplication()
+        app.launch()
+
+        // Use XCTAssert and related functions to verify your tests produce the correct results.
+    }
+
+    @MainActor
+    func testLaunchPerformance() throws {
+        // This measures how long it takes to launch your application.
+        measure(metrics: [XCTApplicationLaunchMetric()]) {
+            XCUIApplication().launch()
+        }
+    }
+}
+excluded:
+  - Carthage
+  - Pods
+  - build
+  - fastlane
+  - TravelBuddy/Generated
+  - TravelBuddy/**/Generated
+
+disabled_rules:
+  - force_cast
+  - force_unwrapping
+  - implicit_optional_initialization
+  - vertical_whitespace
+  - trailing_newline
+  - vertical_parameter_alignment
+  - opening_brace
+  - operator_usage_whitespace
+  - comma
+  - colon
+  - comment_spacing
+  - identifier_name
+  - line_length
+  - trailing_whitespace
+
+included:
+  - TravelBuddy
+  
+opt_in_rules:
+  - empty_count
+  - closure_end_indentation
+  - redundant_nil_coalescing
+  - operator_usage_whitespace
+  - force_unwrapping
+
+reporter: "xcode"
+
+cyclomatic_complexity:
+  warning: 15
+  error: 20
+
+type_body_length:
+  warning: 400
+  error: 600
+
+file_length:
+  warning: 800
+  error: 1200
+
+function_body_length:
+  warning: 80
+  error: 120
+
+//
 //  DesignTokens.swift
 //  TravelBuddy
 //
@@ -922,6 +1437,23 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 }
 
+# 🔗 Deep Links (тестовый набор)
+
+### Центр карты
+- `travelbuddy://map?lat=48.8584&lon=2.2945` — центр на Eiffel Tower  
+- `travelbuddy://map?lat=48.8606&lon=2.3376` — центр на Louvre Museum  
+- `travelbuddy://map?lat=48.8867&lon=2.3431` — центр на Sacré-Cœur Basilica  
+
+### Открыть POI
+- `travelbuddy://poi/1` — Eiffel Tower (Monument)  
+- `travelbuddy://poi/2` — Louvre Museum (Museum)  
+- `travelbuddy://poi/3` — Cafe de Flore (Cafe)  
+- `travelbuddy://poi/18` — Café Marly (последний элемент списка)  
+
+### Невалидные
+- `travelbuddy://poi/999` — несуществующий POI  
+- `travelbuddy://map?lat=abc&lon=123` — некорректные координаты  
+- `travelbuddy://unknown` — неизвестный хост  
 //
 //  HTTPClient.swift
 //  TravelBuddy
@@ -1886,6 +2418,7 @@ private extension CLPlacemark {
 //
 
 
+
 import Combine
 import MapKit
 
@@ -1896,13 +2429,20 @@ public enum POIDetailRoute: Hashable, Identifiable {
 
   public var id: String {
     switch self {
-    case .share(let url):
-      return "share:\(url.absoluteString)"
+    case .share(let url): return "share:\(url.absoluteString)"
     case .openInMaps(let item):
       let c = item.placemark.coordinate
       return "open:\(c.latitude),\(c.longitude)"
-    case .close:
-      return "close"
+    case .close: return "close"
+    }
+  }
+}
+
+public enum POIDetailUIError: Hashable {
+  case plain(String)
+  var localizedMessage: String {
+    switch self {
+    case .plain(let m): return m
     }
   }
 }
@@ -1910,10 +2450,10 @@ public enum POIDetailRoute: Hashable, Identifiable {
 @MainActor
 public final class POIDetailRouter: ObservableObject {
   public let routes = PassthroughSubject<POIDetailRoute, Never>()
+  public let uiErrors = PassthroughSubject<POIDetailUIError, Never>()
   private var cancellables = Set<AnyCancellable>()
 
   public init(viewModel: POIDetailViewModel) {
-    // мы теперь используем конкретную ViewModel
     viewModel.sharePublisher
       .map(POIDetailRoute.share)
       .sink { [routes] in routes.send($0) }
@@ -1928,9 +2468,23 @@ public final class POIDetailRouter: ObservableObject {
       .map { _ in POIDetailRoute.close }
       .sink { [routes] in routes.send($0) }
       .store(in: &cancellables)
+
+    // Транслируем ошибки VM в UIError-канал
+    viewModel.$errorMessage
+      .compactMap { $0 }
+      .map { POIDetailUIError.plain($0) }
+      .sink { [uiErrors] in uiErrors.send($0) }
+      .store(in: &cancellables)
   }
 }
-// Presentation/Scenes/POIDetail/Navigation/POIDetailCoordinator.swift
+//
+//  POIDetailCoordinator.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/11/25.
+//
+
+
 import SwiftUI
 import Combine
 import Swinject
@@ -1944,10 +2498,12 @@ public final class POIDetailCoordinator: ObservableObject {
     private let router: POIDetailRouter
     private var cancellables = Set<AnyCancellable>()
 
-    
+    // UI error state
+    @Published private var failAlert: FailAlert?
+    private struct FailAlert: Identifiable { let id = UUID(); let message: String }
+
     public init(poi: POI, resolver: Resolver? = nil) {
         let r = resolver ?? DIContainer.shared.resolver
-        // получаем конкретную VM через переданный resolver
         guard let vm = r.resolve(POIDetailViewModel.self, argument: poi) else {
             preconditionFailure("Swinject: POIDetailViewModel не зарегистрирован для \(POI.self)")
         }
@@ -1956,7 +2512,6 @@ public final class POIDetailCoordinator: ObservableObject {
         self.router    = POIDetailRouter(viewModel: vm)
         self.model     = vm.model
 
-        // Навигация
         router.routes
             .sink { [weak self] route in
                 switch route {
@@ -1967,11 +2522,15 @@ public final class POIDetailCoordinator: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // Синхронизация модели
-        vm.modelPublisher
-            .sink { [weak self] newModel in
-                self?.model = newModel
+        // централизованный показ ошибок
+        router.uiErrors
+            .sink { [weak self] uiError in
+                self?.failAlert = .init(message: uiError.localizedMessage)
             }
+            .store(in: &cancellables)
+
+        vm.modelPublisher
+            .sink { [weak self] newModel in self?.model = newModel }
             .store(in: &cancellables)
     }
 
@@ -1982,6 +2541,16 @@ public final class POIDetailCoordinator: ObservableObject {
             set: { self.sheetRoute = $0 }
         )
         POIDetailView(viewModel: viewModel, sheetRoute: binding)
+            .alert(item: Binding(
+                get: { self.failAlert },
+                set: { _ in self.failAlert = nil }
+            )) { alert in
+                Alert(
+                    title: Text(L10n.alertErrorTitle),
+                    message: Text(alert.message),
+                    dismissButton: .default(Text(L10n.alertOk))
+                )
+            }
     }
 }
 //
@@ -2041,19 +2610,19 @@ public struct POIDetailView: View {
         }
       }
 
-      Text(vm.model.poi.name)
-        .font(.largeTitle)
+      Text(vm.model.poi.name).font(.largeTitle)
 
       if vm.isLoadingAddress {
-        ProgressView("Loading address…")
+        ProgressView(L10n.detailLoadingAddress)
       } else if let addr = vm.address {
         Text(addr).italic()
       } else if let err = vm.errorMessage {
+        // Экранная подсветка + route-алерт прилетит из координатора
         Text(err).foregroundColor(.red)
       }
 
-      Button("Share",        action: vm.didTapShare)
-      Button("Open in Maps", action: vm.didTapOpenInMaps)
+      Button(L10n.detailShare,        action: vm.didTapShare)
+      Button(L10n.detailOpenInMaps,   action: vm.didTapOpenInMaps)
       Spacer()
     }
     .padding()
@@ -2069,6 +2638,7 @@ public struct POIDetailView: View {
     }
   }
 }
+
 
 // UIKit wrapper
 struct ActivityViewController: UIViewControllerRepresentable {
@@ -2889,6 +3459,7 @@ public final class AnyPOIListViewModel: ObservableObject {
 //
 
 
+
 import SwiftUI
 import Combine
 
@@ -2896,26 +3467,32 @@ enum POIListRoute: Hashable {
     case detail(POI)
 }
 
+enum POIListUIError: Hashable {
+    case plain(String)
+    var localizedMessage: String {
+        switch self {
+        case .plain(let m): return m
+        }
+    }
+}
+
 enum POIListNavigationCommand {
     case detail(POI)
     case back
     case reset
+    case showError(POIListUIError)
 }
 
 @MainActor
 final class POIListRouter: ObservableObject {
     let routes = PassthroughSubject<POIListNavigationCommand, Never>()
-    fileprivate var cancellables = Set<AnyCancellable>()
-    
-    func goDetail(_ poi: POI){
-        routes.send(.detail(poi))
-    }
-    func goBack(){
-        routes.send(.back)
-    }
-    func reset(){
-        routes.send(.reset)
-    }
+    var cancellables = Set<AnyCancellable>()
+
+    func goDetail(_ poi: POI) { routes.send(.detail(poi)) }
+    func goBack() { routes.send(.back) }
+    func reset() { routes.send(.reset) }
+
+    func showError(_ error: POIListUIError) { routes.send(.showError(error)) }
 }
 //
 //  POIListRoute.swift
@@ -2957,14 +3534,13 @@ final class POIListCoordinator {
 //  Created by Niiaz Khasanov on 7/2/25.
 //
 
+
 import SwiftUI
 
 public struct POIImageView: View {
     let imagePath: String?
 
-    public init(imagePath: String?) {
-        self.imagePath = imagePath
-    }
+    public init(imagePath: String?) { self.imagePath = imagePath }
 
     public var body: some View {
         VStack {
@@ -2976,20 +3552,18 @@ public struct POIImageView: View {
                     let ext = String(components[1])
                     if let url = Bundle.main.url(forResource: name, withExtension: ext),
                        let uiImage = UIImage(contentsOfFile: url.path) {
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .scaledToFit()
+                        Image(uiImage: uiImage).resizable().scaledToFit()
                     } else {
                         Text("❌ \(name).\(ext)")
                             .foregroundColor(.red)
-                        Text("Path: \(imagePath)")
+                        Text(L10n.imageInvalidPath(imagePath))
                             .font(.caption)
                     }
                 } else {
-                    Text("❌ Invalid path: \(imagePath)")
+                    Text(L10n.imageInvalidPath(imagePath))
                 }
             } else {
-                Text("No image")
+                Text(L10n.imageNoImage)
             }
         }
     }
@@ -3002,16 +3576,22 @@ public struct POIImageView: View {
 //
 
 
+
 import SwiftUI
 import Combine
-
 
 struct POIListContainer: View {
     @State private var path = NavigationPath()
     @StateObject private var vm: AnyPOIListViewModel
     @StateObject private var router: POIListRouter
     private let makeDetail: (POI) -> AnyView
-    
+
+    // единый алерт
+    @State private var failAlert: FailAlert?
+    private struct FailAlert: Identifiable { let id = UUID(); let message: String }
+
+    private var bag = Set<AnyCancellable>() // не @State — но нам хватит onAppear/Disappear
+
     init(vm: AnyPOIListViewModel, router: POIListRouter, makeDetail: @escaping (POI) -> AnyView) {
         _vm = StateObject(wrappedValue: vm)
         _router = StateObject(wrappedValue: router)
@@ -3024,9 +3604,6 @@ struct POIListContainer: View {
                 .navigationDestination(for: POIListRoute.self) { route in
                     switch route {
                     case .detail(let poi):
-                        DIContainer.shared.resolver
-                            .resolve(POIDetailCoordinator.self, argument: poi)!
-                            .rootView()
                         makeDetail(poi)
                     }
                 }
@@ -3036,7 +3613,23 @@ struct POIListContainer: View {
             case .detail(let poi): path.append(POIListRoute.detail(poi))
             case .back: if !path.isEmpty { path.removeLast() }
             case .reset: if !path.isEmpty { path.removeLast(path.count) }
+            case .showError(let e):
+                failAlert = .init(message: e.localizedMessage)
             }
+        }
+        .onAppear {
+            // Транслируем VM.errorMessage -> роутер
+            vm.$errorMessage
+                .compactMap { $0 }
+                .sink { msg in router.showError(.plain(msg)) }
+                .store(in: &router.cancellables)
+        }
+        .alert(item: $failAlert) { alert in
+            Alert(
+                title: Text(L10n.alertErrorTitle),
+                message: Text(alert.message),
+                dismissButton: .default(Text(L10n.alertOk))
+            )
         }
         .environmentObject(router)
     }
@@ -3222,25 +3815,13 @@ public final class OnboardingViewModel: OnboardingViewModelProtocol {
     public init() {
         // Страницы онбординга
         self.pages = [
-            OnboardingPage(
-                id: 0,
-                imageName: "onb1",
-                title: "Welcome to TravelBuddy",
-                description: "Discover new places and plan your journeys with ease."
-            ),
-            OnboardingPage(
-                id: 1,
-                imageName: "onb2",
-                title: "Track Your Route",
-                description: "Use our interactive map to mark and save your favorite spots."
-            ),
-            OnboardingPage(
-                id: 2,
-                imageName: "onb3",
-                title: "Stay Notified",
-                description: "Get reminders about upcoming trips and special offers."
-            )
-        ]
+                   OnboardingPage(id: 0, imageName: "onb1",
+                                  title: L10n.onbPage1Title, description: L10n.onbPage1Desc),
+                   OnboardingPage(id: 1, imageName: "onb2",
+                                  title: L10n.onbPage2Title, description: L10n.onbPage2Desc),
+                   OnboardingPage(id: 2, imageName: "onb3",
+                                  title: L10n.onbPage3Title, description: L10n.onbPage3Desc)
+               ]
         self.hasCompletedOnboarding = UserDefaults.standard.hasCompletedOnboarding
     }
     
@@ -3313,80 +3894,684 @@ public struct OnboardingView<VM: OnboardingViewModelProtocol>: View {
     }
     
     public var body: some View {
-      ZStack {
-        Color(DesignTokens.colorBackground)
-          .ignoresSafeArea()
-
-        VStack(spacing: DesignTokens.spacingMedium) {
-          Spacer()
-
-          // картинка
-            ForEach(vm.pages, id: \.id) { page in
-                if page.id == vm.currentPage {
-                    Image(page.imageName)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxHeight: 300.scale)
-                        .padding(.horizontal, DesignTokens.spacingMedium)
-                        .transition(
-                            .asymmetric(
-                                insertion: .scale.combined(with: .opacity),
-                                removal: .scale.combined(with: .opacity)
-                            )
-                        )
-                }
-            }
-
-          Text(vm.pages[vm.currentPage].title)
-            .font(.headline)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, DesignTokens.spacingMedium)
-
-          Text(vm.pages[vm.currentPage].description)
-            .font(.body)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, DesignTokens.spacingMedium)
-
-          Spacer()
-
-          HStack(spacing: 5.scale) {
-            ForEach(vm.pages.indices, id: \.self) { idx in
-              Circle()
-                .fill(idx == vm.currentPage
-                      ? Color(DesignTokens.colorPrimary)
-                      : Color.gray.opacity(0.4))
-                .frame(width: 5.scale, height: 5.scale)
-                .scaleEffect(idx == vm.currentPage ? 1.2 : 1.0)
-            }
-          }
-
-          HStack {
-            if vm.currentPage > 0 {
-              Button("Back") {
-                withAnimation(.easeInOut) {
-                  vm.previous()
-                }
-              }
-              .font(.body)
-              .padding(.trailing, DesignTokens.spacingMedium)
-            }
-
-            Spacer()
-
-            Button(vm.currentPage == vm.pages.count - 1 ? "Get Started" : "Next") {
-              withAnimation(.easeInOut) {
-                vm.next()
+        ZStack {
+            Color(DesignTokens.colorBackground)
+                .ignoresSafeArea()
+            
+            VStack(spacing: DesignTokens.spacingMedium) {
+                Spacer()
                 
-              }
+                // картинка
+                ForEach(vm.pages, id: \.id) { page in
+                    if page.id == vm.currentPage {
+                        Image(page.imageName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxHeight: 300.scale)
+                            .padding(.horizontal, DesignTokens.spacingMedium)
+                            .transition(
+                                .asymmetric(
+                                    insertion: .scale.combined(with: .opacity),
+                                    removal: .scale.combined(with: .opacity)
+                                )
+                            )
+                    }
+                }
+                
+                Text(vm.pages[vm.currentPage].title)
+                    .font(.headline)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, DesignTokens.spacingMedium)
+                
+                Text(vm.pages[vm.currentPage].description)
+                    .font(.body)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, DesignTokens.spacingMedium)
+                
+                Spacer()
+                
+                HStack(spacing: 5.scale) {
+                    ForEach(vm.pages.indices, id: \.self) { idx in
+                        Circle()
+                            .fill(idx == vm.currentPage
+                                  ? Color(DesignTokens.colorPrimary)
+                                  : Color.gray.opacity(0.4))
+                            .frame(width: 5.scale, height: 5.scale)
+                            .scaleEffect(idx == vm.currentPage ? 1.2 : 1.0)
+                    }
+                }
+                
+                HStack {
+                    if vm.currentPage > 0 {
+                        Button("Back") {
+                            withAnimation(.easeInOut) {
+                                vm.previous()
+                            }
+                        }
+                        .font(.body)
+                        .padding(.trailing, DesignTokens.spacingMedium)
+                    }
+                    
+                    Spacer()
+                    
+                    Button(vm.currentPage == vm.pages.count - 1 ? L10n.onbGetStarted : L10n.onbNext) {
+                        withAnimation(.easeInOut) { vm.next()
+                        }
+                    }.font(.body)
+                }
+                .padding(.horizontal, DesignTokens.spacingMedium)
             }
-            .font(.body)
-          }
-          .padding(.horizontal, DesignTokens.spacingMedium)
+            .foregroundColor(.primary)
         }
-        .foregroundColor(.primary)
-      }
-      // анимация на уровень выше
-      .animation(.spring(response: 0.5, dampingFraction: 0.7), value: vm.currentPage)
+        .animation(.spring(response: 0.5, dampingFraction: 0.7), value: vm.currentPage)
     }
-
+    
 }
+# Autogenerated by fastlane
+#
+# Ensure this file is checked in to source control!
+
+gem 'fastlane-plugin-appicon'
+app_identifier("niiazkhasanov.TravelBuddy") # поменяй на свой bundle id при необходимости
+apple_id("niyaz.khasanov@gmail.com")     # не обязателен, если не выгружаешь в TestFlight
+default_platform(:ios)
+
+platform :ios do
+  desc "Run SwiftLint"
+  lane :lint do
+    sh "swiftlint --strict"
+  end
+
+  desc "Build Debug (simulator)"
+  lane :build_debug do
+    xcbuild = "xcodebuild -scheme TravelBuddy -sdk iphonesimulator -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 15' -skipPackagePluginValidation -skipMacroValidation clean build"
+    sh "#{xcbuild} | xcpretty"
+  end
+
+  desc "Archive Release (device)"
+  lane :archive_release do
+    sh "xcodebuild -scheme TravelBuddy -configuration Release -sdk iphoneos -archivePath build/TravelBuddy.xcarchive -skipPackagePluginValidation -skipMacroValidation archive | xcpretty"
+  end
+
+  desc "Export IPA (ad-hoc)"
+  lane :export_ipa do
+    export_plist = "ExportOptions.plist"
+    File.write(export_plist, <<~PLIST)
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0"><dict>
+        <key>method</key><string>ad-hoc</string>
+        <key>signingStyle</key><string>automatic</string>
+        <key>compileBitcode</key><false/>
+        <key>destination</key><string>export</string>
+        <key>stripSwiftSymbols</key><true/>
+      </dict></plist>
+    PLIST
+    sh "xcodebuild -exportArchive -archivePath build/TravelBuddy.xcarchive -exportOptionsPlist #{export_plist} -exportPath build/export | xcpretty"
+  end
+
+  # -------- SNAPSHOT (локализация) ----------
+  desc "Run UI snapshots via fastlane snapshot"
+  lane :snapshots do
+    # clear_derived_data
+    snapshot(
+      scheme: "TravelBuddy",
+      workspace: nil, # укажи, если используешь .xcworkspace
+      devices: ["iPhone 16 Pro", "iPhone 16 Pro Max"],
+      languages: ["en-US", "ru-RU"],
+      stop_after_first_error: true,
+      output_directory: "fastlane/screenshots",
+      clean: false
+    )
+  end
+
+  desc "CI lane"
+  lane :ci do
+    lint
+    build_debug
+    archive_release
+    export_ipa
+  ensure
+    sh "mkdir -p fastlane/logs"
+  end
+end
+fastlane documentation
+----
+
+# Installation
+
+Make sure you have the latest version of the Xcode command line tools installed:
+
+```sh
+xcode-select --install
+```
+
+For _fastlane_ installation instructions, see [Installing _fastlane_](https://docs.fastlane.tools/#installing-fastlane)
+
+# Available Actions
+
+## iOS
+
+### ios lint
+
+```sh
+[bundle exec] fastlane ios lint
+```
+
+Run SwiftLint
+
+### ios build_debug
+
+```sh
+[bundle exec] fastlane ios build_debug
+```
+
+Build Debug (simulator)
+
+### ios archive_release
+
+```sh
+[bundle exec] fastlane ios archive_release
+```
+
+Archive Release (device)
+
+### ios export_ipa
+
+```sh
+[bundle exec] fastlane ios export_ipa
+```
+
+Export IPA (ad-hoc)
+
+### ios snapshots
+
+```sh
+[bundle exec] fastlane ios snapshots
+```
+
+Run UI snapshots via fastlane snapshot
+
+### ios ci
+
+```sh
+[bundle exec] fastlane ios ci
+```
+
+CI lane
+
+----
+
+This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.
+
+More information about _fastlane_ can be found on [fastlane.tools](https://fastlane.tools).
+
+The documentation of _fastlane_ can be found on [docs.fastlane.tools](https://docs.fastlane.tools).
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="fastlane.lanes">
+    
+    
+    
+      
+      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000187">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="1: clear_derived_data" time="6.327153">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="2: snapshot" time="148.061438">
+        
+          <failure message="/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/actions/actions_helper.rb:67:in `execute_action&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:255:in `block in execute_action&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:229:in `chdir&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:229:in `execute_action&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:157:in `trigger_action_by_name&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/fast_file.rb:159:in `method_missing&apos;&#10;Fastfile:41:in `block (2 levels) in parsing_binding&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/lane.rb:41:in `call&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:49:in `block in execute&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:45:in `chdir&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:45:in `execute&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/lane_manager.rb:46:in `cruise_lane&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/command_line_handler.rb:34:in `handle&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/commands_generator.rb:110:in `block (2 levels) in run&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/commander-4.6.0/lib/commander/command.rb:187:in `call&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/commander-4.6.0/lib/commander/command.rb:157:in `run&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/commander-4.6.0/lib/commander/runner.rb:444:in `run_active_command&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane_core/lib/fastlane_core/ui/fastlane_runner.rb:124:in `run!&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/commander-4.6.0/lib/commander/delegates.rb:18:in `run!&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/commands_generator.rb:363:in `run&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/commands_generator.rb:43:in `start&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/cli_tools_distributor.rb:123:in `take_off&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/bin/fastlane:23:in `&lt;top (required)&gt;&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/bin/fastlane:25:in `load&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/bin/fastlane:25:in `&lt;top (required)&gt;&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/cli/exec.rb:59:in `load&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/cli/exec.rb:59:in `kernel_load&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/cli/exec.rb:23:in `run&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/cli.rb:452:in `exec&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/vendor/thor/lib/thor/command.rb:28:in `run&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/vendor/thor/lib/thor/invocation.rb:127:in `invoke_command&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/vendor/thor/lib/thor.rb:538:in `dispatch&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/cli.rb:35:in `dispatch&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/vendor/thor/lib/thor/base.rb:584:in `start&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/cli.rb:29:in `start&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/exe/bundle:28:in `block in &lt;top (required)&gt;&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/friendly_errors.rb:117:in `with_friendly_errors&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/exe/bundle:20:in `&lt;top (required)&gt;&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/bin/bundle:25:in `load&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/bin/bundle:25:in `&lt;main&gt;&apos;&#10;&#10;Exit status: 74" />
+        
+      </testcase>
+    
+  </testsuite>
+</testsuites>
+# Snapfile — конфиг для fastlane snapshot
+
+scheme("TravelBuddy")
+# workspace("TravelBuddy.xcworkspace")
+
+devices(["iPhone 16 Pro", "iPhone 16 Pro Max"])
+languages(["en-US", "ru-RU"])
+
+output_directory("fastlane/screenshots")
+stop_after_first_error(true)
+clear_previous_screenshots(true)
+
+# Важно:
+clean(false)
+xcargs("-disableAutomaticPackageResolution")
+name: iOS CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # build:
+  #   name: Build + Lint
+  #   runs-on: macos-15
+  #   timeout-minutes: 60
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Select Xcode
+  #       run: |
+  #         XCODE="/Applications/Xcode.app"
+  #         sudo xcode-select -s "$XCODE"
+  #         xcodebuild -version
+  #     - name: Cache Ruby gems
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: vendor/bundle
+  #         key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-gems-
+  #     - name: Setup Ruby
+  #       uses: ruby/setup-ruby@v1
+  #       with:
+  #         ruby-version: '3.2'
+  #         bundler-cache: true
+  #     - name: Install Bundler deps
+  #       run: bundle install --path vendor/bundle
+  #     - name: Install SwiftLint
+  #       run: brew install swiftlint || true
+  #     - name: Install xcpretty
+  #       run: gem install xcpretty
+  #     - name: Lint
+  #       run: swiftlint
+  #     - name: Build (Debug, simulator)
+  #       run: |
+  #         set -e
+  #         xcodebuild \
+  #           -scheme TravelBuddy \
+  #           -sdk iphonesimulator \
+  #           -configuration Debug \
+  #           -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  #           -skipPackagePluginValidation \
+  #           -skipMacroValidation \
+  #           clean build | xcpretty
+  #       env:
+  #         NSUnbufferedIO: YES
+  #     - name: Archive (Release, device)
+  #       run: |
+  #         xcodebuild \
+  #           -scheme TravelBuddy \
+  #           -configuration Release \
+  #           -sdk iphoneos \
+  #           -archivePath build/TravelBuddy.xcarchive \
+  #           -skipPackagePluginValidation \
+  #           -skipMacroValidation \
+  #           archive | xcpretty
+  #     - name: Export .ipa (ad-hoc)
+  #       if: ${{ always() }}
+  #       run: |
+  #         cat > ExportOptions.plist <<'PLIST'
+  #         <?xml version="1.0" encoding="UTF-8"?>
+  #         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+  #         <plist version="1.0">
+  #         <dict>
+  #           <key>method</key><string>ad-hoc</string>
+  #           <key>signingStyle</key><string>automatic</string>
+  #           <key>compileBitcode</key><false/>
+  #           <key>destination</key><string>export</string>
+  #           <key>stripSwiftSymbols</key><true/>
+  #         </dict>
+  #         </plist>
+  #         PLIST
+  #         if [ -d "build/TravelBuddy.xcarchive" ]; then
+  #           xcodebuild -exportArchive \
+  #             -archivePath build/TravelBuddy.xcarchive \
+  #             -exportOptionsPlist ExportOptions.plist \
+  #             -exportPath build/export | xcpretty
+  #         else
+  #           echo "Archive not found, skipping export."
+  #         fi
+  #       continue-on-error: true
+  #     - name: Upload artifacts
+  #       if: ${{ always() }}
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: build-artifacts
+  #         path: |
+  #           build/TravelBuddy.xcarchive
+  #           build/export/*.ipa
+  #           fastlane/logs
+
+  snapshots:
+    name: UI Snapshots (fastlane)
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          XCODE="/Applications/Xcode.app"
+          sudo xcode-select -s "$XCODE"
+          xcodebuild -version
+
+      - name: Cache Ruby gems
+        uses: actions/cache@v4
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Install Bundler deps
+        run: bundle install --path vendor/bundle
+
+      - name: List simulators (debug)
+        run: xcrun simctl list devices
+
+      - name: Resolve SPM
+        run: xcodebuild -resolvePackageDependencies -scheme TravelBuddy -project ./TravelBuddy.xcodeproj
+
+      - name: Run fastlane snapshots
+        env:
+          FASTLANE_SNAPSHOT: "YES"
+          LC_ALL: en_US.UTF-8
+          LANG: en_US.UTF-8
+          FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: "30"
+          FASTLANE_XCODEBUILD_SETTINGS_RETRIES: "8"
+        run: bundle exec fastlane snapshots
+
+      - name: Upload screenshots
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-screenshots
+          path: fastlane/screenshots
+source "https://rubygems.org"
+
+gem "fastlane"
+gem "xcpretty"
+GEM
+  remote: https://rubygems.org/
+  specs:
+    CFPropertyList (3.0.7)
+      base64
+      nkf
+      rexml
+    addressable (2.8.7)
+      public_suffix (>= 2.0.2, < 7.0)
+    artifactory (3.0.17)
+    atomos (0.1.3)
+    aws-eventstream (1.4.0)
+    aws-partitions (1.1120.0)
+    aws-sdk-core (3.226.1)
+      aws-eventstream (~> 1, >= 1.3.0)
+      aws-partitions (~> 1, >= 1.992.0)
+      aws-sigv4 (~> 1.9)
+      base64
+      jmespath (~> 1, >= 1.6.1)
+      logger
+    aws-sdk-kms (1.105.0)
+      aws-sdk-core (~> 3, >= 3.225.0)
+      aws-sigv4 (~> 1.5)
+    aws-sdk-s3 (1.191.0)
+      aws-sdk-core (~> 3, >= 3.225.0)
+      aws-sdk-kms (~> 1)
+      aws-sigv4 (~> 1.5)
+    aws-sigv4 (1.12.1)
+      aws-eventstream (~> 1, >= 1.0.2)
+    babosa (1.0.4)
+    base64 (0.3.0)
+    claide (1.1.0)
+    colored (1.2)
+    colored2 (3.1.2)
+    commander (4.6.0)
+      highline (~> 2.0.0)
+    declarative (0.0.20)
+    digest-crc (0.7.0)
+      rake (>= 12.0.0, < 14.0.0)
+    domain_name (0.6.20240107)
+    dotenv (2.8.1)
+    emoji_regex (3.2.3)
+    excon (0.112.0)
+    faraday (1.10.4)
+      faraday-em_http (~> 1.0)
+      faraday-em_synchrony (~> 1.0)
+      faraday-excon (~> 1.1)
+      faraday-httpclient (~> 1.0)
+      faraday-multipart (~> 1.0)
+      faraday-net_http (~> 1.0)
+      faraday-net_http_persistent (~> 1.0)
+      faraday-patron (~> 1.0)
+      faraday-rack (~> 1.0)
+      faraday-retry (~> 1.0)
+      ruby2_keywords (>= 0.0.4)
+    faraday-cookie_jar (0.0.7)
+      faraday (>= 0.8.0)
+      http-cookie (~> 1.0.0)
+    faraday-em_http (1.0.0)
+    faraday-em_synchrony (1.0.1)
+    faraday-excon (1.1.0)
+    faraday-httpclient (1.0.1)
+    faraday-multipart (1.1.1)
+      multipart-post (~> 2.0)
+    faraday-net_http (1.0.2)
+    faraday-net_http_persistent (1.2.0)
+    faraday-patron (1.0.0)
+    faraday-rack (1.0.0)
+    faraday-retry (1.0.3)
+    faraday_middleware (1.2.1)
+      faraday (~> 1.0)
+    fastimage (2.4.0)
+    fastlane (2.228.0)
+      CFPropertyList (>= 2.3, < 4.0.0)
+      addressable (>= 2.8, < 3.0.0)
+      artifactory (~> 3.0)
+      aws-sdk-s3 (~> 1.0)
+      babosa (>= 1.0.3, < 2.0.0)
+      bundler (>= 1.12.0, < 3.0.0)
+      colored (~> 1.2)
+      commander (~> 4.6)
+      dotenv (>= 2.1.1, < 3.0.0)
+      emoji_regex (>= 0.1, < 4.0)
+      excon (>= 0.71.0, < 1.0.0)
+      faraday (~> 1.0)
+      faraday-cookie_jar (~> 0.0.6)
+      faraday_middleware (~> 1.0)
+      fastimage (>= 2.1.0, < 3.0.0)
+      fastlane-sirp (>= 1.0.0)
+      gh_inspector (>= 1.1.2, < 2.0.0)
+      google-apis-androidpublisher_v3 (~> 0.3)
+      google-apis-playcustomapp_v1 (~> 0.1)
+      google-cloud-env (>= 1.6.0, < 2.0.0)
+      google-cloud-storage (~> 1.31)
+      highline (~> 2.0)
+      http-cookie (~> 1.0.5)
+      json (< 3.0.0)
+      jwt (>= 2.1.0, < 3)
+      mini_magick (>= 4.9.4, < 5.0.0)
+      multipart-post (>= 2.0.0, < 3.0.0)
+      naturally (~> 2.2)
+      optparse (>= 0.1.1, < 1.0.0)
+      plist (>= 3.1.0, < 4.0.0)
+      rubyzip (>= 2.0.0, < 3.0.0)
+      security (= 0.1.5)
+      simctl (~> 1.6.3)
+      terminal-notifier (>= 2.0.0, < 3.0.0)
+      terminal-table (~> 3)
+      tty-screen (>= 0.6.3, < 1.0.0)
+      tty-spinner (>= 0.8.0, < 1.0.0)
+      word_wrap (~> 1.0.0)
+      xcodeproj (>= 1.13.0, < 2.0.0)
+      xcpretty (~> 0.4.1)
+      xcpretty-travis-formatter (>= 0.0.3, < 2.0.0)
+    fastlane-sirp (1.0.0)
+      sysrandom (~> 1.0)
+    gh_inspector (1.1.3)
+    google-apis-androidpublisher_v3 (0.54.0)
+      google-apis-core (>= 0.11.0, < 2.a)
+    google-apis-core (0.11.3)
+      addressable (~> 2.5, >= 2.5.1)
+      googleauth (>= 0.16.2, < 2.a)
+      httpclient (>= 2.8.1, < 3.a)
+      mini_mime (~> 1.0)
+      representable (~> 3.0)
+      retriable (>= 2.0, < 4.a)
+      rexml
+    google-apis-iamcredentials_v1 (0.17.0)
+      google-apis-core (>= 0.11.0, < 2.a)
+    google-apis-playcustomapp_v1 (0.13.0)
+      google-apis-core (>= 0.11.0, < 2.a)
+    google-apis-storage_v1 (0.31.0)
+      google-apis-core (>= 0.11.0, < 2.a)
+    google-cloud-core (1.8.0)
+      google-cloud-env (>= 1.0, < 3.a)
+      google-cloud-errors (~> 1.0)
+    google-cloud-env (1.6.0)
+      faraday (>= 0.17.3, < 3.0)
+    google-cloud-errors (1.5.0)
+    google-cloud-storage (1.47.0)
+      addressable (~> 2.8)
+      digest-crc (~> 0.4)
+      google-apis-iamcredentials_v1 (~> 0.1)
+      google-apis-storage_v1 (~> 0.31.0)
+      google-cloud-core (~> 1.6)
+      googleauth (>= 0.16.2, < 2.a)
+      mini_mime (~> 1.0)
+    googleauth (1.8.1)
+      faraday (>= 0.17.3, < 3.a)
+      jwt (>= 1.4, < 3.0)
+      multi_json (~> 1.11)
+      os (>= 0.9, < 2.0)
+      signet (>= 0.16, < 2.a)
+    highline (2.0.3)
+    http-cookie (1.0.8)
+      domain_name (~> 0.5)
+    httpclient (2.9.0)
+      mutex_m
+    jmespath (1.6.2)
+    json (2.12.2)
+    jwt (2.10.1)
+      base64
+    logger (1.7.0)
+    mini_magick (4.13.2)
+    mini_mime (1.1.5)
+    multi_json (1.15.0)
+    multipart-post (2.4.1)
+    mutex_m (0.3.0)
+    nanaimo (0.4.0)
+    naturally (2.3.0)
+    nkf (0.2.0)
+    optparse (0.6.0)
+    os (1.1.4)
+    plist (3.7.2)
+    public_suffix (6.0.2)
+    rake (13.3.0)
+    representable (3.2.0)
+      declarative (< 0.1.0)
+      trailblazer-option (>= 0.1.1, < 0.2.0)
+      uber (< 0.2.0)
+    retriable (3.1.2)
+    rexml (3.4.1)
+    rouge (3.28.0)
+    ruby2_keywords (0.0.5)
+    rubyzip (2.4.1)
+    security (0.1.5)
+    signet (0.20.0)
+      addressable (~> 2.8)
+      faraday (>= 0.17.5, < 3.a)
+      jwt (>= 1.5, < 3.0)
+      multi_json (~> 1.10)
+    simctl (1.6.10)
+      CFPropertyList
+      naturally
+    sysrandom (1.0.5)
+    terminal-notifier (2.0.0)
+    terminal-table (3.0.2)
+      unicode-display_width (>= 1.1.1, < 3)
+    trailblazer-option (0.1.2)
+    tty-cursor (0.7.1)
+    tty-screen (0.8.2)
+    tty-spinner (0.9.3)
+      tty-cursor (~> 0.7)
+    uber (0.1.0)
+    unicode-display_width (2.6.0)
+    word_wrap (1.0.0)
+    xcodeproj (1.27.0)
+      CFPropertyList (>= 2.3.3, < 4.0)
+      atomos (~> 0.1.3)
+      claide (>= 1.0.2, < 2.0)
+      colored2 (~> 3.1)
+      nanaimo (~> 0.4.0)
+      rexml (>= 3.3.6, < 4.0)
+    xcpretty (0.4.1)
+      rouge (~> 3.28.0)
+    xcpretty-travis-formatter (1.0.1)
+      xcpretty (~> 0.2, >= 0.0.7)
+
+PLATFORMS
+  arm64-darwin-24
+  ruby
+
+DEPENDENCIES
+  fastlane
+  xcpretty
+
+BUNDLED WITH
+   2.6.9
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.niiaz.travelbuddy</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>travelbuddy</string>
+			</array>
+		</dict>
+	</array>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneConfigurationName</key>
+					<string>Default Configuration</string>
+					<key>UISceneDelegateClassName</key>
+					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+					<key>UISceneStoryboardFile</key>
+					<string>Main</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
+</dict>
+</plist>

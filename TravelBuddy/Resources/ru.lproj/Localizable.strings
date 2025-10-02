@@ -1,63 +1,90 @@
-/* 
-  Localizable.strings
-  TravelBuddy
-
-  Created by Niiaz Khasanov on 9/28/25.
-  
-*/
-
-/* Common */
-"alert.ok" = "OK";
+/* -------------------- Common -------------------- */
+"alert.ok" = "ОК";
 "alert.error.title" = "Ошибка";
+"common.retry" = "Повторить";
+"common.close" = "Закрыть";
 
-/* Tabs / Titles */
+/* -------------------- DeepLink parsing errors -------------------- */
+"deeplink.unknown_host" = "Неизвестный хост";
+"deeplink.invalid_coords" = "Некорректные координаты";
+"deeplink.unsupported_scheme" = "Неподдерживаемая схема URL";
+
+/* -------------------- DeepLink business errors -------------------- */
+"deeplink.poi.not_found" = "Место с идентификатором %d не найдено";
+
+/* -------------------- Tabs -------------------- */
 "tab.places" = "Места";
 "tab.map" = "Карта";
 "tab.settings" = "Настройки";
-"nav.settings.title" = "Настройки";
+
+/* -------------------- Nav titles (fallbacks) -------------------- */
 "nav.places.title" = "Места";
+"nav.settings.title" = "Настройки";
 
-/* List */
+/* -------------------- Settings -------------------- */
+"settings.title" = "Настройки";
+"settings.dark_mode" = "Тёмная тема";
+"settings.darkmode" = "Тёмная тема";
+"settings.notifications" = "Уведомления";
+"settings.premium.unlock" = "Разблокировать Premium";
+"settings.premium.unlocked" = "Premium разблокирован";
+
+/* -------------------- POI List -------------------- */
+"places.title" = "Места";
+"places.category" = "Категория";
+
+"places.category.all" = "Все";
+"places.category.monument" = "Памятник";
+"places.category.museum" = "Музей";
+"places.category.cafe" = "Кафе";
+
+/* Альтернативные (новые) ключи категорий */
 "list.category.title" = "Категория";
-"list.retry" = "Повторить";
-"list.places.count" = "%d мест";
-
-/* Categories */
 "category.all" = "Все";
-"category.monument" = "Памятники";
-"category.museum" = "Музеи";
+"category.monument" = "Памятник";
+"category.museum" = "Музей";
 "category.cafe" = "Кафе";
 
-/* Detail */
-"detail.loading.address" = "Загружаем адрес…";
+/* -------------------- POI Detail / Snippet / Image -------------------- */
+"poi.details" = "Подробнее";
+"poi.route" = "Маршрут";
+"poi.loading_address" = "Загружаем адрес…";
+"poi.share" = "Поделиться";
+"poi.open_in_maps" = "Открыть в Картах";
+
+"poi.image.none" = "Нет изображения";
+"poi.image.invalid_path" = "Некорректный путь: %@";
+"poi.image.missing_named" = "Отсутствует изображение: %@";
+"poi.image.path" = "Путь: %@";
+
+/* Альтернативные (новые) ключи деталки/картинок */
+"detail.loading.address" = "Загрузка адреса…";
 "detail.share" = "Поделиться";
 "detail.openinmaps" = "Открыть в Картах";
-
-/* Onboarding */
-"onb.next" = "Далее";
-"onb.back" = "Назад";
-"onb.getstarted" = "Начать";
-"onb.p1.title" = "Добро пожаловать в TravelBuddy";
-"onb.p1.desc" = "Открывайте новые места и планируйте поездки с лёгкостью.";
-"onb.p2.title" = "Стройте маршрут";
-"onb.p2.desc" = "Используйте интерактивную карту, чтобы отмечать любимые точки.";
-"onb.p3.title" = "Оставайтесь в курсе";
-"onb.p3.desc" = "Получайте напоминания о поездках и спецпредложениях.";
-
-/* DeepLink errors */
-"deeplink.unknown_host" = "Неизвестный хост";
-"deeplink.invalid_coords" = "Некорректные координаты";
-"deeplink.unsupported_scheme" = "Неподдерживаемая ссылка";
-
-/* DeepLink business error */
-"deeplink.poi.not_found" = "Место с ID %d не найдено";
-
-/* Images */
 "image.noimage" = "Нет изображения";
 "image.invalid.path" = "Неверный путь: %@";
 
-/* Settings */
-"settings.darkmode" = "Тёмная тема";
-"settings.notifications" = "Уведомления";
-"settings.premium.unlock" = "Разблокировать Премиум";
-"settings.premium.unlocked" = "Премиум разблокирован";
+/* -------------------- Onboarding -------------------- */
+"onboarding.title1" = "Добро пожаловать в TravelBuddy";
+"onboarding.desc1" = "Открывайте новые места и планируйте путешествия с лёгкостью.";
+"onboarding.title2" = "Отслеживайте маршрут";
+"onboarding.desc2" = "Отмечайте и сохраняйте любимые места на интерактивной карте.";
+"onboarding.title3" = "Оставайтесь в курсе";
+"onboarding.desc3" = "Получайте напоминания о поездках и специальных предложениях.";
+"onboarding.next" = "Далее";
+"onboarding.back" = "Назад";
+"onboarding.get_started" = "Начать";
+
+/* Короткие альтернативы */
+"onb.p1.title" = "Добро пожаловать в TravelBuddy";
+"onb.p1.desc" = "Открывайте новые места и планируйте путешествия с лёгкостью.";
+"onb.p2.title" = "Отслеживайте маршрут";
+"onb.p2.desc" = "Отмечайте и сохраняйте любимые места на интерактивной карте.";
+"onb.p3.title" = "Оставайтесь в курсе";
+"onb.p3.desc" = "Получайте напоминания о поездках и специальных предложениях.";
+"onb.next" = "Далее";
+"onb.back" = "Назад";
+"onb.getstarted" = "Начать";
+
+/* -------------------- Plurals (format key in stringsdict) -------------------- */
+"list.places.count" = "%d мест";

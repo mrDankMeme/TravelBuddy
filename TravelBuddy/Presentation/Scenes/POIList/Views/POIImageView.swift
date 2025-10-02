@@ -5,7 +5,6 @@
 //  Created by Niiaz Khasanov on 7/2/25.
 //
 
-
 import SwiftUI
 
 public struct POIImageView: View {
@@ -25,13 +24,14 @@ public struct POIImageView: View {
                        let uiImage = UIImage(contentsOfFile: url.path) {
                         Image(uiImage: uiImage).resizable().scaledToFit()
                     } else {
-                        Text("❌ \(name).\(ext)")
-                            .foregroundColor(.red)
                         Text(L10n.imageInvalidPath(imagePath))
                             .font(.caption)
+                            .foregroundColor(.red)
                     }
                 } else {
                     Text(L10n.imageInvalidPath(imagePath))
+                        .font(.caption)
+                        .foregroundColor(.red)
                 }
             } else {
                 Text(L10n.imageNoImage)

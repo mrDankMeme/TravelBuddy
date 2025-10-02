@@ -9,21 +9,17 @@ import SwiftUI
 
 public struct OnboardingView<VM: OnboardingViewModelProtocol>: View {
     @ObservedObject private var vm: VM
-    @Namespace private var imageNamespace
-    
-    public init(vm: VM) {
-        self.vm = vm
-    }
-    
+
+    public init(vm: VM) { self.vm = vm }
+
     public var body: some View {
         ZStack {
-            Color(DesignTokens.colorBackground)
-                .ignoresSafeArea()
-            
+            Color(DesignTokens.colorBackground).ignoresSafeArea()
+
             VStack(spacing: DesignTokens.spacingMedium) {
                 Spacer()
-                
-                // картинка
+
+                // Картинка текущей страницы (простая анимация)
                 ForEach(vm.pages, id: \.id) { page in
                     if page.id == vm.currentPage {
                         Image(page.imageName)
@@ -39,19 +35,20 @@ public struct OnboardingView<VM: OnboardingViewModelProtocol>: View {
                             )
                     }
                 }
-                
+
                 Text(vm.pages[vm.currentPage].title)
                     .font(.headline)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, DesignTokens.spacingMedium)
-                
+
                 Text(vm.pages[vm.currentPage].description)
                     .font(.body)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, DesignTokens.spacingMedium)
-                
+
                 Spacer()
-                
+
+                // Пейдж-индикатор
                 HStack(spacing: 5.scale) {
                     ForEach(vm.pages.indices, id: \.self) { idx in
                         Circle()
@@ -62,24 +59,28 @@ public struct OnboardingView<VM: OnboardingViewModelProtocol>: View {
                             .scaleEffect(idx == vm.currentPage ? 1.2 : 1.0)
                     }
                 }
-                
+
+                // Кнопки
                 HStack {
                     if vm.currentPage > 0 {
-                        Button("Back") {
-                            withAnimation(.easeInOut) {
-                                vm.previous()
-                            }
+                        Button(L10n.onbBack) {
+                            withAnimation(.easeInOut) { vm.previous() }
                         }
                         .font(.body)
+                        .accessibilityIdentifier("onboarding.back")
                         .padding(.trailing, DesignTokens.spacingMedium)
                     }
-                    
+
                     Spacer()
-                    
+
                     Button(vm.currentPage == vm.pages.count - 1 ? L10n.onbGetStarted : L10n.onbNext) {
-                        withAnimation(.easeInOut) { vm.next()
-                        }
-                    }.font(.body)
+                        withAnimation(.easeInOut) { vm.next() }
+                    }
+                    .font(.body)
+                    .accessibilityIdentifier(
+                        vm.currentPage == vm.pages.count - 1
+                        ? "onboarding.get_started" : "onboarding.next"
+                    )
                 }
                 .padding(.horizontal, DesignTokens.spacingMedium)
             }
@@ -87,5 +88,4 @@ public struct OnboardingView<VM: OnboardingViewModelProtocol>: View {
         }
         .animation(.spring(response: 0.5, dampingFraction: 0.7), value: vm.currentPage)
     }
-    
 }

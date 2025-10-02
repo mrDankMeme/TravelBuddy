@@ -5,7 +5,6 @@
 //  Created by Niiaz Khasanov on 10/1/25.
 //
 
-
 import XCTest
 
 @MainActor
@@ -28,8 +27,14 @@ final class TravelBuddySnapshotUITests: XCTestCase {
         // --- Onboarding ---
         snapshot("01-Onboarding-Page1")
 
-        tapIfExists(app.buttons["Next"])
-        tapIfExists(app.buttons["Get Started"])
+        // двигаем онбординг по стабильным идентификаторам (язык-агностично)
+        tapIfExists(app.buttons["onboarding.next"], timeout: 1.0)         // p1 -> p2
+        tapIfExists(app.buttons["onboarding.next"], timeout: 1.0)         // p2 -> p3
+        tapIfExists(app.buttons["onboarding.get_started"], timeout: 1.0)  // finish
+
+        // fallback на старые текстовые локаторы (на случай локального прогона)
+        if app.buttons["Next"].exists { app.buttons["Next"].tap() }
+        if app.buttons["Next"].exists { app.buttons["Next"].tap() }
         if app.buttons["Get Started"].exists { app.buttons["Get Started"].tap() }
 
         // --- Main Tabs ---

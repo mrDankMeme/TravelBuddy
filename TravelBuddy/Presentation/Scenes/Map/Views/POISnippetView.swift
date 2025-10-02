@@ -5,8 +5,6 @@
 //  Created by Niiaz Khasanov on 7/7/25.
 //
 
-
-
 import SwiftUI
 import MapKit
 
@@ -22,11 +20,11 @@ struct POISnippetView: View {
             if let desc = poi.description { Text(desc).lineLimit(3) }
 
             HStack {
-                Button("Details", action: onDetails)
+                Button(L10n.snippetDetails, action: onDetails)
                     .buttonStyle(.borderedProminent)
 
                 Spacer()
-                Button("Route", action: onRoute)
+                Button(L10n.detailOpenInMaps, action: onRoute)
             }
         }
         .padding()
