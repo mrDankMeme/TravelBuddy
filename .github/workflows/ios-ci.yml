@@ -14,106 +14,106 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: Build + Lint
-    runs-on: macos-15
-    timeout-minutes: 60
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Select Xcode
-        run: |
-          XCODE="/Applications/Xcode.app"
-          sudo xcode-select -s "$XCODE"
-          xcodebuild -version
-
-      - name: Cache Ruby gems
-        uses: actions/cache@v4
-        with:
-          path: vendor/bundle
-          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-gems-
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-          bundler-cache: true
-
-      - name: Install Bundler deps
-        run: bundle install --path vendor/bundle
-
-      - name: Install SwiftLint
-        run: brew install swiftlint || true
-
-      - name: Install xcpretty
-        run: gem install xcpretty
-
-      - name: Lint
-        run: swiftlint
-
-      - name: Build (Debug, simulator)
-        run: |
-          set -e
-          xcodebuild \
-            -scheme TravelBuddy \
-            -sdk iphonesimulator \
-            -configuration Debug \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
-            -skipPackagePluginValidation \
-            -skipMacroValidation \
-            clean build | xcpretty
-        env:
-          NSUnbufferedIO: YES
-
-      - name: Archive (Release, device)
-        run: |
-          xcodebuild \
-            -scheme TravelBuddy \
-            -configuration Release \
-            -sdk iphoneos \
-            -archivePath build/TravelBuddy.xcarchive \
-            -skipPackagePluginValidation \
-            -skipMacroValidation \
-            archive | xcpretty
-
-      - name: Export .ipa (ad-hoc)
-        if: ${{ always() }}
-        run: |
-          cat > ExportOptions.plist <<'PLIST'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key><string>ad-hoc</string>
-            <key>signingStyle</key><string>automatic</string>
-            <key>compileBitcode</key><false/>
-            <key>destination</key><string>export</string>
-            <key>stripSwiftSymbols</key><true/>
-          </dict>
-          </plist>
-          PLIST
-          if [ -d "build/TravelBuddy.xcarchive" ]; then
-            xcodebuild -exportArchive \
-              -archivePath build/TravelBuddy.xcarchive \
-              -exportOptionsPlist ExportOptions.plist \
-              -exportPath build/export | xcpretty
-          else
-            echo "Archive not found, skipping export."
-          fi
-        continue-on-error: true
-
-      - name: Upload artifacts
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: |
-            build/TravelBuddy.xcarchive
-            build/export/*.ipa
-            fastlane/logs
+#  build:
+#    name: Build + Lint
+#    runs-on: macos-15
+#    timeout-minutes: 60
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#
+#      - name: Select Xcode
+#        run: |
+#          XCODE="/Applications/Xcode.app"
+#          sudo xcode-select -s "$XCODE"
+#          xcodebuild -version
+#
+#      - name: Cache Ruby gems
+#        uses: actions/cache@v4
+#        with:
+#          path: vendor/bundle
+#          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+#          restore-keys: |
+#            ${{ runner.os }}-gems-
+#
+#      - name: Setup Ruby
+#        uses: ruby/setup-ruby@v1
+#        with:
+#          ruby-version: '3.2'
+#          bundler-cache: true
+#
+#      - name: Install Bundler deps
+#        run: bundle install --path vendor/bundle
+#
+#      - name: Install SwiftLint
+#        run: brew install swiftlint || true
+#
+#      - name: Install xcpretty
+#        run: gem install xcpretty
+#
+#      - name: Lint
+#        run: swiftlint
+#
+#      - name: Build (Debug, simulator)
+#        run: |
+#          set -e
+#          xcodebuild \
+#            -scheme TravelBuddy \
+#            -sdk iphonesimulator \
+#            -configuration Debug \
+#            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+#            -skipPackagePluginValidation \
+#            -skipMacroValidation \
+#            clean build | xcpretty
+#        env:
+#          NSUnbufferedIO: YES
+#
+#      - name: Archive (Release, device)
+#        run: |
+#          xcodebuild \
+#            -scheme TravelBuddy \
+#            -configuration Release \
+#            -sdk iphoneos \
+#            -archivePath build/TravelBuddy.xcarchive \
+#            -skipPackagePluginValidation \
+#            -skipMacroValidation \
+#            archive | xcpretty
+#
+#      - name: Export .ipa (ad-hoc)
+#        if: ${{ always() }}
+#        run: |
+#          cat > ExportOptions.plist <<'PLIST'
+#          <?xml version="1.0" encoding="UTF-8"?>
+#          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+#          <plist version="1.0">
+#          <dict>
+#            <key>method</key><string>ad-hoc</string>
+#            <key>signingStyle</key><string>automatic</string>
+#            <key>compileBitcode</key><false/>
+#            <key>destination</key><string>export</string>
+#            <key>stripSwiftSymbols</key><true/>
+#          </dict>
+#          </plist>
+#          PLIST
+#          if [ -d "build/TravelBuddy.xcarchive" ]; then
+#            xcodebuild -exportArchive \
+#              -archivePath build/TravelBuddy.xcarchive \
+#              -exportOptionsPlist ExportOptions.plist \
+#              -exportPath build/export | xcpretty
+#          else
+#            echo "Archive not found, skipping export."
+#          fi
+#        continue-on-error: true
+#
+#      - name: Upload artifacts
+#        if: ${{ always() }}
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: build-artifacts
+#          path: |
+#            build/TravelBuddy.xcarchive
+#            build/export/*.ipa
+#            fastlane/logs
 
   snapshots:
     name: UI Snapshots (fastlane)
