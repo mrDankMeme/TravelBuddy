@@ -8,58 +8,58 @@
 
 import XCTest
 
+@MainActor
 final class TravelBuddySnapshotUITests: XCTestCase {
-    var app: XCUIApplication!
+    private var app: XCUIApplication!
 
     override func setUp() {
         super.setUp()
         continueAfterFailure = false
         app = XCUIApplication()
-        Snapshot.setup(app)
 
-        // Насильно выбираем языки/локали, если snapshot их передал
-        // fastlane snapshot сам выставляет AppleLanguages/AppleLocale
+        // init fastlane-snapshot (из SnapshotHelper.swift)
+        setupSnapshot(app)
+
+        // fastlane snapshot сам выставит AppleLanguages/AppleLocale
         app.launch()
     }
 
     func testSnapshot_Onboarding_List_Map_Settings() {
         // --- Onboarding ---
-        // Скрин 1: Welcome / Добро пожаловать
-        Snapshot.take("01-Onboarding-Page1")
-        // Next →
+        snapshot("01-Onboarding-Page1")
+
         tapIfExists(app.buttons["Next"])
         tapIfExists(app.buttons["Get Started"])
-        // если сразу Get Started — тоже ок
         if app.buttons["Get Started"].exists { app.buttons["Get Started"].tap() }
 
         // --- Main Tabs ---
-        // По умолчанию открывается Places (если у тебя иначе — скорректируй)
-        XCTAssertTrue(app.navigationBars["Places"].exists || app.navigationBars["Места"].exists)
-        Snapshot.take("02-Places-List")
+        XCTAssertTrue(
+            app.navigationBars["Places"].exists ||
+            app.navigationBars["Места"].exists
+        )
+        snapshot("02-Places-List")
 
-        // Открыть любую ячейку (если есть)
+        // Открыть первую ячейку и сделать скрин детали (если есть)
         if app.tables.firstMatch.cells.count > 0 {
             app.tables.firstMatch.cells.element(boundBy: 0).tap()
-            Snapshot.take("03-POI-Detail")
-            // Закрыть деталь, если есть кнопка «x»
+            snapshot("03-POI-Detail")
             let close = app.buttons["xmark.circle.fill"]
             if close.exists { close.tap() }
         }
 
-        // Переключиться на вкладку Map
+        // --- Map ---
         tapTab(labelEn: "Map", labelRu: "Карта")
-        // Подождём карту
         sleep(1)
-        Snapshot.take("04-Map")
+        snapshot("04-Map")
 
-        // Переключиться на Settings
+        // --- Settings ---
         tapTab(labelEn: "Settings", labelRu: "Настройки")
-        Snapshot.take("05-Settings")
+        snapshot("05-Settings")
     }
 
     // MARK: - Helpers
 
-    private func tapIfExists(_ el: XCUIElement, timeout: TimeInterval = 0.2) {
+    private func tapIfExists(_ el: XCUIElement, timeout: TimeInterval = 0.5) {
         if el.waitForExistence(timeout: timeout) { el.tap() }
     }
 
@@ -69,9 +69,8 @@ final class TravelBuddySnapshotUITests: XCTestCase {
             tabBar.buttons[labelEn].tap()
         } else if tabBar.buttons[labelRu].exists {
             tabBar.buttons[labelRu].tap()
-        } else {
-            // fallback — по индексу
-            tabBar.buttons.element(boundBy: 1).tap()
+        } else if tabBar.buttons.count > 0 {
+            tabBar.buttons.element(boundBy: 0).tap()
         }
     }
 }

@@ -15,13 +15,53 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 ## iOS
 
-### ios generate_icons
+### ios lint
 
 ```sh
-[bundle exec] fastlane ios generate_icons
+[bundle exec] fastlane ios lint
 ```
 
-Генерация всех размеров иконок из одного изображения
+Run SwiftLint
+
+### ios build_debug
+
+```sh
+[bundle exec] fastlane ios build_debug
+```
+
+Build Debug (simulator)
+
+### ios archive_release
+
+```sh
+[bundle exec] fastlane ios archive_release
+```
+
+Archive Release (device)
+
+### ios export_ipa
+
+```sh
+[bundle exec] fastlane ios export_ipa
+```
+
+Export IPA (ad-hoc)
+
+### ios snapshots
+
+```sh
+[bundle exec] fastlane ios snapshots
+```
+
+Run UI snapshots via fastlane snapshot
+
+### ios ci
+
+```sh
+[bundle exec] fastlane ios ci
+```
+
+CI lane
 
 ----
 
