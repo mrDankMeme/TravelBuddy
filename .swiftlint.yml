@@ -1,18 +1,27 @@
-disabled_rules:
-  - trailing_whitespace
-  - todo
-  - identifier_name
-  - line_length
-
-included:
-  - TravelBuddy
-
 excluded:
   - Carthage
   - Pods
   - build
   - fastlane
+  - TravelBuddy/Generated
+  - TravelBuddy/**/Generated
 
+disabled_rules:
+  - force_cast
+  - force_unwrapping
+  - implicit_optional_initialization
+  - vertical_whitespace
+  - trailing_newline
+  - vertical_parameter_alignment
+  - opening_brace
+  - operator_usage_whitespace
+  - comma
+  - colon
+  - comment_spacing
+
+included:
+  - TravelBuddy
+  
 opt_in_rules:
   - empty_count
   - closure_end_indentation
