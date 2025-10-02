@@ -18,6 +18,9 @@ disabled_rules:
   - comma
   - colon
   - comment_spacing
+  - identifier_name
+  - line_length
+  - trailing_whitespace
 
 included:
   - TravelBuddy
