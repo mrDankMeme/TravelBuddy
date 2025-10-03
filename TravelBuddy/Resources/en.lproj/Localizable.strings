@@ -88,3 +88,14 @@
 
 /* -------------------- Plurals (format key in stringsdict) -------------------- */
 "list.places.count" = "%d places";
+
+/* Premium */
+"settings.premium.manage" = "Manage Subscription";
+"settings.premium.expires_on" = "Expires on %@";
+"settings.premium.expires_in_days" = "Expires in %d days";
+"settings.premium.expired" = "Subscription expired";
+"settings.premium.restore" = "Restore Purchases";
+"settings.premium.restored" = "Purchases restored";
+"settings.premium.restore_failed" = "Restore failed";
+"settings.premium.purchase_in_progress" = "Processing purchase…";
+"settings.premium.purchase_failed" = "Purchase failed";

@@ -88,3 +88,14 @@
 
 /* -------------------- Plurals (format key in stringsdict) -------------------- */
 "list.places.count" = "%d мест";
+
+/* Premium */
+"settings.premium.manage" = "Управлять подпиской";
+"settings.premium.expires_on" = "Истекает %@";
+"settings.premium.expires_in_days" = "Истекает через %d дн.";
+"settings.premium.expired" = "Подписка истекла";
+"settings.premium.restore" = "Восстановить покупки";
+"settings.premium.restored" = "Покупки восстановлены";
+"settings.premium.restore_failed" = "Не удалось восстановить";
+"settings.premium.purchase_in_progress" = "Покупка обрабатывается…";
+"settings.premium.purchase_failed" = "Покупка не удалась";

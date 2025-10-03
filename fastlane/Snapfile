@@ -1,15 +1,36 @@
-# Snapfile — конфиг для fastlane snapshot
+# fastlane/Snapfile
+# Полная версия с правками для стабильных скринов
 
-scheme("TravelBuddy")
-# workspace("TravelBuddy.xcworkspace")
+# Языки
+languages([
+  "en-US",
+  "ru-RU"
+])
 
-devices(["iPhone 16 Pro", "iPhone 16 Pro Max"])
-languages(["en-US", "ru-RU"])
+# Девайсы
+devices([
+  "iPhone 16 Pro",
+  "iPhone 16 Pro Max"
+])
 
-output_directory("fastlane/screenshots")
-stop_after_first_error(true)
-clear_previous_screenshots(true)
+# Папка вывода (по умолчанию fastlane возьмет ./fastlane/screenshots)
+# output_directory "./fastlane/screenshots"
 
-# Важно:
-clean(false)
-xcargs("-disableAutomaticPackageResolution")
+# Нормализуем статус-бар (время/аккум/сеть) — обязательный шарп для единообразия
+override_status_bar true
+
+# Поведение симулятора
+erase_simulator true
+reinstall_app true
+
+# Повторные попытки тестов на случай флейка симулятора
+number_of_retries 2
+
+# Аргументы запуска для приложения (раскомментируйте, если читаете их в коде)
+# launch_arguments(["-uiTesting", "1", "-uiMockData", "1", "-uiPremium", "locked", "-skipOnboarding", "YES"])
+
+# Схема для тестов (поменяйте при необходимости)
+scheme "TravelBuddyUITests"
+
+# Осознанно НЕ задаем clear_previous_screenshots — оставь включенным на CI, если нужно очищать
+# clear_previous_screenshots true
