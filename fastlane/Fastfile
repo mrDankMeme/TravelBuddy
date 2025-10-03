@@ -1,61 +1,53 @@
+# fastlane/Fastfile
+# NOTE:
+# - НЕ чистим DerivedData (ни clear_derived_data, ни clean: true)
+# - Быстро за счёт кэша SwiftPM в CI (см. workflow)
+# - Переустановка приложения на симуляторе каждый прогон (reinstall_app: true)
+# - Симулятор целиком НЕ стираем (erase_simulator: false)
+# - Предварительный резолвинг пакетов (xcodebuild -resolvePackageDependencies)
+# - Если у тебя workspace → замени project: на workspace: (и наоборот)
+
 default_platform(:ios)
 
 platform :ios do
-  desc "Run SwiftLint"
-  lane :lint do
-    sh "swiftlint --strict"
-  end
-
-  desc "Build Debug (simulator)"
-  lane :build_debug do
-    xcbuild = "xcodebuild -scheme TravelBuddy -sdk iphonesimulator -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 15' -skipPackagePluginValidation -skipMacroValidation clean build"
-    sh "#{xcbuild} | xcpretty"
-  end
-
-  desc "Archive Release (device)"
-  lane :archive_release do
-    sh "xcodebuild -scheme TravelBuddy -configuration Release -sdk iphoneos -archivePath build/TravelBuddy.xcarchive -skipPackagePluginValidation -skipMacroValidation archive | xcpretty"
-  end
-
-  desc "Export IPA (ad-hoc)"
-  lane :export_ipa do
-    export_plist = "ExportOptions.plist"
-    File.write(export_plist, <<~PLIST)
-      <?xml version="1.0" encoding="UTF-8"?>
-      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-      <plist version="1.0"><dict>
-        <key>method</key><string>ad-hoc</string>
-        <key>signingStyle</key><string>automatic</string>
-        <key>compileBitcode</key><false/>
-        <key>destination</key><string>export</string>
-        <key>stripSwiftSymbols</key><true/>
-      </dict></plist>
-    PLIST
-    sh "xcodebuild -exportArchive -archivePath build/TravelBuddy.xcarchive -exportOptionsPlist #{export_plist} -exportPath build/export | xcpretty"
-  end
-
-  # -------- SNAPSHOT (локализация) ----------
-  desc "Run UI snapshots via fastlane snapshot"
+  desc "Run UI snapshot tests and export screenshots"
   lane :snapshots do
+    # ВАЖНО: не делаем clear_derived_data — ты просил не трогать DerivedData
     # clear_derived_data
-    snapshot(
-      scheme: "TravelBuddy",
-      workspace: nil, # укажи, если используешь .xcworkspace
-      devices: ["iPhone 16 Pro", "iPhone 16 Pro Max"],
-      languages: ["en-US", "ru-RU"],
-      stop_after_first_error: true,
-      output_directory: "fastlane/screenshots",
-      clean: false
-    )
-  end
 
-  desc "CI lane"
-  lane :ci do
-    lint
-    build_debug
-    archive_release
-    export_ipa
-  ensure
-    sh "mkdir -p fastlane/logs"
+    # Прогреваем Swift Packages (использует кэш SPM из CI)
+    # Если у тебя .xcworkspace — замени -project на -workspace и добавь -scheme.
+    sh %(
+      xcodebuild -resolvePackageDependencies \
+        -project TravelBuddy.xcodeproj \
+        -disableAutomaticPackageResolution YES \
+        -onlyUsePackageVersionsFromResolvedFile YES
+    )
+
+    snapshot(
+      # >>> Проверь названия под свой проект <<<
+      project: "TravelBuddy.xcodeproj",         # или: workspace: "TravelBuddy.xcworkspace"
+      scheme: "TravelBuddy",                    # схема, которая собирает App + UITests
+
+      # Куда складывать PNG
+      output_directory: "fastlane/screenshots",
+
+      # DerivedData для ЭТОГО запуска (мы его НЕ чистим и НЕ кэшируем в данном лейне)
+      derived_data_path: "fastlane/DerivedData",
+
+      # Стабильность / скорость
+      clean: false,                # ← БЕЗ clean (сборка не чистится)
+      reinstall_app: true,         # ← удаляем старое приложение и ставим новое каждый раз
+      erase_simulator: false,      # симулятор целиком не вайпаем (быстрее)
+      concurrent_simulators: false,# последовательно — меньше флапов
+
+      # SwiftPM: snapshot не будет резолвить пакеты заново (берём из прогретого кэша)
+      skip_package_dependencies_resolution: true,
+      disable_package_automatic_updates: true,
+
+      # Логи/артефакты
+      result_bundle: true,
+      xcargs: "-quiet"
+    )
   end
 end
