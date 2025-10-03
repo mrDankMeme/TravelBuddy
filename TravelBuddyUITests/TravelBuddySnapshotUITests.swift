@@ -22,7 +22,7 @@ final class TravelBuddySnapshotUITests: XCTestCase {
 
         // Если используете fastlane snapshot, setupSnapshot(app) уже добавит свои аргументы/локаль.
         // Если у вас подключен SnapshotHelper.swift — раскомментируйте:
-        // setupSnapshot(app)
+         setupSnapshot(app)
 
         // Рекомендовано пробрасывать флаги (опционально, если поддержаны приложением):
         // app.launchArguments += ["-uiTesting", "1", "-uiMockData", "1", "-uiPremium", "locked", "-skipOnboarding", "YES"]
