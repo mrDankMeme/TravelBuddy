@@ -1,33 +1,31 @@
-# === Devices & Locales ===
+# Устройства и локали
 devices(["iPhone 16 Pro", "iPhone 16 Pro Max"])
 languages(["en-US", "ru-RU"])
 
-# === Build target ===
-scheme "TravelBuddy"
-# проект лежит на уровень выше от fastlane — даём абсолютный путь
-project File.expand_path("../TravelBuddy.xcodeproj", __dir__)
+# ВАЖНО: project здесь НЕ указываем — его передаёт Fastfile через snapshot(project: ...)
+scheme("TravelBuddy")
 
-# === Куда складывать артефакты ===
-output_directory "fastlane/screenshots"
-derived_data_path "fastlane/DerivedData"
+# Каталоги
+output_directory("fastlane/screenshots")
+derived_data_path("fastlane/DerivedData")
 
-# === Стабильность/скорость ===
-clean false                 # НЕ чистим DerivedData (SPM кэш быстрее)
-reinstall_app true          # каждый прогон — «чистое» приложение
-erase_simulator false       # симулятор не стираем полностью (быстрее)
-concurrent_simulators false # без параллельного запуска (меньше флаков)
+# Поведение симулятора/проги
+reinstall_app(true)          # каждый раз «с нуля» для приложения
+erase_simulator(false)
+concurrent_simulators(false)
+headless(true)
+override_status_bar(true)
 
-skip_package_dependencies_resolution true  # SPM уже прогреваем отдельно
-disable_package_automatic_updates true
+# SwiftPM (берём из кэша)
+skip_package_dependencies_resolution(true)
+disable_package_automatic_updates(true)
 
-# чтобы не ловить конфликт "Existing file at -resultBundlePath"
-result_bundle false
-number_of_retries 0
+# Без ретраев и result bundle, чтобы не было "Existing file at -resultBundlePath"
+result_bundle(false)
+number_of_retries(0)
 
-# Красивые логи и «красивый» статус-бар
-xcodebuild_formatter "xcbeautify"
-headless true
-override_status_bar true
+# Красивые логи
+xcodebuild_formatter("xcbeautify")
 
-# Флаги в приложение (моки/режим UI теста)
-launch_arguments ["-uiTesting", "1", "-uiMockData", "1"]
+# Наши флаги для UI-тестов/моков
+launch_arguments(["-uiTesting", "1", "-uiMockData", "1"])
