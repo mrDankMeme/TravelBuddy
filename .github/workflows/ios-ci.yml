@@ -154,9 +154,9 @@ jobs:
       - name: Resolve SPM
         run: |
           xcodebuild -resolvePackageDependencies \
-            -project ./TravelBuddy.xcodeproj \
-            -disableAutomaticPackageResolution YES \
-            -onlyUsePackageVersionsFromResolvedFile YES
+          -project ./TravelBuddy.xcodeproj \
+          -onlyUsePackageVersionsFromResolvedFile \
+          -disableAutomaticPackageResolution
 
       - name: Run fastlane snapshots
         env:

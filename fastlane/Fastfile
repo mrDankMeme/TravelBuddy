@@ -18,11 +18,12 @@ platform :ios do
     # Прогреваем Swift Packages (использует кэш SPM из CI)
     # Если у тебя .xcworkspace — замени -project на -workspace и добавь -scheme.
     sh %(
-      xcodebuild -resolvePackageDependencies \
-        -project TravelBuddy.xcodeproj \
-        -disableAutomaticPackageResolution YES \
-        -onlyUsePackageVersionsFromResolvedFile YES
-    )
+  xcodebuild -resolvePackageDependencies \
+    -project TravelBuddy.xcodeproj \
+    -onlyUsePackageVersionsFromResolvedFile \
+    -disableAutomaticPackageResolution
+     )
+
 
     snapshot(
       # >>> Проверь названия под свой проект <<<
