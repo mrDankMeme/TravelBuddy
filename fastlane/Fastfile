@@ -3,43 +3,52 @@ default_platform(:ios)
 platform :ios do
   desc "Run UI snapshot tests and export screenshots"
   lane :snapshots do
-    # ВАЖНО:
-    #  - НЕ чистим DerivedData (clean=false в Snapfile), чтобы SPM кеши оставались.
-    #  - Приложение переустанавливаем каждый прогон (reinstall_app=true в Snapfile).
-    #  - Параметры девайсов/локалей/флагов читаются из Snapfile.
+    # Абсолютный путь до .xcodeproj (fastlane запускается из fastlane/)
+    project_path = File.expand_path("../TravelBuddy.xcodeproj", __dir__)
 
-    # Прогреваем зависимoсти (локально полезно; в CI это делается отдельным шагом).
-    # Если позже появится .xcworkspace — замени -project на -workspace и добавь -scheme.
+    # 1) Прогреть/закрепить SwiftPM (берёт версии из Package.resolved)
     sh %(
       xcodebuild -resolvePackageDependencies \
-        -project "./TravelBuddy.xcodeproj" \
+        -project "#{project_path}" \
         -onlyUsePackageVersionsFromResolvedFile \
         -disableAutomaticPackageResolution
     )
 
+    # 2) Снимки
     snapshot(
-      # Большинство настроек уже в Snapfile — здесь оставляем только то,
-      # что точно хотим переопределить/зафиксировать на уровне lane.
-      project: "./TravelBuddy.xcodeproj",
-      scheme:  "TravelBuddy",
+      project: project_path,
+      scheme: "TravelBuddy",
 
-      output_directory:  "fastlane/screenshots",
+      # Артефакты
+      output_directory: "fastlane/screenshots",
       derived_data_path: "fastlane/DerivedData",
 
-      # Никаких полных clean/erase — запускаем быстро и стабильно
+      # Стабильность/скорость
+      clean: false,
       reinstall_app: true,
       erase_simulator: false,
       concurrent_simulators: false,
-
-      # SPM не трогаем: пусть берётся из кеша
       skip_package_dependencies_resolution: true,
-      disable_package_automatic_updates:    true,
+      disable_package_automatic_updates: true,
 
-      # Не просим .xcresult (убирает падения при ретраях, ускоряет)
+      # Избежать конфликта resultBundlePath при ретраях
       result_bundle: false,
+      number_of_retries: 0,
 
-      # Тише вывод xcodebuild (основные логи всё равно в артефактах)
-      xcargs: "-quiet"
+      # Девайсы/языки — дублируем здесь, чтобы не зависеть от Snapfile
+      devices: ["iPhone 16 Pro", "iPhone 16 Pro Max"],
+      languages: ["en-US", "ru-RU"],
+
+      # Флаги в приложение (моки/режим UI теста)
+      launch_arguments: ["-uiTesting", "1", "-uiMockData", "1"],
+
+      # Красивые логи и «молчаливый» билд
+      xcodebuild_formatter: "xcbeautify",
+      xcargs: "-quiet",
+
+      # headless + фиксация статус-бара — меньше флаков
+      headless: true,
+      override_status_bar: true
     )
   end
 end
