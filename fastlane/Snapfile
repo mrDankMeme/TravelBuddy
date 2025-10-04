@@ -1,36 +1,46 @@
-# fastlane/Snapfile
-# Полная версия с правками для стабильных скринов
+# --- Snapshot configuration ----------------------------------------------------
+# Проект без .xcworkspace — используем .xcodeproj
+project "./TravelBuddy.xcodeproj"
+# Если позже перейдёшь на workspace — замени строкой:
+# workspace "./TravelBuddy.xcworkspace"
 
-# Языки
-languages([
-  "en-US",
-  "ru-RU"
-])
+# Схема c основным приложением (UITests должны быть привязаны к этой схеме)
+scheme "TravelBuddy"
 
-# Девайсы
-devices([
-  "iPhone 16 Pro",
-  "iPhone 16 Pro Max"
-])
+# Девайсы и локали для скриншотов
+devices   ["iPhone 16 Pro", "iPhone 16 Pro Max"]
+languages ["en-US", "ru-RU"]
 
-# Папка вывода (по умолчанию fastlane возьмет ./fastlane/screenshots)
-# output_directory "./fastlane/screenshots"
+# Куда складывать скриншоты и DerivedData (чтобы не гонять системные кеши)
+output_directory  "fastlane/screenshots"
+derived_data_path "fastlane/DerivedData"
 
-# Нормализуем статус-бар (время/аккум/сеть) — обязательный шарп для единообразия
-override_status_bar true
+# Стабильность/скорость:
+reinstall_app true         # каждый прогон «с нуля» (удаляем/ставим приложение)
+erase_simulator false      # симулятор не стираем (экономим ~время)
+concurrent_simulators false # последовательно → меньше флаков
+number_of_retries 0        # без повторов (устраняет конфликт resultBundlePath)
+override_status_bar true   # красивые статусбары для стор/презентаций
+clear_previous_screenshots false
+headless true              # не открывать Preview после прогона
 
-# Поведение симулятора
-erase_simulator true
-reinstall_app true
+# Не трогаем/не резолвим пакеты — их прогреет CI + кэш
+skip_package_dependencies_resolution true
+disable_package_automatic_updates    true
 
-# Повторные попытки тестов на случай флейка симулятора
-number_of_retries 2
+# Не просим xcodebuild формировать .xcresult (ускоряет и убирает «existing file…»)
+result_bundle false
 
-# Аргументы запуска для приложения (раскомментируйте, если читаете их в коде)
-# launch_arguments(["-uiTesting", "1", "-uiMockData", "1", "-uiPremium", "locked", "-skipOnboarding", "YES"])
+# Форматтер логов
+xcodebuild_formatter "xcbeautify"
 
-# Схема для тестов (поменяйте при необходимости)
-scheme "TravelBuddyUITests"
+# Аргументы запуска для мок-режима (приложение должно их уважать)
+launch_arguments [
+  "-uiTesting",  "1",
+  "-uiMockData", "1"
+]
 
-# Осознанно НЕ задаем clear_previous_screenshots — оставь включенным на CI, если нужно очищать
-# clear_previous_screenshots true
+# Примечание:
+#  - Онбординг НЕ скипаем, отдельного флага тут нет → тест кликает по онбордингу руками.
+#  - Если захочешь — добавь собственный "-skipOnboarding YES" и обработай в коде.
+# ------------------------------------------------------------------------------

@@ -1,38 +1,44 @@
-# fastlane/Fastfile
-
 default_platform(:ios)
 
 platform :ios do
   desc "Run UI snapshot tests and export screenshots"
   lane :snapshots do
-    # Абсолютные пути к .xcodeproj и DerivedData, считанные от каталога fastlane/
-    project_path = File.expand_path("../TravelBuddy.xcodeproj", __dir__)
-    dd_path      = File.expand_path("./DerivedData", __dir__)
+    # ВАЖНО:
+    #  - НЕ чистим DerivedData (clean=false в Snapfile), чтобы SPM кеши оставались.
+    #  - Приложение переустанавливаем каждый прогон (reinstall_app=true в Snapfile).
+    #  - Параметры девайсов/локалей/флагов читаются из Snapfile.
 
-    # Прогреваем Swift Packages (использует кэш из CI)
+    # Прогреваем зависимoсти (локально полезно; в CI это делается отдельным шагом).
+    # Если позже появится .xcworkspace — замени -project на -workspace и добавь -scheme.
     sh %(
       xcodebuild -resolvePackageDependencies \
-        -project "#{project_path}" \
+        -project "./TravelBuddy.xcodeproj" \
         -onlyUsePackageVersionsFromResolvedFile \
         -disableAutomaticPackageResolution
     )
 
     snapshot(
-      project: project_path,             # ← используем абсолютный путь
-      scheme: "TravelBuddy",
+      # Большинство настроек уже в Snapfile — здесь оставляем только то,
+      # что точно хотим переопределить/зафиксировать на уровне lane.
+      project: "./TravelBuddy.xcodeproj",
+      scheme:  "TravelBuddy",
 
-      output_directory: "fastlane/screenshots",
-      derived_data_path: dd_path,
+      output_directory:  "fastlane/screenshots",
+      derived_data_path: "fastlane/DerivedData",
 
-      clean: false,                      # без чисток, как договорились
-      reinstall_app: true,               # ставим приложение заново каждый прогон
+      # Никаких полных clean/erase — запускаем быстро и стабильно
+      reinstall_app: true,
       erase_simulator: false,
       concurrent_simulators: false,
 
+      # SPM не трогаем: пусть берётся из кеша
       skip_package_dependencies_resolution: true,
-      disable_package_automatic_updates: true,
+      disable_package_automatic_updates:    true,
 
-      result_bundle: true,
+      # Не просим .xcresult (убирает падения при ретраях, ускоряет)
+      result_bundle: false,
+
+      # Тише вывод xcodebuild (основные логи всё равно в артефактах)
       xcargs: "-quiet"
     )
   end

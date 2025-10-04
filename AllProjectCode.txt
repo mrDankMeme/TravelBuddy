@@ -351,80 +351,156 @@ private extension CGFloat {
 //  Created by Niiaz Khasanov on 10/1/25.
 //
 
+
+
 import XCTest
 
 @MainActor
 final class TravelBuddySnapshotUITests: XCTestCase {
+
     private var app: XCUIApplication!
 
     override func setUp() {
         super.setUp()
         continueAfterFailure = false
+
         app = XCUIApplication()
 
-        // init fastlane-snapshot (из SnapshotHelper.swift)
-        setupSnapshot(app)
+        // Если используете fastlane snapshot, setupSnapshot(app) уже добавит свои аргументы/локаль.
+        // Если у вас подключен SnapshotHelper.swift — раскомментируйте:
+         setupSnapshot(app)
 
-        // fastlane snapshot сам выставит AppleLanguages/AppleLocale
+        // Рекомендовано пробрасывать флаги (опционально, если поддержаны приложением):
+        // app.launchArguments += ["-uiTesting", "1", "-uiMockData", "1", "-uiPremium", "locked", "-skipOnboarding", "YES"]
+
         app.launch()
     }
 
-    func testSnapshot_Onboarding_List_Map_Settings() {
-        // --- Onboarding ---
+    // MARK: - Главный сценарий скриншотов
+
+     func testSnapshot_Onboarding_List_Map_Settings() {
+        // --- 01: Onboarding page 1 ---
+        // Ждем появления кнопки онбординга (id или текст), чтобы не сделать снимок "раньше времени"
+        let onboardingNext = app.buttons["onboarding.next"]
+        let onboardingNextText = app.buttons["Next"]
+        XCTAssertTrue(
+            onboardingNext.waitForExistence(timeout: 5) || onboardingNextText.waitForExistence(timeout: 5),
+            "Onboarding page 1 did not appear"
+        )
         snapshot("01-Onboarding-Page1")
 
-        // двигаем онбординг по стабильным идентификаторам (язык-агностично)
-        tapIfExists(app.buttons["onboarding.next"], timeout: 1.0)         // p1 -> p2
-        tapIfExists(app.buttons["onboarding.next"], timeout: 1.0)         // p2 -> p3
-        tapIfExists(app.buttons["onboarding.get_started"], timeout: 1.0)  // finish
+        // Переходим на 2 страницу
+        tapIfExists(onboardingNext, fallback: onboardingNextText)
 
-        // fallback на старые текстовые локаторы (на случай локального прогона)
-        if app.buttons["Next"].exists { app.buttons["Next"].tap() }
-        if app.buttons["Next"].exists { app.buttons["Next"].tap() }
-        if app.buttons["Get Started"].exists { app.buttons["Get Started"].tap() }
+        // Переходим на 3 страницу
+        let onboardingNext2 = app.buttons["onboarding.next"]
+        let onboardingNextText2 = app.buttons["Next"]
+        tapIfExists(onboardingNext2, fallback: onboardingNextText2)
 
-        // --- Main Tabs ---
-        XCTAssertTrue(
-            app.navigationBars["Places"].exists ||
-            app.navigationBars["Места"].exists
-        )
+        // Завершаем онбординг
+        let getStarted = app.buttons["onboarding.get_started"]
+        let getStartedText = app.buttons["Get Started"]
+        tapIfExists(getStarted, fallback: getStartedText)
+
+        // --- 02: Places list ---
+        // Убедимся, что мы на экране Places/Места
+        let navPlaces = app.navigationBars["Places"]
+        let navPlacesRu = app.navigationBars["Места"]
+        XCTAssertTrue(navPlaces.waitForExistence(timeout: 5) || navPlacesRu.waitForExistence(timeout: 5),
+                      "Places screen did not appear")
+
+        // Ждем таблицу и первую ячейку (это убирает "ромашку" на снимке)
+        let table = app.tables.firstMatch
+        XCTAssertTrue(table.waitForExistence(timeout: 10), "Places table did not appear")
+
+        let firstCell = table.cells.element(boundBy: 0)
+        XCTAssertTrue(firstCell.waitForExistence(timeout: 20),
+                      "Places first cell did not appear (waited for remote->fallback local)")
+
         snapshot("02-Places-List")
 
-        // Открыть первую ячейку и сделать скрин детали (если есть)
-        if app.tables.firstMatch.cells.count > 0 {
-            app.tables.firstMatch.cells.element(boundBy: 0).tap()
-            snapshot("03-POI-Detail")
-            let close = app.buttons["xmark.circle.fill"]
-            if close.exists { close.tap() }
-        }
+        // --- 03: POI Detail ---
+        firstCell.tap()
 
-        // --- Map ---
+        // Ждем появления элемента на экране детали:
+        // используем кнопку закрытия, которая у тебя есть ("xmark.circle.fill").
+        let closeButton = app.buttons["xmark.circle.fill"]
+        XCTAssertTrue(closeButton.waitForExistence(timeout: 5), "POI Detail did not open")
+
+        // Если есть доступный стабильный элемент (заголовок/кнопка share) — можно ждать его:
+        // let share = app.buttons["detail.share"] // если в App выставлен identifier
+        // _ = share.waitForExistence(timeout: 2)
+
+        snapshot("03-POI-Detail")
+
+        closeButton.tap()
+
+        // --- 04: Map ---
         tapTab(labelEn: "Map", labelRu: "Карта")
-        sleep(1)
+
+        // Ждем устойчивый системный элемент карты внизу (Legal / Правовые документы)
+        let legal = app.staticTexts["Legal"]
+        let legalRu = app.staticTexts["Правовые документы"]
+        XCTAssertTrue(legal.waitForExistence(timeout: 10) || legalRu.waitForExistence(timeout: 10),
+                      "Map did not load 'Legal' label")
+
         snapshot("04-Map")
 
-        // --- Settings ---
+        // --- 05: Settings ---
         tapTab(labelEn: "Settings", labelRu: "Настройки")
+
+        let settingsTitle = app.staticTexts["Settings"]
+        let settingsTitleRu = app.staticTexts["Настройки"]
+        XCTAssertTrue(settingsTitle.waitForExistence(timeout: 5) || settingsTitleRu.waitForExistence(timeout: 5),
+                      "Settings screen did not appear")
+
         snapshot("05-Settings")
     }
 
     // MARK: - Helpers
 
-    private func tapIfExists(_ el: XCUIElement, timeout: TimeInterval = 0.5) {
-        if el.waitForExistence(timeout: timeout) { el.tap() }
+    /// Тапаем element, если он существует; иначе — fallback.
+    private func tapIfExists(_ element: XCUIElement, fallback: XCUIElement? = nil, timeout: TimeInterval = 2) {
+        if element.waitForExistence(timeout: timeout) {
+            element.tap()
+        } else if let fb = fallback, fb.waitForExistence(timeout: timeout) {
+            fb.tap()
+        } else {
+            XCTFail("Neither main element nor fallback existed for tap")
+        }
     }
 
+    /// Переход по табу. Сначала пытаемся по айдишникам (если добавишь их в приложении),
+    /// затем по локализованным текстам, затем по первому табу.
     private func tapTab(labelEn: String, labelRu: String) {
         let tabBar = app.tabBars.firstMatch
-        if tabBar.buttons[labelEn].exists {
-            tabBar.buttons[labelEn].tap()
-        } else if tabBar.buttons[labelRu].exists {
-            tabBar.buttons[labelRu].tap()
-        } else if tabBar.buttons.count > 0 {
+
+        // 1) Попытка по identifier (добавь в приложении, если захочешь):
+        let idCandidates = ["tab.places", "tab.map", "tab.settings"]
+        for id in idCandidates {
+            let btn = tabBar.buttons[id]
+            if btn.exists {
+                btn.tap()
+                return
+            }
+        }
+
+        // 2) По текстовым лейблам (как сейчас)
+        let en = tabBar.buttons[labelEn]
+        let ru = tabBar.buttons[labelRu]
+        if en.exists { en.tap(); return }
+        if ru.exists { ru.tap(); return }
+
+        // 3) Фолбэк — любой первый таб
+        if tabBar.buttons.count > 0 {
             tabBar.buttons.element(boundBy: 0).tap()
+        } else {
+            XCTFail("No tabs found")
         }
     }
 }
+
+ 
 //
 //  TravelBuddyUITests.swift
 //  TravelBuddyUITests
