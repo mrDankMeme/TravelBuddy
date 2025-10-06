@@ -5,12 +5,11 @@
 //  Created by Niiaz Khasanov on 6/23/25.
 //
 
-
-// DIContainer.swift
 import Foundation
 import Swinject
 import UIKit
 import SwiftUI
+import UserNotifications
 
 @MainActor
 public final class DIContainer {
@@ -128,9 +127,39 @@ public final class DIContainer {
             POIDetailCoordinator(poi: poi, resolver: r)
         }.inObjectScope(.graph)
         
+        //MARK: Push
+        container.register(PushServiceProtocol.self) { _ in
+            let svc = PushService()
+            // Делегат центра нотификаций — сам сервис
+            UNUserNotificationCenter.current().delegate = svc
+            svc.registerCategories()
+            return svc
+        }
+        .inObjectScope(.container)
+        
         container.registerUITestOverridesIfNeeded()
 
     }
 
     public var resolver: Resolver { container.synchronize() }
+}
+
+
+private extension Container {
+    /// Вызывать ПОСЛЕ базовых регистраций, чтобы в режиме UI-тестов переопределить сервисы.
+    func registerUITestOverridesIfNeeded() {
+        let useLocalOnly = AppFlags.isUITesting || AppFlags.useMockData
+        guard useLocalOnly else { return }
+
+        // Локальный сервис вместо сети/кэша
+        self.register(POIServiceProtocol.self) { r in
+            // Если у тебя LocalPOIService требует конфиг — разрезолвим его
+            let config = r.resolve(AppConfig.self)!
+            return LocalPOIService(config: config)
+        }
+        .inObjectScope(.container)
+
+        // Если где-то регистрируется репозиторий (remote+cache),
+        // эта регистрация перезатрёт его и всё будет читать локальный JSON.
+    }
 }

@@ -70,8 +70,6 @@
 		A352EC022E9401950011B9D6 /* PushService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EC012E9401950011B9D6 /* PushService.swift */; };
 		A352EC042E9401B20011B9D6 /* PushCategoryFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EC032E9401B20011B9D6 /* PushCategoryFactory.swift */; };
 		A352EC062E9401DE0011B9D6 /* PushPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EC052E9401DE0011B9D6 /* PushPayload.swift */; };
-		A352EC0A2E940BA50011B9D6 /* DIContainer+Push.swift in Resources */ = {isa = PBXBuildFile; fileRef = A352EC092E940BA50011B9D6 /* DIContainer+Push.swift */; };
-		A352EC0C2E9410880011B9D6 /* DIContainer+UITesting.swift in Resources */ = {isa = PBXBuildFile; fileRef = A352EC0B2E9410880011B9D6 /* DIContainer+UITesting.swift */; };
 		A385D5912E37C4FE009C0251 /* POICacheProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5902E37C4FE009C0251 /* POICacheProtocol.swift */; };
 		A385D59F2E37C99E009C0251 /* IAPServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D59E2E37C99E009C0251 /* IAPServiceProtocol.swift */; };
 		A385D5A12E37CAF3009C0251 /* NotificationServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5A02E37CAF3009C0251 /* NotificationServiceProtocol.swift */; };
@@ -177,8 +175,6 @@
 		A352EC012E9401950011B9D6 /* PushService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushService.swift; sourceTree = "<group>"; };
 		A352EC032E9401B20011B9D6 /* PushCategoryFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushCategoryFactory.swift; sourceTree = "<group>"; };
 		A352EC052E9401DE0011B9D6 /* PushPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushPayload.swift; sourceTree = "<group>"; };
-		A352EC092E940BA50011B9D6 /* DIContainer+Push.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DIContainer+Push.swift"; sourceTree = "<group>"; };
-		A352EC0B2E9410880011B9D6 /* DIContainer+UITesting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DIContainer+UITesting.swift"; sourceTree = "<group>"; };
 		A385D5902E37C4FE009C0251 /* POICacheProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POICacheProtocol.swift; sourceTree = "<group>"; };
 		A385D59E2E37C99E009C0251 /* IAPServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPServiceProtocol.swift; sourceTree = "<group>"; };
 		A385D5A02E37CAF3009C0251 /* NotificationServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationServiceProtocol.swift; sourceTree = "<group>"; };
@@ -698,8 +694,6 @@
 		A385D5B02E37D0C6009C0251 /* DI */ = {
 			isa = PBXGroup;
 			children = (
-				A352EC0B2E9410880011B9D6 /* DIContainer+UITesting.swift */,
-				A352EC092E940BA50011B9D6 /* DIContainer+Push.swift */,
 				A385D5AF2E37D0C6009C0251 /* DIContainer.swift */,
 			);
 			path = DI;
@@ -874,12 +868,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A352EC0C2E9410880011B9D6 /* DIContainer+UITesting.swift in Resources */,
 				A301D4772E8C08A900F67A76 /* Localizable.strings in Resources */,
 				A301D4782E8C08A900F67A76 /* Localizable.stringsdict in Resources */,
 				A3166E5E2E0589B600E6E1C2 /* Assets.xcassets in Resources */,
 				A3166E602E0589B600E6E1C2 /* LaunchScreen.storyboard in Resources */,
-				A352EC0A2E940BA50011B9D6 /* DIContainer+Push.swift in Resources */,
 				A3166F0A2E10396E00E6E1C2 /* mock_pois_local.json in Resources */,
 				A301D4492E85882500F67A76 /* README.md in Resources */,
 				A3166E612E0589B600E6E1C2 /* Main.storyboard in Resources */,
