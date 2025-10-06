@@ -1,10 +1,13 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "Run UI snapshot tests only (fast and deterministic)"
+  desc "Run UI snapshot tests only (fast & deterministic)"
   lane :snapshots do
-    repo_root    = File.expand_path("..", __dir__)                # ../
-    project_path = File.join(repo_root, "TravelBuddy.xcodeproj")  # <repo>/TravelBuddy.xcodeproj
+    # путь до .xcodeproj: fastlane/.. => корень репо
+    repo_root    = File.expand_path("..", __dir__)
+    project_path = File.join(repo_root, "TravelBuddy.xcodeproj")
+
+    UI.user_error!("Project not found at #{project_path}") unless File.exist?(project_path)
 
     # Прогреть SwiftPM (быстро, из кэша CI)
     sh %(
@@ -14,7 +17,7 @@ platform :ios do
         -disableAutomaticPackageResolution
     )
 
-    # Снимки: запускаем ТОЛЬКО наш снапшот-класс
+    # Снимки: гоняем ТОЛЬКО наш класс снапшотов
     snapshot(
       project: project_path,
       scheme:  "TravelBuddy",
@@ -22,26 +25,23 @@ platform :ios do
       output_directory:  "fastlane/screenshots",
       derived_data_path: "fastlane/DerivedData",
 
-      clean:                   false,   # не чистим кэш SPM/DerivedData
-      reinstall_app:           true,    # приложение каждый раз с нуля
-      erase_simulator:         false,
-      concurrent_simulators:   false,
+      clean:                 false,   # не чистим DerivedData (SPM из кэша)
+      reinstall_app:         true,    # приложение каждый раз "с нуля"
+      erase_simulator:       false,
+      concurrent_simulators: false,
 
       skip_package_dependencies_resolution: true,
       disable_package_automatic_updates:    true,
 
-      result_bundle:           false,
-      number_of_retries:       0,
+      result_bundle:   false,
+      number_of_retries: 0,
 
-      # ВАЖНО: запускаем только наш тест-класс,
-      # чтобы не тратить время на LaunchTests/обычные UI-тесты
+      # запускаем только снапшот-класс (без остальных UI/launch тестов)
       only_testing: [
         "TravelBuddyUITests/TravelBuddySnapshotUITests"
       ],
 
-      # немного помогает запуску симулятора
-      prelaunch_simulator:     true,
-
+      xcodebuild_formatter: "xcbeautify",
       xcargs: "-quiet"
     )
   end

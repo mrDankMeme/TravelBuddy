@@ -1,32 +1,27 @@
-# Устройства/локали (минимальная матрица для стабильности)
+# минимальная матрица, чтобы стабильно пройти CI
 devices(["iPhone 16 Pro"])
 languages(["en-US"])
 
-# Схема у тебя — апповая, в ней подключены UI Tests
 scheme("TravelBuddy")
 
-# Каталоги
 output_directory("fastlane/screenshots")
 derived_data_path("fastlane/DerivedData")
 
-# Поведение симулятора/приложения
 reinstall_app(true)
 erase_simulator(false)
 concurrent_simulators(false)
 headless(true)
 override_status_bar(true)
-prelaunch_simulator(true)
 
-# SwiftPM из кэша
+# SwiftPM берём из кэша
 skip_package_dependencies_resolution(true)
 disable_package_automatic_updates(true)
 
-# Без ретраев/xcresult — чтобы не упираться в "Existing file at -resultBundlePath"
+# чтобы не споткнуться об существующий xcresult
 result_bundle(false)
 number_of_retries(0)
 
-# Красивые логи
 xcodebuild_formatter("xcbeautify")
 
-# Наши флаги для мок-режима
+# наши флаги для мок-режима
 launch_arguments(["-uiTesting", "1", "-uiMockData", "1"])

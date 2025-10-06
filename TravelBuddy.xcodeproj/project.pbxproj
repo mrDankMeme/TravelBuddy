@@ -66,6 +66,7 @@
 		A323AE4F2E2147630055264E /* POIDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE4E2E2147630055264E /* POIDetailView.swift */; };
 		A323AE522E21616B0055264E /* POIServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE512E21616B0055264E /* POIServiceProtocol.swift */; };
 		A352EBFB2E9189890011B9D6 /* AppFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EBFA2E9189890011B9D6 /* AppFlags.swift */; };
+		A352EBFE2E93EE1A0011B9D6 /* PushPermissionStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EBFD2E93EE190011B9D6 /* PushPermissionStatus.swift */; };
 		A385D5912E37C4FE009C0251 /* POICacheProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5902E37C4FE009C0251 /* POICacheProtocol.swift */; };
 		A385D59F2E37C99E009C0251 /* IAPServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D59E2E37C99E009C0251 /* IAPServiceProtocol.swift */; };
 		A385D5A12E37CAF3009C0251 /* NotificationServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5A02E37CAF3009C0251 /* NotificationServiceProtocol.swift */; };
@@ -167,6 +168,7 @@
 		A323AE4E2E2147630055264E /* POIDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIDetailView.swift; sourceTree = "<group>"; };
 		A323AE512E21616B0055264E /* POIServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIServiceProtocol.swift; sourceTree = "<group>"; };
 		A352EBFA2E9189890011B9D6 /* AppFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFlags.swift; sourceTree = "<group>"; };
+		A352EBFD2E93EE190011B9D6 /* PushPermissionStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushPermissionStatus.swift; sourceTree = "<group>"; };
 		A385D5902E37C4FE009C0251 /* POICacheProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POICacheProtocol.swift; sourceTree = "<group>"; };
 		A385D59E2E37C99E009C0251 /* IAPServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPServiceProtocol.swift; sourceTree = "<group>"; };
 		A385D5A02E37CAF3009C0251 /* NotificationServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationServiceProtocol.swift; sourceTree = "<group>"; };
@@ -372,6 +374,7 @@
 		A3166E4C2E0589B600E6E1C2 /* Infrastructure */ = {
 			isa = PBXGroup;
 			children = (
+				A352EBFC2E93EE000011B9D6 /* Push */,
 				A385D5972E37C894009C0251 /* Network */,
 				A385D5962E37C894009C0251 /* POI */,
 				A385D5952E37C894009C0251 /* Services */,
@@ -587,6 +590,14 @@
 				A352EBFA2E9189890011B9D6 /* AppFlags.swift */,
 			);
 			path = Helpers;
+			sourceTree = "<group>";
+		};
+		A352EBFC2E93EE000011B9D6 /* Push */ = {
+			isa = PBXGroup;
+			children = (
+				A352EBFD2E93EE190011B9D6 /* PushPermissionStatus.swift */,
+			);
+			path = Push;
 			sourceTree = "<group>";
 		};
 		A385D58D2E37A14F009C0251 /* Presentation */ = {
@@ -874,6 +885,7 @@
 			files = (
 				A3166F0E2E104A5E00E6E1C2 /* LocalPOIService.swift in Sources */,
 				A3166E572E0589B600E6E1C2 /* Publisher+Extensions.swift in Sources */,
+				A352EBFE2E93EE1A0011B9D6 /* PushPermissionStatus.swift in Sources */,
 				A3F4F7D62E745996002EEDF2 /* AppRouter.swift in Sources */,
 				A3166E582E0589B600E6E1C2 /* UIColor+Hex.swift in Sources */,
 				A3166F122E1413FC00E6E1C2 /* POIRepository.swift in Sources */,
