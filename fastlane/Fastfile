@@ -1,13 +1,12 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "Run UI snapshot tests and export screenshots"
+  desc "Run UI snapshot tests only (fast and deterministic)"
   lane :snapshots do
-    # Абсолютный путь до .xcodeproj относительно папки fastlane
     repo_root    = File.expand_path("..", __dir__)                # ../
     project_path = File.join(repo_root, "TravelBuddy.xcodeproj")  # <repo>/TravelBuddy.xcodeproj
 
-    # 1) Прогреть/зафиксировать SwiftPM (использует кэш в CI)
+    # Прогреть SwiftPM (быстро, из кэша CI)
     sh %(
       xcodebuild -resolvePackageDependencies \
         -project "#{project_path}" \
@@ -15,29 +14,34 @@ platform :ios do
         -disableAutomaticPackageResolution
     )
 
-    # 2) Снимки
+    # Снимки: запускаем ТОЛЬКО наш снапшот-класс
     snapshot(
-      project: project_path,                 # ← путь берём отсюда, НЕ из Snapfile
-      scheme: "TravelBuddy",
+      project: project_path,
+      scheme:  "TravelBuddy",
 
-      output_directory:      "fastlane/screenshots",
-      derived_data_path:     "fastlane/DerivedData",
+      output_directory:  "fastlane/screenshots",
+      derived_data_path: "fastlane/DerivedData",
 
-      # Быстро, но «с нуля» для приложения
-      clean:                         false,  # DerivedData НЕ чистим (кэшируем SPM)
-      reinstall_app:                 true,   # приложение на симе переустанавливаем каждый прогон
-      erase_simulator:               false,
-      concurrent_simulators:         false,
+      clean:                   false,   # не чистим кэш SPM/DerivedData
+      reinstall_app:           true,    # приложение каждый раз с нуля
+      erase_simulator:         false,
+      concurrent_simulators:   false,
 
-      # SwiftPM
       skip_package_dependencies_resolution: true,
       disable_package_automatic_updates:    true,
 
-      # Ретраи/резалт-бандл отключены — чтобы не ловить "Existing file at -resultBundlePath"
-      result_bundle:                 false,
-      number_of_retries:             0,
+      result_bundle:           false,
+      number_of_retries:       0,
 
-      # Логи
+      # ВАЖНО: запускаем только наш тест-класс,
+      # чтобы не тратить время на LaunchTests/обычные UI-тесты
+      only_testing: [
+        "TravelBuddyUITests/TravelBuddySnapshotUITests"
+      ],
+
+      # немного помогает запуску симулятора
+      prelaunch_simulator:     true,
+
       xcargs: "-quiet"
     )
   end

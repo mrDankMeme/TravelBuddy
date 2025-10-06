@@ -1,31 +1,32 @@
-# Устройства и локали
-devices(["iPhone 16 Pro", "iPhone 16 Pro Max"])
-languages(["en-US", "ru-RU"])
+# Устройства/локали (минимальная матрица для стабильности)
+devices(["iPhone 16 Pro"])
+languages(["en-US"])
 
-# ВАЖНО: project здесь НЕ указываем — его передаёт Fastfile через snapshot(project: ...)
+# Схема у тебя — апповая, в ней подключены UI Tests
 scheme("TravelBuddy")
 
 # Каталоги
 output_directory("fastlane/screenshots")
 derived_data_path("fastlane/DerivedData")
 
-# Поведение симулятора/проги
-reinstall_app(true)          # каждый раз «с нуля» для приложения
+# Поведение симулятора/приложения
+reinstall_app(true)
 erase_simulator(false)
 concurrent_simulators(false)
 headless(true)
 override_status_bar(true)
+prelaunch_simulator(true)
 
-# SwiftPM (берём из кэша)
+# SwiftPM из кэша
 skip_package_dependencies_resolution(true)
 disable_package_automatic_updates(true)
 
-# Без ретраев и result bundle, чтобы не было "Existing file at -resultBundlePath"
+# Без ретраев/xcresult — чтобы не упираться в "Existing file at -resultBundlePath"
 result_bundle(false)
 number_of_retries(0)
 
 # Красивые логи
 xcodebuild_formatter("xcbeautify")
 
-# Наши флаги для UI-тестов/моков
+# Наши флаги для мок-режима
 launch_arguments(["-uiTesting", "1", "-uiMockData", "1"])
