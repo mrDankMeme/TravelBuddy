@@ -107,9 +107,10 @@ jobs:
   snapshots:
     name: UI Snapshots (fastlane)
     runs-on: macos-15
-    timeout-minutes: 120   # ← было 60
+    timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Select Xcode
         run: |
@@ -134,6 +135,10 @@ jobs:
       - name: Install Bundler deps
         run: bundle install --path vendor/bundle
 
+      - name: List simulators (debug)
+        run: xcrun simctl list devices
+
+      # >>> КЭШ SwiftPM — максимальный профит по времени
       - name: Cache SwiftPM
         uses: actions/cache@v4
         with:
@@ -145,12 +150,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-spm-
 
+      # Прогреваем резолвинг пакетов (возьмёт из кэша)
+      - name: Resolve SPM
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project ./TravelBuddy.xcodeproj \
+            -onlyUsePackageVersionsFromResolvedFile \
+            -disableAutomaticPackageResolution
+
       - name: Run fastlane snapshots
         env:
           FASTLANE_SNAPSHOT: "YES"
           LC_ALL: en_US.UTF-8
           LANG: en_US.UTF-8
-          SNAPSHOT_SIMULATOR_WAIT_FOR_BOOT_TIMEOUT: "20"
+          FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: "180"  # ⬅️ синхронно с Fastfile
+          FASTLANE_XCODEBUILD_SETTINGS_RETRIES: "2"
         run: bundle exec fastlane snapshots
 
       - name: Upload screenshots

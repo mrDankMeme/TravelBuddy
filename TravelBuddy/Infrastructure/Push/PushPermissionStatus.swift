@@ -12,26 +12,6 @@ public enum PushPermissionStatus {
     case notDetermined, denied, authorized, provisional, ephemeral
 }
 
-public protocol PushServiceProtocol: AnyObject {
-    // Permissions
-    func getPermissionStatus() async -> PushPermissionStatus
-    func requestPermission(options: PushOptions) async -> Bool
-
-    // APNs registration
-    func registerForRemoteNotifications()
-    func setDeviceToken(_ token: Data)
-    var apnsDeviceTokenHex: String? { get }
-
-    // Local notifications (for tests / reminders)
-    func scheduleLocal(title: String, body: String, after seconds: TimeInterval) async throws
-
-    // Categories / Actions
-    func registerCategories()
-
-    // Foreground presentation policy
-    var presentInForeground: Bool { get set }
-}
-
 public struct PushOptions: OptionSet {
     public let rawValue: Int
     public static let alert = PushOptions(rawValue: 1 << 0)
@@ -39,4 +19,24 @@ public struct PushOptions: OptionSet {
     public static let sound = PushOptions(rawValue: 1 << 2)
     public init(rawValue: Int) { self.rawValue = rawValue }
     public static let all: PushOptions = [.alert, .badge, .sound]
+}
+@MainActor
+public protocol PushServiceProtocol: AnyObject {
+    // Permissions
+    func getPermissionStatus() async -> PushPermissionStatus
+    func requestPermission(options: PushOptions) async -> Bool
+
+    // APNs
+    func registerForRemoteNotifications()
+    func setDeviceToken(_ token: Data)
+    var apnsDeviceTokenHex: String? { get }
+
+    // Local notifications (для теста без бэка)
+    func scheduleLocal(title: String, body: String, after seconds: TimeInterval) async throws
+
+    // Categories / Actions
+    func registerCategories()
+
+    // Foreground presentation
+    var presentInForeground: Bool { get set }
 }

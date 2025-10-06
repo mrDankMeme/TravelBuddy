@@ -28,6 +28,7 @@ public struct POIDetailView: View {
           Image(systemName: "xmark.circle.fill")
             .font(.title2)
         }
+        .accessibilityIdentifier("detail.close")
       }
 
       Text(vm.model.poi.name).font(.largeTitle)

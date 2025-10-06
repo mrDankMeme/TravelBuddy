@@ -1201,6 +1201,29 @@ final class AppCoordinator: Coordinator {
     }
 }
 //
+//  DIContainer+Push.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 10/6/25.
+//
+
+
+import Swinject
+import UserNotifications
+
+extension DIContainer {
+    func registerPush() {
+        container.register(PushServiceProtocol.self) { _ in
+            let svc = PushService()
+            // Делегат центра нотификаций — сам сервис
+            UNUserNotificationCenter.current().delegate = svc
+            svc.registerCategories()
+            return svc
+        }
+        .inObjectScope(.container)
+    }
+}
+//
 //  DIContainer.swift
 //  TravelBuddy
 //
@@ -1340,33 +1363,42 @@ public final class DIContainer {
 //  Created by Niiaz Khasanov on 6/19/25.
 //
 
+
 import UIKit
+import UserNotifications
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
+    var pushService: PushServiceProtocol?
 
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 
+        // Резолвим сервис из DI
+        pushService = DIContainer.shared.resolver.resolve(PushServiceProtocol.self)
 
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // Назначаем делегата на центр уведомлений
+        if let svc = pushService as? UNUserNotificationCenterDelegate {
+            UNUserNotificationCenter.current().delegate = svc
+        }
+
+        // Регистрируем категории
+        pushService?.registerCategories()
+
         return true
     }
 
-    // MARK: UISceneSession Lifecycle
+    // APNs callbacks
 
-    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
-        // Called when a new scene session is being created.
-        // Use this method to select a configuration to create the new scene with.
-        return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
+    func application(_ application: UIApplication,
+                     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        pushService?.setDeviceToken(deviceToken)
     }
 
-    func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
-        // Called when the user discards a scene session.
-        // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.
-        // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
+    func application(_ application: UIApplication,
+                     didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        print("APNs registration failed:", error)
     }
-
-
 }
 
 //
@@ -1834,6 +1866,201 @@ public final class LocalPOIService: POIServiceProtocol {
         }
         .eraseToAnyPublisher()
     }
+}
+//
+//  PushService.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 10/6/25.
+//
+
+
+import UIKit
+import UserNotifications
+
+@MainActor
+public final class PushService: NSObject, PushServiceProtocol {
+    private let center = UNUserNotificationCenter.current()
+    private(set) public var apnsDeviceTokenHex: String?
+    public var presentInForeground: Bool = true
+
+    // MARK: Permissions
+
+    public func getPermissionStatus() async -> PushPermissionStatus {
+        let settings = await center.notificationSettings()
+        switch settings.authorizationStatus {
+        case .notDetermined: return .notDetermined
+        case .denied:        return .denied
+        case .authorized:    return .authorized
+        case .provisional:   return .provisional
+        case .ephemeral:     return .ephemeral
+        @unknown default:    return .notDetermined
+        }
+    }
+
+    public func requestPermission(options: PushOptions) async -> Bool {
+        let opts: UNAuthorizationOptions = [
+            options.contains(.alert) ? .alert : [],
+            options.contains(.badge) ? .badge : [],
+            options.contains(.sound) ? .sound : []
+        ].reduce([] as UNAuthorizationOptions) { $0.union($1) }
+
+        do {
+            let granted = try await center.requestAuthorization(options: opts)
+            await MainActor.run {
+                UIApplication.shared.registerForRemoteNotifications()
+            }
+            return granted
+        } catch {
+            return false
+        }
+    }
+
+    // MARK: APNs
+
+    public func registerForRemoteNotifications() {
+        UIApplication.shared.registerForRemoteNotifications()
+    }
+
+    public func setDeviceToken(_ token: Data) {
+        let hex = token.map { String(format: "%02x", $0) }.joined()
+        apnsDeviceTokenHex = hex
+        // TODO: отправь hex на бэкенд/в FCM при необходимости
+        print("APNs token:", hex)
+    }
+
+    // MARK: Local
+
+    public func scheduleLocal(title: String, body: String, after seconds: TimeInterval) async throws {
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body  = body
+        content.sound = .default
+        content.categoryIdentifier = PushCategoryFactory.defaultCategoryId
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: max(0.1, seconds), repeats: false)
+        let req = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+        try await center.add(req)
+    }
+
+    // MARK: Categories
+
+    public func registerCategories() {
+        center.setNotificationCategories(PushCategoryFactory.makeAll())
+    }
+}
+
+// MARK: - UNUserNotificationCenterDelegate
+
+extension PushService: UNUserNotificationCenterDelegate {
+    public func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                       willPresent notification: UNNotification,
+                                       withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler(presentInForeground ? [.banner, .list, .sound] : [])
+    }
+
+    public func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                       didReceive response: UNNotificationResponse,
+                                       withCompletionHandler completionHandler: @escaping () -> Void) {
+        // 1) Пробуем извлечь deep link из payload
+        if let url = PushPayload.deeplink(from: response.notification.request.content.userInfo) {
+            // 2) Передаём в ТВОЙ DeepLinkService (через DI)
+            DIContainer.shared.resolver
+                .resolve(DeepLinkHandling.self)?
+                .handle(url: url)
+        }
+        completionHandler()
+    }
+}
+//
+//  PushCategoryFactory.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 10/6/25.
+//
+
+
+import UserNotifications
+
+public enum PushCategoryFactory {
+    public static let defaultCategoryId = "APP_DEFAULT"
+
+    public static func makeAll() -> Set<UNNotificationCategory> {
+        let open = UNNotificationAction(
+            identifier: "OPEN_APP",
+            title: "Open",
+            options: [.foreground]
+        )
+        let cat = UNNotificationCategory(
+            identifier: defaultCategoryId,
+            actions: [open],
+            intentIdentifiers: [],
+            options: []
+        )
+        return [cat]
+    }
+}
+//
+//  PushPayload.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 10/6/25.
+//
+
+import Foundation
+
+enum PushPayload {
+    /// Ожидаем кастомное поле "deeplink": "travelbuddy://poi/123"
+    static func deeplink(from userInfo: [AnyHashable: Any]) -> URL? {
+        guard
+            let raw = userInfo["deeplink"] as? String,
+            let url = URL(string: raw),
+            url.scheme?.lowercased() == "travelbuddy"
+        else { return nil }
+        return url
+    }
+}
+//
+//  PushPermissionStatus.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 10/6/25.
+//
+
+
+import Foundation
+
+public enum PushPermissionStatus {
+    case notDetermined, denied, authorized, provisional, ephemeral
+}
+
+public struct PushOptions: OptionSet {
+    public let rawValue: Int
+    public static let alert = PushOptions(rawValue: 1 << 0)
+    public static let badge = PushOptions(rawValue: 1 << 1)
+    public static let sound = PushOptions(rawValue: 1 << 2)
+    public init(rawValue: Int) { self.rawValue = rawValue }
+    public static let all: PushOptions = [.alert, .badge, .sound]
+}
+@MainActor
+public protocol PushServiceProtocol: AnyObject {
+    // Permissions
+    func getPermissionStatus() async -> PushPermissionStatus
+    func requestPermission(options: PushOptions) async -> Bool
+
+    // APNs
+    func registerForRemoteNotifications()
+    func setDeviceToken(_ token: Data)
+    var apnsDeviceTokenHex: String? { get }
+
+    // Local notifications (для теста без бэка)
+    func scheduleLocal(title: String, body: String, after seconds: TimeInterval) async throws
+
+    // Categories / Actions
+    func registerCategories()
+
+    // Foreground presentation
+    var presentInForeground: Bool { get set }
 }
 //
 //  NotificationServiceProtocol.swift

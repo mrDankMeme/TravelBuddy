@@ -1,15 +1,17 @@
+# fastlane/Fastfile
 default_platform(:ios)
 
 platform :ios do
-  desc "Run UI snapshot tests only (fast & deterministic)"
+  desc "UI Snapshots on simulator"
   lane :snapshots do
-    # путь до .xcodeproj: fastlane/.. => корень репо
-    repo_root    = File.expand_path("..", __dir__)
-    project_path = File.join(repo_root, "TravelBuddy.xcodeproj")
+    # ⛑️ Увеличим время ожидания получения build settings (у тебя тут таймаутило)
+    ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "180" # сек
+    ENV["FASTLANE_XCODEBUILD_SETTINGS_RETRIES"] = "2"
 
-    UI.user_error!("Project not found at #{project_path}") unless File.exist?(project_path)
+    # Абсолютный путь к .xcodeproj (так надежнее, т.к. Fastfile лежит в fastlane/)
+    project_path = File.expand_path("../TravelBuddy.xcodeproj", __dir__)
 
-    # Прогреть SwiftPM (быстро, из кэша CI)
+    # 1) Прогреть SPM (в CI это ускоряет snapshot, локально тоже полезно)
     sh %(
       xcodebuild -resolvePackageDependencies \
         -project "#{project_path}" \
@@ -17,32 +19,36 @@ platform :ios do
         -disableAutomaticPackageResolution
     )
 
-    # Снимки: гоняем ТОЛЬКО наш класс снапшотов
+    # 2) Снимки — запускаем ТОЛЬКО наш класс снапшотов
     snapshot(
       project: project_path,
       scheme:  "TravelBuddy",
 
-      output_directory:  "fastlane/screenshots",
+      # Запускаем только нужный класс/таргет UI-тестов
+      test_target_name: "TravelBuddyUITests",
+      only_testing:     ["TravelBuddyUITests/TravelBuddySnapshotUITests"],
+
+      # Вывод/артефакты
+      output_directory: "fastlane/screenshots",
       derived_data_path: "fastlane/DerivedData",
-
-      clean:                 false,   # не чистим DerivedData (SPM из кэша)
-      reinstall_app:         true,    # приложение каждый раз "с нуля"
-      erase_simulator:       false,
-      concurrent_simulators: false,
-
-      skip_package_dependencies_resolution: true,
-      disable_package_automatic_updates:    true,
-
-      result_bundle:   false,
+      result_bundle: false,          # чтобы ретраи не падали на "Existing file at -resultBundlePath"
       number_of_retries: 0,
-
-      # запускаем только снапшот-класс (без остальных UI/launch тестов)
-      only_testing: [
-        "TravelBuddyUITests/TravelBuddySnapshotUITests"
-      ],
-
       xcodebuild_formatter: "xcbeautify",
-      xcargs: "-quiet"
+
+      # Сборка/симулятор
+      reinstall_app: true,           # каждый прогон — чистое приложение (но без wipe DerivedData)
+      clean: false,
+      erase_simulator: false,
+      concurrent_simulators: false,
+      headless: true,
+      override_status_bar: true,
+
+      # SPM
+      skip_package_dependencies_resolution: true,
+      disable_package_automatic_updates: true,
+
+      # Флаги в приложение — включаем режим UI-тестов и локальные данные
+      launch_arguments: ["-uiTesting", "1", "-uiMockData", "1"]
     )
   end
 end

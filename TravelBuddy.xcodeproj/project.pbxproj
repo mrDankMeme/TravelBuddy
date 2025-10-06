@@ -67,6 +67,11 @@
 		A323AE522E21616B0055264E /* POIServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE512E21616B0055264E /* POIServiceProtocol.swift */; };
 		A352EBFB2E9189890011B9D6 /* AppFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EBFA2E9189890011B9D6 /* AppFlags.swift */; };
 		A352EBFE2E93EE1A0011B9D6 /* PushPermissionStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EBFD2E93EE190011B9D6 /* PushPermissionStatus.swift */; };
+		A352EC022E9401950011B9D6 /* PushService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EC012E9401950011B9D6 /* PushService.swift */; };
+		A352EC042E9401B20011B9D6 /* PushCategoryFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EC032E9401B20011B9D6 /* PushCategoryFactory.swift */; };
+		A352EC062E9401DE0011B9D6 /* PushPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EC052E9401DE0011B9D6 /* PushPayload.swift */; };
+		A352EC0A2E940BA50011B9D6 /* DIContainer+Push.swift in Resources */ = {isa = PBXBuildFile; fileRef = A352EC092E940BA50011B9D6 /* DIContainer+Push.swift */; };
+		A352EC0C2E9410880011B9D6 /* DIContainer+UITesting.swift in Resources */ = {isa = PBXBuildFile; fileRef = A352EC0B2E9410880011B9D6 /* DIContainer+UITesting.swift */; };
 		A385D5912E37C4FE009C0251 /* POICacheProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5902E37C4FE009C0251 /* POICacheProtocol.swift */; };
 		A385D59F2E37C99E009C0251 /* IAPServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D59E2E37C99E009C0251 /* IAPServiceProtocol.swift */; };
 		A385D5A12E37CAF3009C0251 /* NotificationServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5A02E37CAF3009C0251 /* NotificationServiceProtocol.swift */; };
@@ -169,6 +174,11 @@
 		A323AE512E21616B0055264E /* POIServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIServiceProtocol.swift; sourceTree = "<group>"; };
 		A352EBFA2E9189890011B9D6 /* AppFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFlags.swift; sourceTree = "<group>"; };
 		A352EBFD2E93EE190011B9D6 /* PushPermissionStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushPermissionStatus.swift; sourceTree = "<group>"; };
+		A352EC012E9401950011B9D6 /* PushService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushService.swift; sourceTree = "<group>"; };
+		A352EC032E9401B20011B9D6 /* PushCategoryFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushCategoryFactory.swift; sourceTree = "<group>"; };
+		A352EC052E9401DE0011B9D6 /* PushPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushPayload.swift; sourceTree = "<group>"; };
+		A352EC092E940BA50011B9D6 /* DIContainer+Push.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DIContainer+Push.swift"; sourceTree = "<group>"; };
+		A352EC0B2E9410880011B9D6 /* DIContainer+UITesting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DIContainer+UITesting.swift"; sourceTree = "<group>"; };
 		A385D5902E37C4FE009C0251 /* POICacheProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POICacheProtocol.swift; sourceTree = "<group>"; };
 		A385D59E2E37C99E009C0251 /* IAPServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPServiceProtocol.swift; sourceTree = "<group>"; };
 		A385D5A02E37CAF3009C0251 /* NotificationServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationServiceProtocol.swift; sourceTree = "<group>"; };
@@ -595,6 +605,9 @@
 		A352EBFC2E93EE000011B9D6 /* Push */ = {
 			isa = PBXGroup;
 			children = (
+				A352EC052E9401DE0011B9D6 /* PushPayload.swift */,
+				A352EC032E9401B20011B9D6 /* PushCategoryFactory.swift */,
+				A352EC012E9401950011B9D6 /* PushService.swift */,
 				A352EBFD2E93EE190011B9D6 /* PushPermissionStatus.swift */,
 			);
 			path = Push;
@@ -682,12 +695,14 @@
 			path = Coordinators;
 			sourceTree = "<group>";
 		};
-		A385D5B02E37D0C6009C0251 /* Dependency */ = {
+		A385D5B02E37D0C6009C0251 /* DI */ = {
 			isa = PBXGroup;
 			children = (
+				A352EC0B2E9410880011B9D6 /* DIContainer+UITesting.swift */,
+				A352EC092E940BA50011B9D6 /* DIContainer+Push.swift */,
 				A385D5AF2E37D0C6009C0251 /* DIContainer.swift */,
 			);
-			path = Dependency;
+			path = DI;
 			sourceTree = "<group>";
 		};
 		A385D5B12E37D0C6009C0251 /* App */ = {
@@ -698,7 +713,7 @@
 				A3166E4D2E0589B600E6E1C2 /* AppDelegate.swift */,
 				A3166E542E0589B600E6E1C2 /* SceneDelegate.swift */,
 				A385D5AE2E37D0C6009C0251 /* Coordinators */,
-				A385D5B02E37D0C6009C0251 /* Dependency */,
+				A385D5B02E37D0C6009C0251 /* DI */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -859,10 +874,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A352EC0C2E9410880011B9D6 /* DIContainer+UITesting.swift in Resources */,
 				A301D4772E8C08A900F67A76 /* Localizable.strings in Resources */,
 				A301D4782E8C08A900F67A76 /* Localizable.stringsdict in Resources */,
 				A3166E5E2E0589B600E6E1C2 /* Assets.xcassets in Resources */,
 				A3166E602E0589B600E6E1C2 /* LaunchScreen.storyboard in Resources */,
+				A352EC0A2E940BA50011B9D6 /* DIContainer+Push.swift in Resources */,
 				A3166F0A2E10396E00E6E1C2 /* mock_pois_local.json in Resources */,
 				A301D4492E85882500F67A76 /* README.md in Resources */,
 				A3166E612E0589B600E6E1C2 /* Main.storyboard in Resources */,
@@ -891,6 +908,7 @@
 				A3166F122E1413FC00E6E1C2 /* POIRepository.swift in Sources */,
 				A3166E8A2E09604E00E6E1C2 /* SettingsViewModel.swift in Sources */,
 				A3166F072E0DB0B500E6E1C2 /* UserDefaults+AppStorage.swift in Sources */,
+				A352EC042E9401B20011B9D6 /* PushCategoryFactory.swift in Sources */,
 				A323AE2B2E1C0D4A0055264E /* MapViewRepresentable.swift in Sources */,
 				A3166E8D2E09611E00E6E1C2 /* SettingsView.swift in Sources */,
 				A301D4662E898ADC00F67A76 /* L10n.swift in Sources */,
@@ -904,6 +922,7 @@
 				A385D5C02E37D4FC009C0251 /* POIDetailCoordinator.swift in Sources */,
 				A385D5C12E37D4FC009C0251 /* POIDetailRouter.swift in Sources */,
 				A385D5B22E37D0C6009C0251 /* AppCoordinator.swift in Sources */,
+				A352EC062E9401DE0011B9D6 /* PushPayload.swift in Sources */,
 				A385D5B32E37D0C6009C0251 /* DIContainer.swift in Sources */,
 				A323AE2D2E1C0D590055264E /* POISnippetView.swift in Sources */,
 				A3B449162E7D807D00F13CC1 /* AppConfig.swift in Sources */,
@@ -946,6 +965,7 @@
 				A3166E7D2E05AC5100E6E1C2 /* POIListViewModel.swift in Sources */,
 				A3166EA22E0D5C3700E6E1C2 /* OnboardingViewModel.swift in Sources */,
 				A3166E9C2E0D5BE600E6E1C2 /* OnboardingPage.swift in Sources */,
+				A352EC022E9401950011B9D6 /* PushService.swift in Sources */,
 				A3166EA82E0D609F00E6E1C2 /* OnboardingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

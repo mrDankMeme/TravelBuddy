@@ -127,6 +127,9 @@ public final class DIContainer {
         container.register(POIDetailCoordinator.self) { r, poi in
             POIDetailCoordinator(poi: poi, resolver: r)
         }.inObjectScope(.graph)
+        
+        container.registerUITestOverridesIfNeeded()
+
     }
 
     public var resolver: Resolver { container.synchronize() }

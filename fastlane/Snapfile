@@ -1,27 +1,29 @@
-# минимальная матрица, чтобы стабильно пройти CI
+# fastlane/Snapfile
+project "./TravelBuddy.xcodeproj"
+scheme "TravelBuddy"
+
+# Минимальная матрица для стабильности и скорости
 devices(["iPhone 16 Pro"])
 languages(["en-US"])
 
-scheme("TravelBuddy")
+output_directory "fastlane/screenshots"
+derived_data_path "fastlane/DerivedData"
 
-output_directory("fastlane/screenshots")
-derived_data_path("fastlane/DerivedData")
+reinstall_app true
+erase_simulator false
+concurrent_simulators false
+headless true
+override_status_bar true
 
-reinstall_app(true)
-erase_simulator(false)
-concurrent_simulators(false)
-headless(true)
-override_status_bar(true)
+# Передаём флаги в приложение (см. AppFlags)
+launch_arguments ["-uiTesting", "1", "-uiMockData", "1"]
 
-# SwiftPM берём из кэша
-skip_package_dependencies_resolution(true)
-disable_package_automatic_updates(true)
+# Оптимизация по SPM
+skip_package_dependencies_resolution true
+disable_package_automatic_updates true
 
-# чтобы не споткнуться об существующий xcresult
-result_bundle(false)
-number_of_retries(0)
+# Без ретраев и без result bundle — меньше шансов упасть по артефактам
+result_bundle false
+number_of_retries 0
 
-xcodebuild_formatter("xcbeautify")
-
-# наши флаги для мок-режима
-launch_arguments(["-uiTesting", "1", "-uiMockData", "1"])
+xcodebuild_formatter "xcbeautify"
