@@ -108,9 +108,12 @@ public final class DIContainer {
             SettingsViewModel(
                 iapService:   r.resolve(IAPServiceProtocol.self)!,
                 analytics:    r.resolve(AnalyticsServiceProtocol.self)!,
-                notification: r.resolve(NotificationServiceProtocol.self)!
+                notification: r.resolve(NotificationServiceProtocol.self)!,
+                push:         r.resolve(PushServiceProtocol.self) // <— передали зависимость
             )
-        }.inObjectScope(.graph)
+        }
+        .inObjectScope(.graph)
+
 
         container.register(AnySettingsViewModel.self) { r in
             AnySettingsViewModel(r.resolve((any SettingsViewModelProtocol).self)!)
@@ -129,14 +132,10 @@ public final class DIContainer {
         
         //MARK: Push
         container.register(PushServiceProtocol.self) { _ in
-            let svc = PushService()
-            // Делегат центра нотификаций — сам сервис
-            UNUserNotificationCenter.current().delegate = svc
-            svc.registerCategories()
-            return svc
+            PushService()
         }
         .inObjectScope(.container)
-        
+
         container.registerUITestOverridesIfNeeded()
 
     }
@@ -144,7 +143,7 @@ public final class DIContainer {
     public var resolver: Resolver { container.synchronize() }
 }
 
-
+@MainActor
 private extension Container {
     /// Вызывать ПОСЛЕ базовых регистраций, чтобы в режиме UI-тестов переопределить сервисы.
     func registerUITestOverridesIfNeeded() {
@@ -159,7 +158,11 @@ private extension Container {
         }
         .inObjectScope(.container)
 
-        // Если где-то регистрируется репозиторий (remote+cache),
-        // эта регистрация перезатрёт его и всё будет читать локальный JSON.
+        
+        self.register(PushServiceProtocol.self) { _ in
+            NoopPushService()
+        }
+        .inObjectScope(.container)
+
     }
 }

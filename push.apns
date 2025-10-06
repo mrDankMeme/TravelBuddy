@@ -1,0 +1,7 @@
+{
+  "aps": {
+    "alert": { "title": "New place", "body": "Open POI #1" },
+    "sound": "default"
+  },
+  "deeplink": "travelbuddy://poi/1"
+}

@@ -14,10 +14,11 @@ TravelBuddy построен по принципам **Clean Architecture** и *
 
 App/
 ├─ Presentation/ → View + ViewModel (Combine/async, Router/Coordinator)
-├─ Domain/ → контракты и модели (чистая логика)
+├─ Domain/       → контракты и модели (чистая логика)
 ├─ Infrastructure/ → реализация контрактов (сеть, кэш, IAP, Push, Analytics)
-├─ Core/ → утилиты, DesignTokens, L10n, экстеншены
-└─ Resources/ → локализация, моки, ассеты
+├─ Core/         → утилиты, DesignTokens, L10n, экстеншены
+└─ Resources/    → локализация, моки, ассеты
+
 
 
 ### Поток данных
@@ -58,6 +59,133 @@ RealmPOICache
 Кэширование выполняется локально через Realm, отметка свежести хранится в `UserDefaults`.
 
 ---
+## Локализация и дизайн
+
+L10n — типобезопасный хелпер для NSLocalizedString, поддерживает формат с параметрами.
+
+DesignTokens — цвета, шрифты и отступы с учётом Dark Mode и Dynamic Type.
+
+
+## Запуск проекта
+
+Открыть TravelBuddy.xcodeproj в Xcode 15+.
+
+Выбрать схему TravelBuddy, запустить на симуляторе.
+
+Проверить диплинк:
+
+xcrun simctl openurl booted "travelbuddy://map?lat=55.75&lon=37.61"
+
+
+Чтобы пересмотреть онбординг — удалить приложение или сбросить ключ hasCompletedOnboarding в UserDefaults.
+
+## 🔔 Push-уведомления (APNs)
+
+В проекте реализован сервис PushService (MVVM + DI), который покрывает:
+
+запрос разрешений (UNUserNotificationCenter.requestAuthorization);
+
+регистрацию в APNs и приём device token;
+
+показ уведомлений в foreground (баннер/лист/звук);
+
+локальные уведомления;
+
+категории/экшены;
+
+диплинки из payload → DeepLinkService.
+
+1) Настройка проекта
+Capabilities (Target → Signing & Capabilities)
+
+✅ Push Notifications
+
+✅ Background Modes → Remote notifications (нужно для “тихих” data-уведомлений; баннеры работают и без этого)
+
+Info → URL Types
+
+Добавьте схему travelbuddy для диплинков.
+
+URL Types → +
+
+Identifier: travelbuddy
+
+URL Schemes: travelbuddy
+
+
+AppDelegate
+
+Делегат и категории назначаются при запуске приложения:
+
+pushService = DIContainer.shared.resolver.resolve(PushServiceProtocol.self)
+UNUserNotificationCenter.current().delegate = (pushService as? UNUserNotificationCenterDelegate)
+pushService?.registerCategories()
+
+2) Как протестировать
+A. Локальный пуш (быстрее всего)
+
+В приложении → Settings:
+
+Request Permission — выдать разрешение.
+
+Schedule Local Test — через 2 сек появится локальное уведомление.
+Баннер в foreground контролируется тумблером Show banner in Foreground.
+
+B. Имитация remote push на симуляторе
+
+Симулятор не ходит в APNs, но умеет принимать payload через simctl push.
+
+Создайте файл push.apns (включен в проект)
+
+{
+  "aps": {
+    "alert": { "title": "Hello from simctl", "body": "Open POI #1" },
+    "sound": "default",
+    "badge": 1,
+    "category": "APP_DEFAULT"
+  },
+  "deeplink": "travelbuddy://poi/1"
+}
+
+xcrun simctl push booted <YOUR_BUNDLE_ID> push.apns
+пример:
+xcrun simctl push booted niiazkhasanov.TravelBuddy push.apns
+
+Ожидание:
+
+если приложение на экране и включён тумблер — увидите баннер;
+
+если в фоне — пуш ляжет в Notification Center; тап передаст диплинк в приложение (didReceive → DeepLinkService.handle(url:)).
+
+C. Горячая команда без файла (stdin)
+cat <<'JSON' | xcrun simctl push booted <YOUR_BUNDLE_ID> -
+{
+  "aps": {
+    "alert": { "title": "Map center", "body": "Paris" },
+    "sound": "default",
+    "category": "APP_DEFAULT"
+  },
+  "deeplink": "travelbuddy://map?lat=48.8584&lon=2.2945"
+}
+JSON
+
+
+Реальный девайс (настоящие APNs) (не трогал)
+
+Нужен Apple Developer аккаунт и .p8 ключ в Certificates → Keys → Apple Push Notifications key.
+
+Сервер (или FCM) отправляет HTTP/2-запрос на APNs с device token из didRegisterForRemoteNotificationsWithDeviceToken.
+
+Для демо без бэка проще использовать Firebase Cloud Messaging и слать пуш из Firebase Console. 
+
+5) Что работает / не работает на симуляторе
+Возможность    Симулятор    Девайс
+Локальные уведомления                     ✅    ✅
+Banner в foreground                       ✅    ✅
+simctl push (имитация APNs payload)       ✅    —
+Настоящий device token и APNs доставка    ❌    ✅
+
+На симе реального APNs нет. simctl push лишь вызывает делегаты UNUserNotificationCenter, чего достаточно для проверки UI/логики и диплинков.
 
 ## Основные модули
 
@@ -154,48 +282,49 @@ SwiftUI + `MapViewRepresentable` (мост на MKMapView).
 
 TravelBuddy/
 ├─ App/
-│ ├─ AppCoordinator, AppRouter, SceneDelegate, AppDelegate
-│ ├─ DeepLinkService / DeepLinkParser
-│ ├─ DIContainer (Swinject)
-│ └─ AppConfig
+│  ├─ AppCoordinator, AppRouter, SceneDelegate, AppDelegate
+│  ├─ DeepLinkService / DeepLinkParser
+│  ├─ DIContainer (Swinject)
+│  └─ AppConfig
 │
 ├─ Presentation/
-│ ├─ POIList/
-│ ├─ POIDetail/
-│ ├─ POIMap/
-│ ├─ Onboarding/
-│ ├─ Settings/
-│ ├─ MapContainer / MapViewRepresentable
-│ └─ общие компоненты UI
+│  ├─ POIList/
+│  ├─ POIDetail/
+│  ├─ POIMap/
+│  ├─ Onboarding/
+│  ├─ Settings/
+│  ├─ MapContainer / MapViewRepresentable
+│  └─ Общие UI-компоненты
 │
 ├─ Domain/
-│ ├─ POI.swift
-│ ├─ POICategoryFilter.swift
-│ ├─ POIServiceProtocol.swift
-│ └─ POICacheProtocol.swift
+│  ├─ POI.swift
+│  ├─ POICategoryFilter.swift
+│  ├─ POIServiceProtocol.swift
+│  └─ POICacheProtocol.swift
 │
 ├─ Infrastructure/
-│ ├─ HTTPClient.swift
-│ ├─ RemotePOIService.swift / LocalPOIService.swift
-│ ├─ POIRepository.swift / RealmPOICache.swift
-│ ├─ IAPService.swift / IAPObserver.swift
-│ ├─ NotificationService.swift / AnalyticsService.swift
-│ └─ вспомогательные источники данных
+│  ├─ HTTPClient.swift
+│  ├─ RemotePOIService.swift / LocalPOIService.swift
+│  ├─ POIRepository.swift / RealmPOICache.swift
+│  ├─ IAPService.swift / IAPObserver.swift
+│  ├─ NotificationService.swift / AnalyticsService.swift
+│  ├─ PushService.swift / PushPayload.swift / PushCategoryFactory.swift
+│  └─ Вспомогательные источники данных
 │
 ├─ Core/
-│ ├─ DesignTokens.swift
-│ ├─ L10n.swift
-│ └─ расширения и утилиты
+│  ├─ DesignTokens.swift
+│  ├─ L10n.swift
+│  └─ Расширения и утилиты
 │
 ├─ Resources/
-│ ├─ Localizable.strings
-│ ├─ Assets.xcassets
-│ └─ Mocks/
+│  ├─ Localizable.strings
+│  ├─ Assets.xcassets
+│  └─ Mocks/
 │
 └─ Tests/
-├─ TravelBuddySnapshotUITests/
-├─ TravelBuddyUITests/
-└─ SnapshotHelper.swift
+   ├─ TravelBuddySnapshotUITests/
+   ├─ TravelBuddyUITests/
+   └─ SnapshotHelper.swift
 
 
 ---

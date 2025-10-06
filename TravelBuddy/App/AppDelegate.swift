@@ -5,7 +5,6 @@
 //  Created by Niiaz Khasanov on 6/19/25.
 //
 
-
 import UIKit
 import UserNotifications
 
@@ -16,21 +15,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 
-        // Резолвим сервис из DI
+        // resolve
         pushService = DIContainer.shared.resolver.resolve(PushServiceProtocol.self)
 
-        // Назначаем делегата на центр уведомлений
+        // назначаем делегата и регистрируем категории ТУТ
         if let svc = pushService as? UNUserNotificationCenterDelegate {
             UNUserNotificationCenter.current().delegate = svc
         }
-
-        // Регистрируем категории
         pushService?.registerCategories()
 
         return true
     }
-
-    // APNs callbacks
 
     func application(_ application: UIApplication,
                      didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
@@ -42,4 +37,3 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         print("APNs registration failed:", error)
     }
 }
-

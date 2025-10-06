@@ -70,6 +70,7 @@
 		A352EC022E9401950011B9D6 /* PushService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EC012E9401950011B9D6 /* PushService.swift */; };
 		A352EC042E9401B20011B9D6 /* PushCategoryFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EC032E9401B20011B9D6 /* PushCategoryFactory.swift */; };
 		A352EC062E9401DE0011B9D6 /* PushPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EC052E9401DE0011B9D6 /* PushPayload.swift */; };
+		A352EC102E9416E30011B9D6 /* NoopPushService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EC0F2E9416E30011B9D6 /* NoopPushService.swift */; };
 		A385D5912E37C4FE009C0251 /* POICacheProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5902E37C4FE009C0251 /* POICacheProtocol.swift */; };
 		A385D59F2E37C99E009C0251 /* IAPServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D59E2E37C99E009C0251 /* IAPServiceProtocol.swift */; };
 		A385D5A12E37CAF3009C0251 /* NotificationServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5A02E37CAF3009C0251 /* NotificationServiceProtocol.swift */; };
@@ -175,6 +176,8 @@
 		A352EC012E9401950011B9D6 /* PushService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushService.swift; sourceTree = "<group>"; };
 		A352EC032E9401B20011B9D6 /* PushCategoryFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushCategoryFactory.swift; sourceTree = "<group>"; };
 		A352EC052E9401DE0011B9D6 /* PushPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushPayload.swift; sourceTree = "<group>"; };
+		A352EC0F2E9416E30011B9D6 /* NoopPushService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoopPushService.swift; sourceTree = "<group>"; };
+		A352EC112E941C840011B9D6 /* TravelBuddy.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TravelBuddy.entitlements; sourceTree = "<group>"; };
 		A385D5902E37C4FE009C0251 /* POICacheProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POICacheProtocol.swift; sourceTree = "<group>"; };
 		A385D59E2E37C99E009C0251 /* IAPServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPServiceProtocol.swift; sourceTree = "<group>"; };
 		A385D5A02E37CAF3009C0251 /* NotificationServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationServiceProtocol.swift; sourceTree = "<group>"; };
@@ -391,6 +394,7 @@
 		A3166E562E0589B600E6E1C2 /* TravelBuddy */ = {
 			isa = PBXGroup;
 			children = (
+				A352EC112E941C840011B9D6 /* TravelBuddy.entitlements */,
 				A301D4482E85882500F67A76 /* README.md */,
 				A385D5B12E37D0C6009C0251 /* App */,
 				A385D58D2E37A14F009C0251 /* Presentation */,
@@ -601,6 +605,7 @@
 		A352EBFC2E93EE000011B9D6 /* Push */ = {
 			isa = PBXGroup;
 			children = (
+				A352EC0F2E9416E30011B9D6 /* NoopPushService.swift */,
 				A352EC052E9401DE0011B9D6 /* PushPayload.swift */,
 				A352EC032E9401B20011B9D6 /* PushCategoryFactory.swift */,
 				A352EC012E9401950011B9D6 /* PushService.swift */,
@@ -933,6 +938,7 @@
 				A3166E5B2E0589B600E6E1C2 /* AppDelegate.swift in Sources */,
 				A3F4F7D42E74598C002EEDF2 /* AppRoute.swift in Sources */,
 				A385D5BA2E37D4AC009C0251 /* MapCoordinator.swift in Sources */,
+				A352EC102E9416E30011B9D6 /* NoopPushService.swift in Sources */,
 				A385D5BB2E37D4AC009C0251 /* MapRouter.swift in Sources */,
 				A385D5912E37C4FE009C0251 /* POICacheProtocol.swift in Sources */,
 				A301D46B2E8994E600F67A76 /* UITabBarController+Alert.swift in Sources */,
@@ -1057,6 +1063,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = TravelBuddy/TravelBuddy.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2NVL5EUMWM;
@@ -1089,6 +1096,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = TravelBuddy/TravelBuddy.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2NVL5EUMWM;

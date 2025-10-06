@@ -542,6 +542,58 @@ final class TravelBuddyUITests: XCTestCase {
         }
     }
 }
+excluded:
+  - Carthage
+  - Pods
+  - build
+  - fastlane
+  - TravelBuddy/Generated
+  - TravelBuddy/**/Generated
+
+disabled_rules:
+  - force_cast
+  - force_unwrapping
+  - implicit_optional_initialization
+  - vertical_whitespace
+  - trailing_newline
+  - vertical_parameter_alignment
+  - opening_brace
+  - operator_usage_whitespace
+  - comma
+  - colon
+  - comment_spacing
+  - identifier_name
+  - line_length
+  - trailing_whitespace
+
+included:
+  - TravelBuddy
+  
+opt_in_rules:
+  - empty_count
+  - closure_end_indentation
+  - redundant_nil_coalescing
+  - operator_usage_whitespace
+  - force_unwrapping
+
+reporter: "xcode"
+
+cyclomatic_complexity:
+  warning: 15
+  error: 20
+
+type_body_length:
+  warning: 400
+  error: 600
+
+file_length:
+  warning: 800
+  error: 1200
+
+function_body_length:
+  warning: 80
+  error: 120
+
 //
 //  DesignTokens.swift
 //  TravelBuddy
@@ -1201,41 +1253,17 @@ final class AppCoordinator: Coordinator {
     }
 }
 //
-//  DIContainer+Push.swift
-//  TravelBuddy
-//
-//  Created by Niiaz Khasanov on 10/6/25.
-//
-
-
-import Swinject
-import UserNotifications
-
-extension DIContainer {
-    func registerPush() {
-        container.register(PushServiceProtocol.self) { _ in
-            let svc = PushService()
-            // Делегат центра нотификаций — сам сервис
-            UNUserNotificationCenter.current().delegate = svc
-            svc.registerCategories()
-            return svc
-        }
-        .inObjectScope(.container)
-    }
-}
-//
 //  DIContainer.swift
 //  TravelBuddy
 //
 //  Created by Niiaz Khasanov on 6/23/25.
 //
 
-
-// DIContainer.swift
 import Foundation
 import Swinject
 import UIKit
 import SwiftUI
+import UserNotifications
 
 @MainActor
 public final class DIContainer {
@@ -1334,9 +1362,12 @@ public final class DIContainer {
             SettingsViewModel(
                 iapService:   r.resolve(IAPServiceProtocol.self)!,
                 analytics:    r.resolve(AnalyticsServiceProtocol.self)!,
-                notification: r.resolve(NotificationServiceProtocol.self)!
+                notification: r.resolve(NotificationServiceProtocol.self)!,
+                push:         r.resolve(PushServiceProtocol.self) // <— передали зависимость
             )
-        }.inObjectScope(.graph)
+        }
+        .inObjectScope(.graph)
+
 
         container.register(AnySettingsViewModel.self) { r in
             AnySettingsViewModel(r.resolve((any SettingsViewModelProtocol).self)!)
@@ -1352,9 +1383,42 @@ public final class DIContainer {
         container.register(POIDetailCoordinator.self) { r, poi in
             POIDetailCoordinator(poi: poi, resolver: r)
         }.inObjectScope(.graph)
+        
+        //MARK: Push
+        container.register(PushServiceProtocol.self) { _ in
+            PushService()
+        }
+        .inObjectScope(.container)
+
+        container.registerUITestOverridesIfNeeded()
+
     }
 
     public var resolver: Resolver { container.synchronize() }
+}
+
+@MainActor
+private extension Container {
+    /// Вызывать ПОСЛЕ базовых регистраций, чтобы в режиме UI-тестов переопределить сервисы.
+    func registerUITestOverridesIfNeeded() {
+        let useLocalOnly = AppFlags.isUITesting || AppFlags.useMockData
+        guard useLocalOnly else { return }
+
+        // Локальный сервис вместо сети/кэша
+        self.register(POIServiceProtocol.self) { r in
+            // Если у тебя LocalPOIService требует конфиг — разрезолвим его
+            let config = r.resolve(AppConfig.self)!
+            return LocalPOIService(config: config)
+        }
+        .inObjectScope(.container)
+
+        
+        self.register(PushServiceProtocol.self) { _ in
+            NoopPushService()
+        }
+        .inObjectScope(.container)
+
+    }
 }
 //
 //  AppDelegate.swift
@@ -1362,7 +1426,6 @@ public final class DIContainer {
 //
 //  Created by Niiaz Khasanov on 6/19/25.
 //
-
 
 import UIKit
 import UserNotifications
@@ -1374,21 +1437,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 
-        // Резолвим сервис из DI
+        // resolve
         pushService = DIContainer.shared.resolver.resolve(PushServiceProtocol.self)
 
-        // Назначаем делегата на центр уведомлений
+        // назначаем делегата и регистрируем категории ТУТ
         if let svc = pushService as? UNUserNotificationCenterDelegate {
             UNUserNotificationCenter.current().delegate = svc
         }
-
-        // Регистрируем категории
         pushService?.registerCategories()
 
         return true
     }
-
-    // APNs callbacks
 
     func application(_ application: UIApplication,
                      didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
@@ -1400,7 +1459,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         print("APNs registration failed:", error)
     }
 }
-
 //
 //  AppFlags.swift
 //  TravelBuddy
@@ -1563,6 +1621,213 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 }
 
+
+# 🧭 TravelBuddy
+
+iOS-приложение с картой, списком точек интереса и экраном настроек.  
+Проект демонстрирует архитектуру с чётким разделением слоёв, реактивный UI и интеграцию системных фреймворков iOS.
+
+---
+
+## Архитектура
+
+TravelBuddy построен по принципам **Clean Architecture** и **MVVM** с внедрением зависимостей через **Swinject**.  
+Потоки данных однонаправленные (Combine + async/await).  
+Навигация управляется координаторами, а бизнес-логика отделена от инфраструктуры.
+
+App/
+├─ Presentation/ → View + ViewModel (Combine/async, Router/Coordinator)
+├─ Domain/ → контракты и модели (чистая логика)
+├─ Infrastructure/ → реализация контрактов (сеть, кэш, IAP, Push, Analytics)
+├─ Core/ → утилиты, DesignTokens, L10n, экстеншены
+└─ Resources/ → локализация, моки, ассеты
+
+
+### Поток данных
+User → View → ViewModel → UseCase/Repository → Data Source → ViewModel (state) → View
+
+
+### Domain и Infrastructure
+
+- **Domain** описывает *что нужно сделать* — контракты (`POIServiceProtocol`, `POICacheProtocol`) и модели (`POI`, `POICategoryFilter`, `OnboardingPage`).
+- **Infrastructure** реализует *как это делается* — `HTTPClient`, `RemotePOIService`, `LocalPOIService`, `POIRepository`, `RealmPOICache`, `IAPService`, `NotificationService`, `AnalyticsService`.
+
+`POIRepository` объединяет источники и реализует политику:
+- cache-then-refresh;
+- TTL для «свежести» данных;
+- дедупликацию параллельных запросов.
+
+---
+
+## Навигация и координаторы
+
+- Корневой `AppCoordinator` создаёт таб-интерфейс: **Places**, **Map**, **Settings**.  
+- Для каждой вкладки — свой координатор (`POIListCoordinator`, `MapCoordinator`, `SettingsCoordinator`).
+- Навигационные команды передаются через Router (Combine-publisher), ViewModel не знает о UIKit.
+
+---
+
+## Данные и кэш
+
+HTTPClient (URLSession)
+↓
+RemotePOIService / LocalPOIService
+↓
+POIRepository (TTL, cache-then-refresh, dedup)
+↓
+RealmPOICache
+
+
+Кэширование выполняется локально через Realm, отметка свежести хранится в `UserDefaults`.
+
+---
+
+## Основные модули
+
+### Map
+SwiftUI + `MapViewRepresentable` (мост на MKMapView).  
+Поддерживает аннотации, кластеризацию, переход к деталям и диплинки с координатами.
+
+### POI List
+Список точек с фильтрацией по категориям.  
+Работает через `POIListViewModel` и `POIRepository`.  
+Переход в деталь — через `POIListRouter`.
+
+### POI Detail
+Показ информации о месте, открытие в Apple Maps, шаринг, обработка ошибок.
+
+### Settings
+Настройки темы, уведомлений и Premium-доступа (StoreKit 2).  
+Реализованы:
+- запрос разрешения на уведомления (`UNUserNotificationCenter`),
+- наблюдение транзакций и покупок (`IAPService`, `IAPObserver`),
+- состояние Premium.
+
+---
+
+## Диплинки
+
+Поддерживаются ссылки:
+- `travelbuddy://map?lat=<lat>&lon=<lon>` — центрировать карту;
+- `travelbuddy://poi/<id>` — открыть деталь точки.
+
+Парсинг выполняет `DeepLinkParser`, бизнес-обработка — `DeepLinkService`.  
+Работает при холодном и горячем запуске приложения.
+
+### Центр карты
+- `travelbuddy://map?lat=48.8584&lon=2.2945` — центр на Eiffel Tower  
+- `travelbuddy://map?lat=48.8606&lon=2.3376` — центр на Louvre Museum  
+- `travelbuddy://map?lat=48.8867&lon=2.3431` — центр на Sacré-Cœur Basilica  
+
+### Открыть POI
+- `travelbuddy://poi/1` — Eiffel Tower (Monument)  
+- `travelbuddy://poi/2` — Louvre Museum (Museum)  
+- `travelbuddy://poi/3` — Cafe de Flore (Cafe)  
+- `travelbuddy://poi/18` — Café Marly (последний элемент списка)  
+
+### Невалидные
+- `travelbuddy://poi/999` — несуществующий POI  
+- `travelbuddy://map?lat=abc&lon=123` — некорректные координаты  
+- `travelbuddy://unknown` — неизвестный хост  
+
+
+---
+
+## Локализация и дизайн
+
+- **L10n** — типобезопасный хелпер для `NSLocalizedString`, поддерживает формат с параметрами.  
+- **DesignTokens** — цвета, шрифты и отступы с учётом Dark Mode и масштабирования.
+
+---
+
+## Тесты и CI
+
+- **UI Snapshot-тесты**: `TravelBuddySnapshotUITests` с `SnapshotHelper.swift` (Onboarding → Places → Detail → Map → Settings).  
+- **UI Launch-тесты**: `TravelBuddyUITests`, `TravelBuddyUITestsLaunchTests`.  
+- **CI**: GitHub Actions — сборка, юнит-тесты, снапшоты через fastlane.
+
+Базовое покрытие тестами ≈ 28 %. Критичные модули (Repository, ViewModel) — до 60 %.
+
+---
+
+## Фича-флаги
+
+Настраиваются в `AppConfig.makeDefault()`:
+
+| Флаг | Назначение | По умолчанию |
+|------|-------------|--------------|
+| `enableDebugLogs` | логирование отладочных событий | false |
+| `useAlamofireClient` | альтернативный сетевой клиент (POC) | false |
+| `showBLETab` | вкладка со сканером BLE-устройств | false |
+| `enableAudioGuide` | экспериментальный аудиогид (AVFoundation) | false |
+
+---
+
+## Запуск проекта
+
+1. Открыть `TravelBuddy.xcodeproj` в Xcode 15+.
+2. Выбрать схему **TravelBuddy**, запустить на симуляторе.
+3. Для проверки диплинков:  
+   `xcrun simctl openurl booted "travelbuddy://map?lat=55.75&lon=37.61"`
+4. Чтобы пересмотреть онбординг — удалить приложение или сбросить ключ `hasCompletedOnboarding` в `UserDefaults`.
+
+---
+
+## Структура проекта
+
+TravelBuddy/
+├─ App/
+│ ├─ AppCoordinator, AppRouter, SceneDelegate, AppDelegate
+│ ├─ DeepLinkService / DeepLinkParser
+│ ├─ DIContainer (Swinject)
+│ └─ AppConfig
+│
+├─ Presentation/
+│ ├─ POIList/
+│ ├─ POIDetail/
+│ ├─ POIMap/
+│ ├─ Onboarding/
+│ ├─ Settings/
+│ ├─ MapContainer / MapViewRepresentable
+│ └─ общие компоненты UI
+│
+├─ Domain/
+│ ├─ POI.swift
+│ ├─ POICategoryFilter.swift
+│ ├─ POIServiceProtocol.swift
+│ └─ POICacheProtocol.swift
+│
+├─ Infrastructure/
+│ ├─ HTTPClient.swift
+│ ├─ RemotePOIService.swift / LocalPOIService.swift
+│ ├─ POIRepository.swift / RealmPOICache.swift
+│ ├─ IAPService.swift / IAPObserver.swift
+│ ├─ NotificationService.swift / AnalyticsService.swift
+│ └─ вспомогательные источники данных
+│
+├─ Core/
+│ ├─ DesignTokens.swift
+│ ├─ L10n.swift
+│ └─ расширения и утилиты
+│
+├─ Resources/
+│ ├─ Localizable.strings
+│ ├─ Assets.xcassets
+│ └─ Mocks/
+│
+└─ Tests/
+├─ TravelBuddySnapshotUITests/
+├─ TravelBuddyUITests/
+└─ SnapshotHelper.swift
+
+
+---
+
+## Автор
+
+**Niiaz Khasanov**  
+iOS Developer  
+Swift 5 | Combine | SwiftUI | UIKit | Swinject | Clean Architecture  
 //
 //  HTTPClient.swift
 //  TravelBuddy
@@ -2001,6 +2266,29 @@ public enum PushCategoryFactory {
     }
 }
 //
+//  NoopPushService.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 10/6/25.
+//
+
+
+
+import Foundation
+
+@MainActor
+final class NoopPushService: PushServiceProtocol {
+    var apnsDeviceTokenHex: String? = nil
+    var presentInForeground: Bool = false
+
+    func getPermissionStatus() async -> PushPermissionStatus { .denied }
+    func requestPermission(options: PushOptions) async -> Bool { false }
+    func registerForRemoteNotifications() {}
+    func setDeviceToken(_ token: Data) {}
+    func scheduleLocal(title: String, body: String, after seconds: TimeInterval) async throws {}
+    func registerCategories() {}
+}
+//
 //  PushPayload.swift
 //  TravelBuddy
 //
@@ -2384,30 +2672,77 @@ public struct SettingsView<VM: SettingsViewModelProtocol>: View {
     public var body: some View {
         NavigationView {
             Form {
-                // Dark Mode
-                Toggle(L10n.settingsDarkMode, isOn: Binding(
-                    get:  { vm.isDarkMode },
-                    set:  { vm.setDarkMode($0) }
-                ))
-                .accessibilityIdentifier("settings.darkmode.toggle")
-
-                // Notifications
-                Toggle(L10n.settingsNotifications, isOn: Binding(
-                    get:  { vm.notificationsEnabled },
-                    set:  { vm.setNotifications($0) }
-                ))
-                .accessibilityIdentifier("settings.notifications.toggle")
-
-                // Premium
-                Button(action: { vm.purchasePremium() }) {
-                    Text(vm.premiumUnlocked
-                         ? L10n.settingsPremiumUnlocked
-                         : L10n.settingsPremiumUnlock)
+                // MARK: - Appearance
+                Section {
+                    Toggle(L10n.settingsDarkMode, isOn: Binding(
+                        get:  { vm.isDarkMode },
+                        set:  { vm.setDarkMode($0) }
+                    ))
+                    .accessibilityIdentifier("settings.darkmode.toggle")
                 }
-                .disabled(vm.premiumUnlocked)
-                .accessibilityIdentifier("settings.premium.button")
+
+                // MARK: - Local Notifications (как было)
+                Section {
+                    Toggle(L10n.settingsNotifications, isOn: Binding(
+                        get:  { vm.notificationsEnabled },
+                        set:  { vm.setNotifications($0) }
+                    ))
+                    .accessibilityIdentifier("settings.notifications.toggle")
+                }
+
+                // MARK: - APNs / Push (НОВОЕ)
+                Section(header: Text("Push Notifications")) {
+                    HStack {
+                        Text("Permission")
+                        Spacer()
+                        Text(vm.pushPermissionText).foregroundStyle(.secondary)
+                    }
+
+                    Toggle("Show banner in Foreground", isOn: Binding(
+                        get: { vm.presentInForeground },
+                        set: { vm.setPresentInForeground($0) }
+                    ))
+
+                    if let token = vm.apnsToken, !token.isEmpty {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("APNs Device Token")
+                                .font(.subheadline.weight(.semibold))
+                            Text(token)
+                                .font(.footnote)
+                                .textSelection(.enabled)
+                                .lineLimit(3)
+                        }
+                        .padding(.vertical, 4)
+                    } else {
+                        Text("APNs token is not available yet.")
+                            .foregroundStyle(.secondary)
+                            .font(.footnote)
+                    }
+
+                    Button("Request Permission") {
+                        Task { await vm.requestPushPermission() }
+                    }
+                    Button("Register for Remote Notifications") {
+                        vm.registerForRemoteNotifications()
+                    }
+                    Button("Schedule Local Test") {
+                        Task { await vm.scheduleLocalPushTest() }
+                    }
+                }
+
+                // MARK: - Premium (как было)
+                Section {
+                    Button(action: { vm.purchasePremium() }) {
+                        Text(vm.premiumUnlocked
+                             ? L10n.settingsPremiumUnlocked
+                             : L10n.settingsPremiumUnlock)
+                    }
+                    .disabled(vm.premiumUnlocked)
+                    .accessibilityIdentifier("settings.premium.button")
+                }
             }
             .navigationTitle(L10n.navSettingsTitle)
+            .task { await vm.refreshPush() } // подтянем статус/токен при открытии
             .alert(item: Binding(
                 get: { vm.errorMessage.map { AlertError(message: $0) } },
                 set: { _ in vm.clearError() }
@@ -2440,19 +2775,28 @@ import SwiftUI
 public protocol SettingsViewModelProtocol: ObservableObject {
     var objectWillChange: ObservableObjectPublisher { get }
     
+    // БЫЛО
     var isDarkMode: Bool { get }
     var notificationsEnabled: Bool { get }
     var premiumUnlocked: Bool { get }
     var errorMessage: String? { get }
-    
     func setDarkMode(_ isOn: Bool)
     func setNotifications(_ isOn: Bool)
-    
     func purchasePremium()
     func clearError()
+
+    // ► НОВОЕ: APNs/Push
+    var pushPermissionText: String { get }
+    var apnsToken: String? { get }
+    var presentInForeground: Bool { get }
+    @MainActor func refreshPush() async
+    @MainActor func requestPushPermission() async
+    @MainActor func scheduleLocalPushTest() async
+    func registerForRemoteNotifications()
+    func setPresentInForeground(_ isOn: Bool)
 }
 
-
+@MainActor
 public final class SettingsViewModel: SettingsViewModelProtocol {
     public let objectWillChange = ObservableObjectPublisher()
     
@@ -2461,23 +2805,39 @@ public final class SettingsViewModel: SettingsViewModelProtocol {
         static let notificationsEnabled = "settings.notificationsEnabled"
     }
     
+    // MARK: — Public state (старое)
     @Published public private(set) var isDarkMode = UserDefaults.standard.bool(forKey: Keys.darkMode)
     @Published public private(set) var notificationsEnabled = UserDefaults.standard.bool(forKey: Keys.notificationsEnabled)
     @Published public private(set) var premiumUnlocked = false
     @Published public private(set) var errorMessage: String?
     
+    // MARK: — Новое: push/APNs
+    @Published private var pushPermission: PushPermissionStatus = .notDetermined
+    @Published public private(set) var apnsToken: String?
+    @Published public private(set) var presentInForeground: Bool = true
+
+    // MARK: — Deps
     private let iapService: IAPServiceProtocol
     private let analytics: AnalyticsServiceProtocol
     private let notification: NotificationServiceProtocol
+    private let push: PushServiceProtocol?   // <-- теперь приходит из DI
+
     private var bag = Set<AnyCancellable>()
     
     public init(iapService: IAPServiceProtocol,
                 analytics: AnalyticsServiceProtocol,
-                notification: NotificationServiceProtocol) {
+                notification: NotificationServiceProtocol,
+                push: PushServiceProtocol?) {
         self.iapService = iapService
         self.analytics  = analytics
         self.notification = notification
+        self.push = push
+
+        // стартовая синхронизация push-состояния
+        self.apnsToken = push?.apnsDeviceTokenHex
+        self.presentInForeground = push?.presentInForeground ?? self.presentInForeground
         
+        // Premium entitlement (как было)
         iapService.readCurrentPremiumEntitlement()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] has in self?.premiumUnlocked = has }
@@ -2490,6 +2850,7 @@ public final class SettingsViewModel: SettingsViewModelProtocol {
             .store(in: &bag)
     }
     
+    // MARK: — Settings (старое)
     public func setDarkMode(_ isOn: Bool) {
         guard isDarkMode != isOn else { return }
         isDarkMode = isOn
@@ -2506,7 +2867,7 @@ public final class SettingsViewModel: SettingsViewModelProtocol {
             notification.requestAuthorization().sink { _ in }.store(in: &bag)
         }
     }
-    // — остальной код IAP без изменений
+
     public func purchasePremium() {
         errorMessage = nil
         
@@ -2533,13 +2894,67 @@ public final class SettingsViewModel: SettingsViewModelProtocol {
     }
     
     public func clearError() { errorMessage = nil }
+
+    // MARK: — Push/APNs
+    public var pushPermissionText: String {
+        switch pushPermission {
+        case .notDetermined: return "Not Determined"
+        case .denied:        return "Denied"
+        case .authorized:    return "Authorized"
+        case .provisional:   return "Provisional"
+        case .ephemeral:     return "Ephemeral"
+        }
+    }
+
+    @MainActor
+    public func refreshPush() async {
+        guard let push else { return }
+        pushPermission      = await push.getPermissionStatus()
+        apnsToken           = push.apnsDeviceTokenHex
+        presentInForeground = push.presentInForeground
+        objectWillChange.send()
+    }
+
+    @MainActor
+    public func requestPushPermission() async {
+        guard let push else { return }
+        _ = await push.requestPermission(options: .all)
+        await refreshPush()
+    }
+
+    public func registerForRemoteNotifications() {
+        push?.registerForRemoteNotifications()
+        apnsToken = push?.apnsDeviceTokenHex
+        objectWillChange.send()
+    }
+
+    @MainActor
+    public func scheduleLocalPushTest() async {
+        guard let push else { return }
+        do {
+            try await push.scheduleLocal(
+                title: "Local notification",
+                body: "This is a local test notification.",
+                after: 2
+            )
+        } catch {
+            errorMessage = error.localizedDescription
+            objectWillChange.send()
+        }
+    }
+
+    public func setPresentInForeground(_ isOn: Bool) {
+        presentInForeground = isOn
+        push?.presentInForeground = isOn
+        objectWillChange.send()
+    }
 }
 //
 //  AnySettingsViewModel.swift
 //  TravelBuddy
 //
 //  Created by Niiaz Khasanov on 6/24/25.
-
+//
 
 import Combine
 import StoreKit
@@ -2549,18 +2964,26 @@ final class AnySettingsViewModel: ObservableObject, SettingsViewModelProtocol {
     private let wrapped: any SettingsViewModelProtocol
     private var cancellables = Set<AnyCancellable>()
 
+    // MARK: - SettingsViewModelProtocol
     let objectWillChange = ObservableObjectPublisher()
 
+    // Старые поля
     @Published private(set) var isDarkMode: Bool = false
     @Published private(set) var notificationsEnabled: Bool = false
     @Published private(set) var premiumUnlocked: Bool = false
     @Published private(set) var errorMessage: String?
 
+    // Новые поля (Push / APNs)
+    @Published private(set) var pushPermissionText: String = "Not Determined"
+    @Published private(set) var apnsToken: String?
+    @Published private(set) var presentInForeground: Bool = true
+
+    // MARK: - Init
     init(_ wrapped: any SettingsViewModelProtocol) {
         self.wrapped = wrapped
 
-        // Важно: objectWillChange у wrapped — это willSet.
-        // Синхронизируемся на следующий runloop-так, чтобы читать уже обновлённые значения.
+        // Важно: objectWillChange у wrapped — willSet.
+        // Синхронизируемся на следующий runloop-такт, чтобы читать уже обновлённые значения.
         wrapped.objectWillChange
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
@@ -2575,17 +2998,25 @@ final class AnySettingsViewModel: ObservableObject, SettingsViewModelProtocol {
         syncProperties()
     }
 
+    // MARK: - Private
     private func syncProperties() {
+        // Старые
         isDarkMode = wrapped.isDarkMode
         notificationsEnabled = wrapped.notificationsEnabled
         premiumUnlocked = wrapped.premiumUnlocked
         errorMessage = wrapped.errorMessage
+
+        // Новые (Push)
+        pushPermissionText = wrapped.pushPermissionText
+        apnsToken = wrapped.apnsToken
+        presentInForeground = wrapped.presentInForeground
     }
 
+    // MARK: - Settings (старое API)
     func setDarkMode(_ isOn: Bool) {
         if isDarkMode != isOn {
             isDarkMode = isOn          // мгновенно для SwiftUI
-            objectWillChange.send()    // на случай, если где-то нужен немедленный импульс
+            objectWillChange.send()
         }
         wrapped.setDarkMode(isOn)      // источник истины
     }
@@ -2600,6 +3031,44 @@ final class AnySettingsViewModel: ObservableObject, SettingsViewModelProtocol {
 
     func purchasePremium() { wrapped.purchasePremium() }
     func clearError()      { wrapped.clearError() }
+
+    // MARK: - Push / APNs (новое API)
+    @MainActor
+    func refreshPush() async {
+        await wrapped.refreshPush()
+        // wrapped дернул свои паблишеры → прилетит через objectWillChange,
+        // но синхронизируемся на всякий случай сразу:
+        syncProperties()
+        objectWillChange.send()
+    }
+
+    @MainActor
+    func requestPushPermission() async {
+        await wrapped.requestPushPermission()
+        syncProperties()
+        objectWillChange.send()
+    }
+
+    @MainActor
+    func scheduleLocalPushTest() async {
+        await wrapped.scheduleLocalPushTest()
+        syncProperties()
+        objectWillChange.send()
+    }
+
+    func registerForRemoteNotifications() {
+        wrapped.registerForRemoteNotifications()
+        syncProperties()
+        objectWillChange.send()
+    }
+
+    func setPresentInForeground(_ isOn: Bool) {
+        if presentInForeground != isOn {
+            presentInForeground = isOn  // мгновенно в UI
+            objectWillChange.send()
+        }
+        wrapped.setPresentInForeground(isOn)
+    }
 }
 //
 //  POIDetailViewModelProtocol.swift
@@ -2912,6 +3381,7 @@ public struct POIDetailView: View {
           Image(systemName: "xmark.circle.fill")
             .font(.title2)
         }
+        .accessibilityIdentifier("detail.close")
       }
 
       Text(vm.model.poi.name).font(.largeTitle)
@@ -4269,3 +4739,639 @@ public struct OnboardingView<VM: OnboardingViewModelProtocol>: View {
         .animation(.spring(response: 0.5, dampingFraction: 0.7), value: vm.currentPage)
     }
 }
+# Autogenerated by fastlane
+#
+# Ensure this file is checked in to source control!
+
+gem 'fastlane-plugin-appicon'
+app_identifier("niiazkhasanov.TravelBuddy") # поменяй на свой bundle id при необходимости
+apple_id("niyaz.khasanov@gmail.com")     # не обязателен, если не выгружаешь в TestFlight
+# fastlane/Fastfile
+default_platform(:ios)
+
+platform :ios do
+  desc "UI Snapshots on simulator"
+  lane :snapshots do
+    # ⛑️ Увеличим время ожидания получения build settings (у тебя тут таймаутило)
+    ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "180" # сек
+    ENV["FASTLANE_XCODEBUILD_SETTINGS_RETRIES"] = "2"
+
+    # Абсолютный путь к .xcodeproj (так надежнее, т.к. Fastfile лежит в fastlane/)
+    project_path = File.expand_path("../TravelBuddy.xcodeproj", __dir__)
+
+    # 1) Прогреть SPM (в CI это ускоряет snapshot, локально тоже полезно)
+    sh %(
+      xcodebuild -resolvePackageDependencies \
+        -project "#{project_path}" \
+        -onlyUsePackageVersionsFromResolvedFile \
+        -disableAutomaticPackageResolution
+    )
+
+    # 2) Снимки — запускаем ТОЛЬКО наш класс снапшотов
+    snapshot(
+      project: project_path,
+      scheme:  "TravelBuddy",
+
+      # Запускаем только нужный класс/таргет UI-тестов
+      test_target_name: "TravelBuddyUITests",
+      only_testing:     ["TravelBuddyUITests/TravelBuddySnapshotUITests"],
+
+      # Вывод/артефакты
+      output_directory: "fastlane/screenshots",
+      derived_data_path: "fastlane/DerivedData",
+      result_bundle: false,          # чтобы ретраи не падали на "Existing file at -resultBundlePath"
+      number_of_retries: 0,
+      xcodebuild_formatter: "xcbeautify",
+
+      # Сборка/симулятор
+      reinstall_app: true,           # каждый прогон — чистое приложение (но без wipe DerivedData)
+      clean: false,
+      erase_simulator: false,
+      concurrent_simulators: false,
+      headless: true,
+      override_status_bar: true,
+
+      # SPM
+      skip_package_dependencies_resolution: true,
+      disable_package_automatic_updates: true,
+
+      # Флаги в приложение — включаем режим UI-тестов и локальные данные
+      launch_arguments: ["-uiTesting", "1", "-uiMockData", "1"]
+    )
+  end
+end
+fastlane documentation
+----
+
+# Installation
+
+Make sure you have the latest version of the Xcode command line tools installed:
+
+```sh
+xcode-select --install
+```
+
+For _fastlane_ installation instructions, see [Installing _fastlane_](https://docs.fastlane.tools/#installing-fastlane)
+
+# Available Actions
+
+## iOS
+
+### ios lint
+
+```sh
+[bundle exec] fastlane ios lint
+```
+
+Run SwiftLint
+
+### ios build_debug
+
+```sh
+[bundle exec] fastlane ios build_debug
+```
+
+Build Debug (simulator)
+
+### ios archive_release
+
+```sh
+[bundle exec] fastlane ios archive_release
+```
+
+Archive Release (device)
+
+### ios export_ipa
+
+```sh
+[bundle exec] fastlane ios export_ipa
+```
+
+Export IPA (ad-hoc)
+
+### ios snapshots
+
+```sh
+[bundle exec] fastlane ios snapshots
+```
+
+Run UI snapshots via fastlane snapshot
+
+### ios ci
+
+```sh
+[bundle exec] fastlane ios ci
+```
+
+CI lane
+
+----
+
+This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.
+
+More information about _fastlane_ can be found on [fastlane.tools](https://fastlane.tools).
+
+The documentation of _fastlane_ can be found on [docs.fastlane.tools](https://docs.fastlane.tools).
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="fastlane.lanes">
+    
+    
+    
+      
+      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000187">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="1: clear_derived_data" time="6.327153">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="2: snapshot" time="148.061438">
+        
+          <failure message="/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/actions/actions_helper.rb:67:in `execute_action&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:255:in `block in execute_action&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:229:in `chdir&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:229:in `execute_action&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:157:in `trigger_action_by_name&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/fast_file.rb:159:in `method_missing&apos;&#10;Fastfile:41:in `block (2 levels) in parsing_binding&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/lane.rb:41:in `call&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:49:in `block in execute&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:45:in `chdir&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:45:in `execute&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/lane_manager.rb:46:in `cruise_lane&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/command_line_handler.rb:34:in `handle&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/commands_generator.rb:110:in `block (2 levels) in run&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/commander-4.6.0/lib/commander/command.rb:187:in `call&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/commander-4.6.0/lib/commander/command.rb:157:in `run&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/commander-4.6.0/lib/commander/runner.rb:444:in `run_active_command&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane_core/lib/fastlane_core/ui/fastlane_runner.rb:124:in `run!&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/commander-4.6.0/lib/commander/delegates.rb:18:in `run!&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/commands_generator.rb:363:in `run&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/commands_generator.rb:43:in `start&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/fastlane/lib/fastlane/cli_tools_distributor.rb:123:in `take_off&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/fastlane-2.228.0/bin/fastlane:23:in `&lt;top (required)&gt;&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/bin/fastlane:25:in `load&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/bin/fastlane:25:in `&lt;top (required)&gt;&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/cli/exec.rb:59:in `load&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/cli/exec.rb:59:in `kernel_load&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/cli/exec.rb:23:in `run&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/cli.rb:452:in `exec&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/vendor/thor/lib/thor/command.rb:28:in `run&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/vendor/thor/lib/thor/invocation.rb:127:in `invoke_command&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/vendor/thor/lib/thor.rb:538:in `dispatch&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/cli.rb:35:in `dispatch&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/vendor/thor/lib/thor/base.rb:584:in `start&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/cli.rb:29:in `start&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/exe/bundle:28:in `block in &lt;top (required)&gt;&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/lib/bundler/friendly_errors.rb:117:in `with_friendly_errors&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/bundler-2.6.9/exe/bundle:20:in `&lt;top (required)&gt;&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/bin/bundle:25:in `load&apos;&#10;/Users/nkhsnv/.rbenv/versions/3.2.2/bin/bundle:25:in `&lt;main&gt;&apos;&#10;&#10;Exit status: 74" />
+        
+      </testcase>
+    
+  </testsuite>
+</testsuites>
+# fastlane/Snapfile
+project "./TravelBuddy.xcodeproj"
+scheme "TravelBuddy"
+
+# Минимальная матрица для стабильности и скорости
+devices(["iPhone 16 Pro"])
+languages(["en-US"])
+
+output_directory "fastlane/screenshots"
+derived_data_path "fastlane/DerivedData"
+
+reinstall_app true
+erase_simulator false
+concurrent_simulators false
+headless true
+override_status_bar true
+
+# Передаём флаги в приложение (см. AppFlags)
+launch_arguments ["-uiTesting", "1", "-uiMockData", "1"]
+
+# Оптимизация по SPM
+skip_package_dependencies_resolution true
+disable_package_automatic_updates true
+
+# Без ретраев и без result bundle — меньше шансов упасть по артефактам
+result_bundle false
+number_of_retries 0
+
+xcodebuild_formatter "xcbeautify"
+name: iOS CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # build:
+  #   name: Build + Lint
+  #   runs-on: macos-15
+  #   timeout-minutes: 60
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Select Xcode
+  #       run: |
+  #         XCODE="/Applications/Xcode.app"
+  #         sudo xcode-select -s "$XCODE"
+  #         xcodebuild -version
+  #     - name: Cache Ruby gems
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: vendor/bundle
+  #         key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-gems-
+  #     - name: Setup Ruby
+  #       uses: ruby/setup-ruby@v1
+  #       with:
+  #         ruby-version: '3.2'
+  #         bundler-cache: true
+  #     - name: Install Bundler deps
+  #       run: bundle install --path vendor/bundle
+  #     - name: Install SwiftLint
+  #       run: brew install swiftlint || true
+  #     - name: Install xcpretty
+  #       run: gem install xcpretty
+  #     - name: Lint
+  #       run: swiftlint
+  #     - name: Build (Debug, simulator)
+  #       run: |
+  #         set -e
+  #         xcodebuild \
+  #           -scheme TravelBuddy \
+  #           -sdk iphonesimulator \
+  #           -configuration Debug \
+  #           -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  #           -skipPackagePluginValidation \
+  #           -skipMacroValidation \
+  #           clean build | xcpretty
+  #       env:
+  #         NSUnbufferedIO: YES
+  #     - name: Archive (Release, device)
+  #       run: |
+  #         xcodebuild \
+  #           -scheme TravelBuddy \
+  #           -configuration Release \
+  #           -sdk iphoneos \
+  #           -archivePath build/TravelBuddy.xcarchive \
+  #           -skipPackagePluginValidation \
+  #           -skipMacroValidation \
+  #           archive | xcpretty
+  #     - name: Export .ipa (ad-hoc)
+  #       if: ${{ always() }}
+  #       run: |
+  #         cat > ExportOptions.plist <<'PLIST'
+  #         <?xml version="1.0" encoding="UTF-8"?>
+  #         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+  #         <plist version="1.0">
+  #         <dict>
+  #           <key>method</key><string>ad-hoc</string>
+  #           <key>signingStyle</key><string>automatic</string>
+  #           <key>compileBitcode</key><false/>
+  #           <key>destination</key><string>export</string>
+  #           <key>stripSwiftSymbols</key><true/>
+  #         </dict>
+  #         </plist>
+  #         PLIST
+  #         if [ -d "build/TravelBuddy.xcarchive" ]; then
+  #           xcodebuild -exportArchive \
+  #             -archivePath build/TravelBuddy.xcarchive \
+  #             -exportOptionsPlist ExportOptions.plist \
+  #             -exportPath build/export | xcpretty
+  #         else
+  #           echo "Archive not found, skipping export."
+  #         fi
+  #       continue-on-error: true
+  #     - name: Upload artifacts
+  #       if: ${{ always() }}
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: build-artifacts
+  #         path: |
+  #           build/TravelBuddy.xcarchive
+  #           build/export/*.ipa
+  #           fastlane/logs
+
+  snapshots:
+    name: UI Snapshots (fastlane)
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          XCODE="/Applications/Xcode.app"
+          sudo xcode-select -s "$XCODE"
+          xcodebuild -version
+
+      - name: Cache Ruby gems
+        uses: actions/cache@v4
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Install Bundler deps
+        run: bundle install --path vendor/bundle
+
+      - name: List simulators (debug)
+        run: xcrun simctl list devices
+
+      # >>> КЭШ SwiftPM — максимальный профит по времени
+      - name: Cache SwiftPM
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            ~/Library/Developer/Xcode/PackageCaches
+            ~/.swiftpm
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      # Прогреваем резолвинг пакетов (возьмёт из кэша)
+      - name: Resolve SPM
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project ./TravelBuddy.xcodeproj \
+            -onlyUsePackageVersionsFromResolvedFile \
+            -disableAutomaticPackageResolution
+
+      - name: Run fastlane snapshots
+        env:
+          FASTLANE_SNAPSHOT: "YES"
+          LC_ALL: en_US.UTF-8
+          LANG: en_US.UTF-8
+          FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: "180"  # ⬅️ синхронно с Fastfile
+          FASTLANE_XCODEBUILD_SETTINGS_RETRIES: "2"
+        run: bundle exec fastlane snapshots
+
+      - name: Upload screenshots
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-screenshots
+          path: fastlane/screenshots
+source "https://rubygems.org"
+
+gem "fastlane"
+gem "xcpretty"
+GEM
+  remote: https://rubygems.org/
+  specs:
+    CFPropertyList (3.0.7)
+      base64
+      nkf
+      rexml
+    addressable (2.8.7)
+      public_suffix (>= 2.0.2, < 7.0)
+    artifactory (3.0.17)
+    atomos (0.1.3)
+    aws-eventstream (1.4.0)
+    aws-partitions (1.1120.0)
+    aws-sdk-core (3.226.1)
+      aws-eventstream (~> 1, >= 1.3.0)
+      aws-partitions (~> 1, >= 1.992.0)
+      aws-sigv4 (~> 1.9)
+      base64
+      jmespath (~> 1, >= 1.6.1)
+      logger
+    aws-sdk-kms (1.105.0)
+      aws-sdk-core (~> 3, >= 3.225.0)
+      aws-sigv4 (~> 1.5)
+    aws-sdk-s3 (1.191.0)
+      aws-sdk-core (~> 3, >= 3.225.0)
+      aws-sdk-kms (~> 1)
+      aws-sigv4 (~> 1.5)
+    aws-sigv4 (1.12.1)
+      aws-eventstream (~> 1, >= 1.0.2)
+    babosa (1.0.4)
+    base64 (0.3.0)
+    claide (1.1.0)
+    colored (1.2)
+    colored2 (3.1.2)
+    commander (4.6.0)
+      highline (~> 2.0.0)
+    declarative (0.0.20)
+    digest-crc (0.7.0)
+      rake (>= 12.0.0, < 14.0.0)
+    domain_name (0.6.20240107)
+    dotenv (2.8.1)
+    emoji_regex (3.2.3)
+    excon (0.112.0)
+    faraday (1.10.4)
+      faraday-em_http (~> 1.0)
+      faraday-em_synchrony (~> 1.0)
+      faraday-excon (~> 1.1)
+      faraday-httpclient (~> 1.0)
+      faraday-multipart (~> 1.0)
+      faraday-net_http (~> 1.0)
+      faraday-net_http_persistent (~> 1.0)
+      faraday-patron (~> 1.0)
+      faraday-rack (~> 1.0)
+      faraday-retry (~> 1.0)
+      ruby2_keywords (>= 0.0.4)
+    faraday-cookie_jar (0.0.7)
+      faraday (>= 0.8.0)
+      http-cookie (~> 1.0.0)
+    faraday-em_http (1.0.0)
+    faraday-em_synchrony (1.0.1)
+    faraday-excon (1.1.0)
+    faraday-httpclient (1.0.1)
+    faraday-multipart (1.1.1)
+      multipart-post (~> 2.0)
+    faraday-net_http (1.0.2)
+    faraday-net_http_persistent (1.2.0)
+    faraday-patron (1.0.0)
+    faraday-rack (1.0.0)
+    faraday-retry (1.0.3)
+    faraday_middleware (1.2.1)
+      faraday (~> 1.0)
+    fastimage (2.4.0)
+    fastlane (2.228.0)
+      CFPropertyList (>= 2.3, < 4.0.0)
+      addressable (>= 2.8, < 3.0.0)
+      artifactory (~> 3.0)
+      aws-sdk-s3 (~> 1.0)
+      babosa (>= 1.0.3, < 2.0.0)
+      bundler (>= 1.12.0, < 3.0.0)
+      colored (~> 1.2)
+      commander (~> 4.6)
+      dotenv (>= 2.1.1, < 3.0.0)
+      emoji_regex (>= 0.1, < 4.0)
+      excon (>= 0.71.0, < 1.0.0)
+      faraday (~> 1.0)
+      faraday-cookie_jar (~> 0.0.6)
+      faraday_middleware (~> 1.0)
+      fastimage (>= 2.1.0, < 3.0.0)
+      fastlane-sirp (>= 1.0.0)
+      gh_inspector (>= 1.1.2, < 2.0.0)
+      google-apis-androidpublisher_v3 (~> 0.3)
+      google-apis-playcustomapp_v1 (~> 0.1)
+      google-cloud-env (>= 1.6.0, < 2.0.0)
+      google-cloud-storage (~> 1.31)
+      highline (~> 2.0)
+      http-cookie (~> 1.0.5)
+      json (< 3.0.0)
+      jwt (>= 2.1.0, < 3)
+      mini_magick (>= 4.9.4, < 5.0.0)
+      multipart-post (>= 2.0.0, < 3.0.0)
+      naturally (~> 2.2)
+      optparse (>= 0.1.1, < 1.0.0)
+      plist (>= 3.1.0, < 4.0.0)
+      rubyzip (>= 2.0.0, < 3.0.0)
+      security (= 0.1.5)
+      simctl (~> 1.6.3)
+      terminal-notifier (>= 2.0.0, < 3.0.0)
+      terminal-table (~> 3)
+      tty-screen (>= 0.6.3, < 1.0.0)
+      tty-spinner (>= 0.8.0, < 1.0.0)
+      word_wrap (~> 1.0.0)
+      xcodeproj (>= 1.13.0, < 2.0.0)
+      xcpretty (~> 0.4.1)
+      xcpretty-travis-formatter (>= 0.0.3, < 2.0.0)
+    fastlane-sirp (1.0.0)
+      sysrandom (~> 1.0)
+    gh_inspector (1.1.3)
+    google-apis-androidpublisher_v3 (0.54.0)
+      google-apis-core (>= 0.11.0, < 2.a)
+    google-apis-core (0.11.3)
+      addressable (~> 2.5, >= 2.5.1)
+      googleauth (>= 0.16.2, < 2.a)
+      httpclient (>= 2.8.1, < 3.a)
+      mini_mime (~> 1.0)
+      representable (~> 3.0)
+      retriable (>= 2.0, < 4.a)
+      rexml
+    google-apis-iamcredentials_v1 (0.17.0)
+      google-apis-core (>= 0.11.0, < 2.a)
+    google-apis-playcustomapp_v1 (0.13.0)
+      google-apis-core (>= 0.11.0, < 2.a)
+    google-apis-storage_v1 (0.31.0)
+      google-apis-core (>= 0.11.0, < 2.a)
+    google-cloud-core (1.8.0)
+      google-cloud-env (>= 1.0, < 3.a)
+      google-cloud-errors (~> 1.0)
+    google-cloud-env (1.6.0)
+      faraday (>= 0.17.3, < 3.0)
+    google-cloud-errors (1.5.0)
+    google-cloud-storage (1.47.0)
+      addressable (~> 2.8)
+      digest-crc (~> 0.4)
+      google-apis-iamcredentials_v1 (~> 0.1)
+      google-apis-storage_v1 (~> 0.31.0)
+      google-cloud-core (~> 1.6)
+      googleauth (>= 0.16.2, < 2.a)
+      mini_mime (~> 1.0)
+    googleauth (1.8.1)
+      faraday (>= 0.17.3, < 3.a)
+      jwt (>= 1.4, < 3.0)
+      multi_json (~> 1.11)
+      os (>= 0.9, < 2.0)
+      signet (>= 0.16, < 2.a)
+    highline (2.0.3)
+    http-cookie (1.0.8)
+      domain_name (~> 0.5)
+    httpclient (2.9.0)
+      mutex_m
+    jmespath (1.6.2)
+    json (2.12.2)
+    jwt (2.10.1)
+      base64
+    logger (1.7.0)
+    mini_magick (4.13.2)
+    mini_mime (1.1.5)
+    multi_json (1.15.0)
+    multipart-post (2.4.1)
+    mutex_m (0.3.0)
+    nanaimo (0.4.0)
+    naturally (2.3.0)
+    nkf (0.2.0)
+    optparse (0.6.0)
+    os (1.1.4)
+    plist (3.7.2)
+    public_suffix (6.0.2)
+    rake (13.3.0)
+    representable (3.2.0)
+      declarative (< 0.1.0)
+      trailblazer-option (>= 0.1.1, < 0.2.0)
+      uber (< 0.2.0)
+    retriable (3.1.2)
+    rexml (3.4.1)
+    rouge (3.28.0)
+    ruby2_keywords (0.0.5)
+    rubyzip (2.4.1)
+    security (0.1.5)
+    signet (0.20.0)
+      addressable (~> 2.8)
+      faraday (>= 0.17.5, < 3.a)
+      jwt (>= 1.5, < 3.0)
+      multi_json (~> 1.10)
+    simctl (1.6.10)
+      CFPropertyList
+      naturally
+    sysrandom (1.0.5)
+    terminal-notifier (2.0.0)
+    terminal-table (3.0.2)
+      unicode-display_width (>= 1.1.1, < 3)
+    trailblazer-option (0.1.2)
+    tty-cursor (0.7.1)
+    tty-screen (0.8.2)
+    tty-spinner (0.9.3)
+      tty-cursor (~> 0.7)
+    uber (0.1.0)
+    unicode-display_width (2.6.0)
+    word_wrap (1.0.0)
+    xcodeproj (1.27.0)
+      CFPropertyList (>= 2.3.3, < 4.0)
+      atomos (~> 0.1.3)
+      claide (>= 1.0.2, < 2.0)
+      colored2 (~> 3.1)
+      nanaimo (~> 0.4.0)
+      rexml (>= 3.3.6, < 4.0)
+    xcpretty (0.4.1)
+      rouge (~> 3.28.0)
+    xcpretty-travis-formatter (1.0.1)
+      xcpretty (~> 0.2, >= 0.0.7)
+
+PLATFORMS
+  arm64-darwin-24
+  ruby
+
+DEPENDENCIES
+  fastlane
+  xcpretty
+
+BUNDLED WITH
+   2.6.9
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.niiaz.travelbuddy</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>travelbuddy</string>
+			</array>
+		</dict>
+	</array>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneConfigurationName</key>
+					<string>Default Configuration</string>
+					<key>UISceneDelegateClassName</key>
+					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+					<key>UISceneStoryboardFile</key>
+					<string>Main</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
+</dict>
+</plist>
