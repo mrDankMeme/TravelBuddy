@@ -286,50 +286,94 @@ SwiftUI + `MapViewRepresentable` (мост на MKMapView).
 ## Структура проекта
 
 TravelBuddy/
-├─ App/
-│  ├─ AppCoordinator, AppRouter, SceneDelegate, AppDelegate
-│  ├─ DeepLinkService / DeepLinkParser
-│  ├─ DIContainer (Swinject)
-│  └─ AppConfig
+
+├ App/
+
+│  ├ AppCoordinator, AppRouter, SceneDelegate, AppDelegate
+
+│  ├ DeepLinkService / DeepLinkParser
+
+│  ├ DIContainer (Swinject)
+
+│  └ AppConfig
+
 │
-├─ Presentation/
-│  ├─ POIList/
-│  ├─ POIDetail/
-│  ├─ POIMap/
-│  ├─ Onboarding/
-│  ├─ Settings/
-│  ├─ MapContainer / MapViewRepresentable
-│  └─ Общие UI-компоненты
+
+├ Presentation/
+
+│  ├ POIList/
+
+│  ├ POIDetail/
+
+│  ├ POIMap/
+
+│  ├ Onboarding/
+
+│  ├ Settings/
+
+│  ├ MapContainer / MapViewRepresentable
+
+│  └ Общие UI-компоненты
+
 │
-├─ Domain/
-│  ├─ POI.swift
-│  ├─ POICategoryFilter.swift
-│  ├─ POIServiceProtocol.swift
-│  └─ POICacheProtocol.swift
+
+├ Domain/
+
+│  ├ POI.swift
+
+│  ├ POICategoryFilter.swift
+
+│  ├ POIServiceProtocol.swift
+
+│  └ POICacheProtocol.swift
+
 │
-├─ Infrastructure/
-│  ├─ HTTPClient.swift
-│  ├─ RemotePOIService.swift / LocalPOIService.swift
-│  ├─ POIRepository.swift / RealmPOICache.swift
-│  ├─ IAPService.swift / IAPObserver.swift
-│  ├─ NotificationService.swift / AnalyticsService.swift
-│  ├─ PushService.swift / PushPayload.swift / PushCategoryFactory.swift
-│  └─ Вспомогательные источники данных
+
+├ Infrastructure/
+
+│  ├ HTTPClient.swift
+
+│  ├ RemotePOIService.swift / LocalPOIService.swift
+
+│  ├ POIRepository.swift / RealmPOICache.swift
+
+│  ├ IAPService.swift / IAPObserver.swift
+
+│  ├ NotificationService.swift / AnalyticsService.swift
+
+│  ├ PushService.swift / PushPayload.swift / PushCategoryFactory.swift
+
+│  └ Вспомогательные источники данных
+
 │
+
 ├─ Core/
-│  ├─ DesignTokens.swift
-│  ├─ L10n.swift
-│  └─ Расширения и утилиты
+
+│  ├ DesignTokens.swift
+
+│  ├ L10n.swift
+
+│  └ Расширения и утилиты
+
 │
-├─ Resources/
-│  ├─ Localizable.strings
-│  ├─ Assets.xcassets
-│  └─ Mocks/
+
+├ Resources/
+
+│  ├ Localizable.strings
+
+│  ├ Assets.xcassets
+
+│  └ Mocks/
+
 │
+
 └─ Tests/
-   ├─ TravelBuddySnapshotUITests/
-   ├─ TravelBuddyUITests/
-   └─ SnapshotHelper.swift
+
+   ├ TravelBuddySnapshotUITests/
+   
+   ├ TravelBuddyUITests/
+   
+   └ SnapshotHelper.swift
 
 
 ---
