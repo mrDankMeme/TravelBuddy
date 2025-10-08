@@ -13,6 +13,7 @@ TravelBuddy построен по принципам **Clean Architecture** и *
 Навигация управляется координаторами, а бизнес-логика отделена от инфраструктуры.
 
 App/
+
 ├ Presentation/ → View + ViewModel (Combine/async, Router/Coordinator)
 
 ├ Domain/       → контракты и модели (чистая логика)
