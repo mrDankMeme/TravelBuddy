@@ -103,19 +103,17 @@ jobs:
   #           build/TravelBuddy.xcarchive
   #           build/export/*.ipa
   #           fastlane/logs
-
   snapshots:
-    name: UI Snapshots (fastlane)
     runs-on: macos-15
     timeout-minutes: 60
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Select Xcode
+      - name: Select Xcode 16.4
         run: |
-          XCODE="/Applications/Xcode.app"
-          sudo xcode-select -s "$XCODE"
+          sudo xcode-select -s /Applications/Xcode_16.4.app
           xcodebuild -version
 
       - name: Cache Ruby gems
@@ -123,8 +121,7 @@ jobs:
         with:
           path: vendor/bundle
           key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-gems-
+          restore-keys: ${{ runner.os }}-gems-
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -132,44 +129,32 @@ jobs:
           ruby-version: '3.2'
           bundler-cache: true
 
-      - name: Install Bundler deps
+      - name: Install dependencies
         run: bundle install --path vendor/bundle
 
-      - name: List simulators (debug)
-        run: xcrun simctl list devices
-
-      # >>> КЭШ SwiftPM — максимальный профит по времени
-      - name: Cache SwiftPM
+      - name: Cache Swift Packages
         uses: actions/cache@v4
         with:
           path: |
-            ~/Library/Caches/org.swift.swiftpm
-            ~/Library/Developer/Xcode/PackageCaches
+            ~/Library/Developer/Xcode/DerivedData
             ~/.swiftpm
           key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
-          restore-keys: |
-            ${{ runner.os }}-spm-
 
-      # Прогреваем резолвинг пакетов (возьмёт из кэша)
-      - name: Resolve SPM
+      - name: Pre-resolve SPM
         run: |
           xcodebuild -resolvePackageDependencies \
-            -project ./TravelBuddy.xcodeproj \
+            -project TravelBuddy.xcodeproj \
             -onlyUsePackageVersionsFromResolvedFile \
             -disableAutomaticPackageResolution
 
-      - name: Run fastlane snapshots
+      - name: Run UI Snapshots
         env:
-          FASTLANE_SNAPSHOT: "YES"
-          LC_ALL: en_US.UTF-8
-          LANG: en_US.UTF-8
-          FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: "180"  # ⬅️ синхронно с Fastfile
+          FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: "180"
           FASTLANE_XCODEBUILD_SETTINGS_RETRIES: "2"
-        run: bundle exec fastlane snapshots
+        run: bundle exec fastlane ios snapshots
 
       - name: Upload screenshots
-        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: ui-screenshots
+          name: snapshots
           path: fastlane/screenshots

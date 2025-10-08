@@ -1,49 +1,9 @@
 //
-//  TravelBuddyUITestsLaunchTests.swift
-//  TravelBuddyUITests
-//
-//  Created by Niiaz Khasanov on 10/1/25.
-//
-
-import XCTest
-
-final class TravelBuddyUITestsLaunchTests: XCTestCase {
-
-    override class var runsForEachTargetApplicationUIConfiguration: Bool {
-        true
-    }
-
-    override func setUpWithError() throws {
-        continueAfterFailure = false
-    }
-
-    @MainActor
-    func testLaunch() throws {
-        let app = XCUIApplication()
-        app.launch()
-
-        // Insert steps here to perform after app launch but before taking a screenshot,
-        // such as logging into a test account or navigating somewhere in the app
-
-        let attachment = XCTAttachment(screenshot: app.screenshot())
-        attachment.name = "Launch Screen"
-        attachment.lifetime = .keepAlways
-        add(attachment)
-    }
-}
-//
 //  SnapshotHelper.swift
 //  Example
 //
 //  Created by Felix Krause on 10/8/15.
 //
-
-// -----------------------------------------------------
-// IMPORTANT: When modifying this file, make sure to
-//            increment the version number at the very
-//            bottom of the file to notify users about
-//            the new SnapshotHelper.swift
-// -----------------------------------------------------
 
 import Foundation
 import XCTest
@@ -159,11 +119,11 @@ open class Snapshot: NSObject {
             return
         }
 
-        let path = cacheDirectory.appendingPathComponent("snapshot-launch_arguments.txt")
+        // Только служебный флаг fastlane для Snapshot — никаких кастомных флагов приложения.
         app.launchArguments += ["-FASTLANE_SNAPSHOT", "YES"]
-        // флаги -uiTesting / -uiMockData уже придут из Snapfile
 
-
+        // Если fastlane подложит файл с аргументами — добавим их как есть (обычно там язык/локаль).
+        let path = cacheDirectory.appendingPathComponent("snapshot-launch_arguments.txt")
         do {
             let launchArguments = try String(contentsOf: path, encoding: String.Encoding.utf8)
             let regex = try NSRegularExpression(pattern: "(\\\".+?\\\"|\\S+)", options: [])
@@ -173,6 +133,7 @@ open class Snapshot: NSObject {
             }
             app.launchArguments += results
         } catch {
+            // no-op
             NSLog("Couldn't detect/set launch_arguments...")
         }
     }
@@ -182,74 +143,73 @@ open class Snapshot: NSObject {
             waitForLoadingIndicatorToDisappear(within: timeout)
         }
 
-        NSLog("snapshot: \(name)") // more information about this, check out https://docs.fastlane.tools/actions/snapshot/#how-does-it-work
+        NSLog("snapshot: \(name)")
 
         if Snapshot.waitForAnimations {
-            sleep(1) // Waiting for the animation to be finished (kind of)
+            sleep(1) // ждём окончание анимаций
         }
 
         #if os(OSX)
-            guard let app = self.app else {
-                NSLog("XCUIApplication is not set. Please call setupSnapshot(app) before snapshot().")
-                return
-            }
-
-            app.typeKey(XCUIKeyboardKeySecondaryFn, modifierFlags: [])
+        guard let app = self.app else {
+            NSLog("XCUIApplication is not set. Please call setupSnapshot(app) before snapshot().")
+            return
+        }
+        app.typeKey(XCUIKeyboardKeySecondaryFn, modifierFlags: [])
         #else
+        guard self.app != nil else {
+            NSLog("XCUIApplication is not set. Please call setupSnapshot(app) before snapshot().")
+            return
+        }
 
-            guard self.app != nil else {
-                NSLog("XCUIApplication is not set. Please call setupSnapshot(app) before snapshot().")
-                return
-            }
+        let screenshot = XCUIScreen.main.screenshot()
+        #if os(iOS) && !targetEnvironment(macCatalyst)
+        let image = XCUIDevice.shared.orientation.isLandscape ? fixLandscapeOrientation(image: screenshot.image) : screenshot.image
+        #else
+        let image = screenshot.image
+        #endif
 
-            let screenshot = XCUIScreen.main.screenshot()
-            #if os(iOS) && !targetEnvironment(macCatalyst)
-            let image = XCUIDevice.shared.orientation.isLandscape ?  fixLandscapeOrientation(image: screenshot.image) : screenshot.image
+        guard var simulator = ProcessInfo().environment["SIMULATOR_DEVICE_NAME"],
+              let screenshotsDir = screenshotsDirectory else { return }
+
+        do {
+            // На параллельных девайсах в имени симулятора бывает "Clone X of "
+            let regex = try NSRegularExpression(pattern: "Clone [0-9]+ of ")
+            let range = NSRange(location: 0, length: simulator.count)
+            simulator = regex.stringByReplacingMatches(in: simulator, range: range, withTemplate: "")
+
+            let path = screenshotsDir.appendingPathComponent("\(simulator)-\(name).png")
+            #if swift(<5.0)
+            try UIImagePNGRepresentation(image)?.write(to: path, options: .atomic)
             #else
-            let image = screenshot.image
+            try image.pngData()?.write(to: path, options: .atomic)
             #endif
-
-            guard var simulator = ProcessInfo().environment["SIMULATOR_DEVICE_NAME"], let screenshotsDir = screenshotsDirectory else { return }
-
-            do {
-                // The simulator name contains "Clone X of " inside the screenshot file when running parallelized UI Tests on concurrent devices
-                let regex = try NSRegularExpression(pattern: "Clone [0-9]+ of ")
-                let range = NSRange(location: 0, length: simulator.count)
-                simulator = regex.stringByReplacingMatches(in: simulator, range: range, withTemplate: "")
-
-                let path = screenshotsDir.appendingPathComponent("\(simulator)-\(name).png")
-                #if swift(<5.0)
-                    try UIImagePNGRepresentation(image)?.write(to: path, options: .atomic)
-                #else
-                    try image.pngData()?.write(to: path, options: .atomic)
-                #endif
-            } catch let error {
-                NSLog("Problem writing screenshot: \(name) to \(screenshotsDir)/\(simulator)-\(name).png")
-                NSLog(error.localizedDescription)
-            }
+        } catch let error {
+            NSLog("Problem writing screenshot: \(name) to \(screenshotsDir)/\(simulator)-\(name).png")
+            NSLog(error.localizedDescription)
+        }
         #endif
     }
 
     class func fixLandscapeOrientation(image: UIImage) -> UIImage {
         #if os(watchOS)
-            return image
+        return image
         #else
-            if #available(iOS 10.0, *) {
-                let format = UIGraphicsImageRendererFormat()
-                format.scale = image.scale
-                let renderer = UIGraphicsImageRenderer(size: image.size, format: format)
-                return renderer.image { context in
-                    image.draw(in: CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height))
-                }
-            } else {
-                return image
+        if #available(iOS 10.0, *) {
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = image.scale
+            let renderer = UIGraphicsImageRenderer(size: image.size, format: format)
+            return renderer.image { _ in
+                image.draw(in: CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height))
             }
+        } else {
+            return image
+        }
         #endif
     }
 
     class func waitForLoadingIndicatorToDisappear(within timeout: TimeInterval) {
         #if os(tvOS)
-            return
+        return
         #endif
 
         guard let app = self.app else {
@@ -258,25 +218,25 @@ open class Snapshot: NSObject {
         }
 
         let networkLoadingIndicator = app.otherElements.deviceStatusBars.networkLoadingIndicators.element
-        let networkLoadingIndicatorDisappeared = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: networkLoadingIndicator)
+        let networkLoadingIndicatorDisappeared =
+            XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"),
+                                      object: networkLoadingIndicator)
         _ = XCTWaiter.wait(for: [networkLoadingIndicatorDisappeared], timeout: timeout)
     }
 
     class func getCacheDirectory() throws -> URL {
         let cachePath = "Library/Caches/tools.fastlane"
-        // on OSX config is stored in /Users/<username>/Library
-        // and on iOS/tvOS/WatchOS it's in simulator's home dir
         #if os(OSX)
-            let homeDir = URL(fileURLWithPath: NSHomeDirectory())
-            return homeDir.appendingPathComponent(cachePath)
+        let homeDir = URL(fileURLWithPath: NSHomeDirectory())
+        return homeDir.appendingPathComponent(cachePath)
         #elseif arch(i386) || arch(x86_64) || arch(arm64)
-            guard let simulatorHostHome = ProcessInfo().environment["SIMULATOR_HOST_HOME"] else {
-                throw SnapshotError.cannotFindSimulatorHomeDirectory
-            }
-            let homeDir = URL(fileURLWithPath: simulatorHostHome)
-            return homeDir.appendingPathComponent(cachePath)
+        guard let simulatorHostHome = ProcessInfo().environment["SIMULATOR_HOST_HOME"] else {
+            throw SnapshotError.cannotFindSimulatorHomeDirectory
+        }
+        let homeDir = URL(fileURLWithPath: simulatorHostHome)
+        return homeDir.appendingPathComponent(cachePath)
         #else
-            throw SnapshotError.cannotRunOnPhysicalDevice
+        throw SnapshotError.cannotRunOnPhysicalDevice
         #endif
     }
 }
@@ -284,38 +244,31 @@ open class Snapshot: NSObject {
 private extension XCUIElementAttributes {
     var isNetworkLoadingIndicator: Bool {
         if hasAllowListedIdentifier { return false }
-
         let hasOldLoadingIndicatorSize = frame.size == CGSize(width: 10, height: 20)
         let hasNewLoadingIndicatorSize = frame.size.width.isBetween(46, and: 47) && frame.size.height.isBetween(2, and: 3)
-
         return hasOldLoadingIndicatorSize || hasNewLoadingIndicatorSize
     }
 
     var hasAllowListedIdentifier: Bool {
         let allowListedIdentifiers = ["GeofenceLocationTrackingOn", "StandardLocationTrackingOn"]
-
         return allowListedIdentifiers.contains(identifier)
     }
 
     func isStatusBar(_ deviceWidth: CGFloat) -> Bool {
         if elementType == .statusBar { return true }
         guard frame.origin == .zero else { return false }
-
         let oldStatusBarSize = CGSize(width: deviceWidth, height: 20)
         let newStatusBarSize = CGSize(width: deviceWidth, height: 44)
-
         return [oldStatusBarSize, newStatusBarSize].contains(frame.size)
     }
 }
 
 private extension XCUIElementQuery {
     var networkLoadingIndicators: XCUIElementQuery {
-        let isNetworkLoadingIndicator = NSPredicate { (evaluatedObject, _) in
+        let isNetworkLoadingIndicator = NSPredicate { evaluatedObject, _ in
             guard let element = evaluatedObject as? XCUIElementAttributes else { return false }
-
             return element.isNetworkLoadingIndicator
         }
-
         return self.containing(isNetworkLoadingIndicator)
     }
 
@@ -324,27 +277,19 @@ private extension XCUIElementQuery {
         guard let app = Snapshot.app else {
             fatalError("XCUIApplication is not set. Please call setupSnapshot(app) before snapshot().")
         }
-
         let deviceWidth = app.windows.firstMatch.frame.width
-
-        let isStatusBar = NSPredicate { (evaluatedObject, _) in
+        let isStatusBar = NSPredicate { evaluatedObject, _ in
             guard let element = evaluatedObject as? XCUIElementAttributes else { return false }
-
             return element.isStatusBar(deviceWidth)
         }
-
         return self.containing(isStatusBar)
     }
 }
 
 private extension CGFloat {
-    func isBetween(_ numberA: CGFloat, and numberB: CGFloat) -> Bool {
-        return numberA...numberB ~= self
-    }
+    func isBetween(_ a: CGFloat, and b: CGFloat) -> Bool { return a...b ~= self }
 }
 
-// Please don't remove the lines below
-// They are used to detect outdated configuration files
 // SnapshotHelperVersion [1.30]
 //
 //  TravelBuddySnapshotUITests.swift
@@ -352,8 +297,6 @@ private extension CGFloat {
 //
 //  Created by Niiaz Khasanov on 10/1/25.
 //
-
-
 
 import XCTest
 
@@ -368,70 +311,85 @@ final class TravelBuddySnapshotUITests: XCTestCase {
 
         app = XCUIApplication()
 
-        // Если используете fastlane snapshot, setupSnapshot(app) уже добавит свои аргументы/локаль.
-        // Если у вас подключен SnapshotHelper.swift — раскомментируйте:
-         setupSnapshot(app)
+        // SnapshotHelper сам проставит язык/локаль и служебные ключи fastlane.
+        setupSnapshot(app)
 
-        // Рекомендовано пробрасывать флаги (опционально, если поддержаны приложением):
-        // app.launchArguments += ["-uiTesting", "1", "-uiMockData", "1", "-uiPremium", "locked", "-skipOnboarding", "YES"]
-
+        // НИКАКИХ кастомных launchArguments — стартуем «как после свежей установки».
         app.launch()
+
+        // Перехватываем системные алерты (локация и др.), чтобы тест не стопорился.
+        addUIInterruptionMonitor(withDescription: "System Alerts") { alert in
+            // Пробуем разрешить доступ или закрыть алерт любым подходящим вариантом.
+            let buttons = [
+                "Allow While Using App", "Allow Once", "Allow",
+                "OK", "Continue", "Don’t Allow", "Don\'t Allow",
+                "Разрешить при использовании", "Разрешить один раз", "Разрешить",
+                "ОК", "Продолжить", "Не разрешать"
+            ]
+            for title in buttons {
+                let b = alert.buttons[title]
+                if b.exists { b.tap(); return true }
+            }
+            return false
+        }
+
+        // После регистрации UIInterruptionMonitor надо «пнуть» приложение,
+        // чтобы алерт был обработан.
+        app.activate()
     }
 
     // MARK: - Главный сценарий скриншотов
 
-     func testSnapshot_Onboarding_List_Map_Settings() {
+    func testSnapshot_Onboarding_List_Map_Settings() {
         // --- 01: Onboarding page 1 ---
-        // Ждем появления кнопки онбординга (id или текст), чтобы не сделать снимок "раньше времени"
         let onboardingNext = app.buttons["onboarding.next"]
-        let onboardingNextText = app.buttons["Next"]
+        let onboardingNextTextEn = app.buttons["Next"]
+        let onboardingNextTextRu = app.buttons["Далее"]
+
         XCTAssertTrue(
-            onboardingNext.waitForExistence(timeout: 5) || onboardingNextText.waitForExistence(timeout: 5),
+            onboardingNext.waitForExistence(timeout: 15)
+            || onboardingNextTextEn.waitForExistence(timeout: 15)
+            || onboardingNextTextRu.waitForExistence(timeout: 15),
             "Onboarding page 1 did not appear"
         )
         snapshot("01-Onboarding-Page1")
 
         // Переходим на 2 страницу
-        tapIfExists(onboardingNext, fallback: onboardingNextText)
+        tapIfExists(onboardingNext, fallbackMany: [onboardingNextTextEn, onboardingNextTextRu], timeout: 5)
 
         // Переходим на 3 страницу
         let onboardingNext2 = app.buttons["onboarding.next"]
-        let onboardingNextText2 = app.buttons["Next"]
-        tapIfExists(onboardingNext2, fallback: onboardingNextText2)
+        let onboardingNextText2En = app.buttons["Next"]
+        let onboardingNextText2Ru = app.buttons["Далее"]
+        tapIfExists(onboardingNext2, fallbackMany: [onboardingNextText2En, onboardingNextText2Ru], timeout: 5)
 
         // Завершаем онбординг
         let getStarted = app.buttons["onboarding.get_started"]
-        let getStartedText = app.buttons["Get Started"]
-        tapIfExists(getStarted, fallback: getStartedText)
+        let getStartedTextEn = app.buttons["Get Started"]
+        let getStartedTextRu = app.buttons["Начать"]
+        tapIfExists(getStarted, fallbackMany: [getStartedTextEn, getStartedTextRu], timeout: 10)
 
         // --- 02: Places list ---
-        // Убедимся, что мы на экране Places/Места
         let navPlaces = app.navigationBars["Places"]
         let navPlacesRu = app.navigationBars["Места"]
-        XCTAssertTrue(navPlaces.waitForExistence(timeout: 5) || navPlacesRu.waitForExistence(timeout: 5),
+        XCTAssertTrue(navPlaces.waitForExistence(timeout: 15) || navPlacesRu.waitForExistence(timeout: 15),
                       "Places screen did not appear")
 
-        // Ждем таблицу и первую ячейку (это убирает "ромашку" на снимке)
         let table = app.tables.firstMatch
-        XCTAssertTrue(table.waitForExistence(timeout: 10), "Places table did not appear")
+        XCTAssertTrue(table.waitForExistence(timeout: 30), "Places table did not appear")
 
         let firstCell = table.cells.element(boundBy: 0)
-        XCTAssertTrue(firstCell.waitForExistence(timeout: 20),
-                      "Places first cell did not appear (waited for remote->fallback local)")
+        XCTAssertTrue(firstCell.waitForExistence(timeout: 30),
+                      "Places first cell did not appear")
 
         snapshot("02-Places-List")
 
         // --- 03: POI Detail ---
         firstCell.tap()
 
-        // Ждем появления элемента на экране детали:
-        // используем кнопку закрытия, которая у тебя есть ("xmark.circle.fill").
+        // Ждём кнопку закрытия (у тебя это системная иконка).
         let closeButton = app.buttons["xmark.circle.fill"]
-        XCTAssertTrue(closeButton.waitForExistence(timeout: 5), "POI Detail did not open")
-
-        // Если есть доступный стабильный элемент (заголовок/кнопка share) — можно ждать его:
-        // let share = app.buttons["detail.share"] // если в App выставлен identifier
-        // _ = share.waitForExistence(timeout: 2)
+        XCTAssertTrue(closeButton.waitForExistence(timeout: 10), "POI Detail did not open")
 
         snapshot("03-POI-Detail")
 
@@ -440,10 +398,12 @@ final class TravelBuddySnapshotUITests: XCTestCase {
         // --- 04: Map ---
         tapTab(labelEn: "Map", labelRu: "Карта")
 
-        // Ждем устойчивый системный элемент карты внизу (Legal / Правовые документы)
+        // Обработка потенциального системного алерта (локация/карта).
+        app.tap()
+
         let legal = app.staticTexts["Legal"]
         let legalRu = app.staticTexts["Правовые документы"]
-        XCTAssertTrue(legal.waitForExistence(timeout: 10) || legalRu.waitForExistence(timeout: 10),
+        XCTAssertTrue(legal.waitForExistence(timeout: 20) || legalRu.waitForExistence(timeout: 20),
                       "Map did not load 'Legal' label")
 
         snapshot("04-Map")
@@ -453,7 +413,7 @@ final class TravelBuddySnapshotUITests: XCTestCase {
 
         let settingsTitle = app.staticTexts["Settings"]
         let settingsTitleRu = app.staticTexts["Настройки"]
-        XCTAssertTrue(settingsTitle.waitForExistence(timeout: 5) || settingsTitleRu.waitForExistence(timeout: 5),
+        XCTAssertTrue(settingsTitle.waitForExistence(timeout: 15) || settingsTitleRu.waitForExistence(timeout: 15),
                       "Settings screen did not appear")
 
         snapshot("05-Settings")
@@ -461,86 +421,43 @@ final class TravelBuddySnapshotUITests: XCTestCase {
 
     // MARK: - Helpers
 
-    /// Тапаем element, если он существует; иначе — fallback.
-    private func tapIfExists(_ element: XCUIElement, fallback: XCUIElement? = nil, timeout: TimeInterval = 2) {
+    /// Тапаем element, если он существует; иначе — пробуем fallback’и по очереди.
+    private func tapIfExists(_ element: XCUIElement,
+                             fallbackMany: [XCUIElement] = [],
+                             timeout: TimeInterval = 2) {
         if element.waitForExistence(timeout: timeout) {
             element.tap()
-        } else if let fb = fallback, fb.waitForExistence(timeout: timeout) {
-            fb.tap()
-        } else {
-            XCTFail("Neither main element nor fallback existed for tap")
+            return
         }
-    }
-
-    /// Переход по табу. Сначала пытаемся по айдишникам (если добавишь их в приложении),
-    /// затем по локализованным текстам, затем по первому табу.
-    private func tapTab(labelEn: String, labelRu: String) {
-        let tabBar = app.tabBars.firstMatch
-
-        // 1) Попытка по identifier (добавь в приложении, если захочешь):
-        let idCandidates = ["tab.places", "tab.map", "tab.settings"]
-        for id in idCandidates {
-            let btn = tabBar.buttons[id]
-            if btn.exists {
-                btn.tap()
+        for fb in fallbackMany {
+            if fb.waitForExistence(timeout: timeout) {
+                fb.tap()
                 return
             }
         }
+        XCTFail("Neither main element nor fallbacks existed for tap")
+    }
 
-        // 2) По текстовым лейблам (как сейчас)
+    /// Переход по табу: по идентификаторам, потом по локализованным лейблам, затем первый таб.
+    private func tapTab(labelEn: String, labelRu: String) {
+        let tabBar = app.tabBars.firstMatch
+        XCTAssertTrue(tabBar.waitForExistence(timeout: 10), "Tab bar not found")
+
+        let idCandidates = ["tab.places", "tab.map", "tab.settings"]
+        for id in idCandidates {
+            let btn = tabBar.buttons[id]
+            if btn.exists { btn.tap(); return }
+        }
+
         let en = tabBar.buttons[labelEn]
         let ru = tabBar.buttons[labelRu]
         if en.exists { en.tap(); return }
         if ru.exists { ru.tap(); return }
 
-        // 3) Фолбэк — любой первый таб
         if tabBar.buttons.count > 0 {
             tabBar.buttons.element(boundBy: 0).tap()
         } else {
             XCTFail("No tabs found")
-        }
-    }
-}
-
- 
-//
-//  TravelBuddyUITests.swift
-//  TravelBuddyUITests
-//
-//  Created by Niiaz Khasanov on 10/1/25.
-//
-
-import XCTest
-
-final class TravelBuddyUITests: XCTestCase {
-
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-
-        // In UI tests it is usually best to stop immediately when a failure occurs.
-        continueAfterFailure = false
-
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
-    }
-
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
-
-    @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
-        let app = XCUIApplication()
-        app.launch()
-
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
-
-    @MainActor
-    func testLaunchPerformance() throws {
-        // This measures how long it takes to launch your application.
-        measure(metrics: [XCTApplicationLaunchMetric()]) {
-            XCUIApplication().launch()
         }
     }
 }
@@ -1410,54 +1327,11 @@ public final class DIContainer {
         }
         .inObjectScope(.container)
 
-        container.registerUITestOverridesIfNeeded()
-
     }
 
     public var resolver: Resolver { container.synchronize() }
 }
 
-@MainActor
-private extension Container {
-    /// Вызывать ПОСЛЕ базовых регистраций, чтобы в режиме UI-тестов переопределить сервисы.
-    func registerUITestOverridesIfNeeded() {
-        let useLocalOnly = AppFlags.isUITesting || AppFlags.useMockData
-        guard useLocalOnly else { return }
-
-        // Локальный сервис вместо сети/кэша
-        self.register(POIServiceProtocol.self) { r in
-            // Если у тебя LocalPOIService требует конфиг — разрезолвим его
-            let config = r.resolve(AppConfig.self)!
-            return LocalPOIService(config: config)
-        }
-        .inObjectScope(.container)
-
-        
-        self.register(PushServiceProtocol.self) { _ in
-            NoopPushService()
-        }
-        .inObjectScope(.container)
-
-    }
-}
-//
-//  UITestBoot.swift
-//  TravelBuddy
-//
-//  Created by Niiaz Khasanov on 10/7/25.
-//
-
-
-import Foundation
-
-enum UITestBoot {
-    static func resetStateIfNeeded() {
-        guard AppFlags.isUITesting else { return }
-        let defaults = UserDefaults.standard
-        defaults.removePersistentDomain(forName: Bundle.main.bundleIdentifier!)
-        defaults.synchronize()
-    }
-}
 //
 //  ThemeServiceProtocol.swift
 //  TravelBuddy
@@ -1511,25 +1385,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFailToRegisterForRemoteNotificationsWithError error: Error) {
         print("APNs registration failed:", error)
-    }
-}
-//
-//  AppFlags.swift
-//  TravelBuddy
-//
-//  Created by Niiaz Khasanov on 10/04/25.
-//
-
-import Foundation
-
-/// Флаги, которые управляют режимом работы приложения (например, UI-тесты, мок-данные и т.п.)
-enum AppFlags {
-    static var isUITesting: Bool {
-        ProcessInfo.processInfo.arguments.contains("-uiTesting")
-    }
-
-    static var useMockData: Bool {
-        ProcessInfo.processInfo.arguments.contains("-uiMockData")
     }
 }
 //

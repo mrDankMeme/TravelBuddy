@@ -1,8 +1,3 @@
-# Подними таймауты парсинга build settings — это снимает «рандомные» таймауты xcodebuild.
-ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "180"
-ENV["FASTLANE_XCODEBUILD_SETTINGS_RETRIES"] = "2"
-ENV["FASTLANE_SNAPSHOT"] = "YES"
-
 default_platform(:ios)
 
 platform :ios do
@@ -10,24 +5,33 @@ platform :ios do
   lane :snapshots do
     project_path = "./TravelBuddy.xcodeproj"
 
-    # Прогреть SPM один раз (с выключенным автоапдейтом)
-    sh %(
+    # 1️⃣ Прогрев SPM (локально, чтобы CI не тайм-аутился)
+    sh <<~CMD
       xcodebuild -resolvePackageDependencies \
         -project "#{project_path}" \
         -onlyUsePackageVersionsFromResolvedFile \
         -disableAutomaticPackageResolution
-    )
+    CMD
 
-    # Бежим только класс снапшотов, чтобы не тратить время на другие UI-тесты
+    # 2️⃣ Основной запуск snapshot
     snapshot(
       project: project_path,
-      scheme:  "TravelBuddy",
-
-      test_target_name: "TravelBuddyUITests",
-      only_testing:     ["TravelBuddyUITests/TravelBuddySnapshotUITests"],
-
-      # Путь/DerivedData/прочие — будут подтянуты из Snapfile
-      # Никаких 'prelaunch_simulator' и т.п.
+      scheme: "TravelBuddy",
+      test_target_name: "TravelBuddyUITests",     # ⚠️ Если тесты лежат в этом таргете
+      only_testing: ["TravelBuddyUITests/TravelBuddySnapshotUITests"],
+      devices: ["iPhone 16 Pro"],
+      languages: ["en-US"],
+      output_directory: "fastlane/screenshots",
+      derived_data_path: "fastlane/DerivedData",
+      reinstall_app: true,
+      erase_simulator: false,
+      headless: true,
+      override_status_bar: true,
+      skip_package_dependencies_resolution: true,
+      disable_package_automatic_updates: true,
+      result_bundle: false,
+      number_of_retries: 0,
+      xcodebuild_formatter: "xcbeautify"
     )
   end
 end

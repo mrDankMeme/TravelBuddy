@@ -1,35 +1,20 @@
-# Проект/схема
-project "./TravelBuddy.xcodeproj"
-scheme  "TravelBuddy"
+devices(["iPhone 16 Pro"])
+languages(["en-US"])
+scheme("TravelBuddy")
+project("./TravelBuddy.xcodeproj")
 
-# Устройства/локали
-devices   ["iPhone 16 Pro"] # при проблемах можно заменить на "iPhone 15 Pro"
-languages ["en-US"]
+output_directory("fastlane/screenshots")
+derived_data_path("fastlane/DerivedData")
 
-# Каталоги артефактов
-output_directory  "fastlane/screenshots"
-derived_data_path "fastlane/DerivedData"
+reinstall_app(true)
+erase_simulator(false)
+concurrent_simulators(false)
+headless(true)
+override_status_bar(true)
+skip_package_dependencies_resolution(true)
+disable_package_automatic_updates(true)
+result_bundle(false)
+number_of_retries(0)
+xcodebuild_formatter("xcbeautify")
 
-# Поведение симулятора
-reinstall_app         true
-erase_simulator       false
-concurrent_simulators false
-headless              true
-override_status_bar   true
-
-# SPM — не тратить время
-skip_package_dependencies_resolution true
-disable_package_automatic_updates    true
-
-# Ретрай/бандлы
-result_bundle     false
-number_of_retries 0
-
-# Красивые логи (не обязательно)
-xcodebuild_formatter "xcbeautify"
-
-# ВАЖНО: пробрасываем понятные приложению флаги
-launch_arguments ["-uiTesting", "1", "-uiMockData", "1"]
-
-# НИЧЕГО лишнего: не указывать тут prelaunch_simulator и т.п.
-# Тест ограничим в Fastfile через only_testing, чтобы не дёргать всё подряд.
+# 🚫 Никаких кастомных launch_arguments — fastlane добавит свои
