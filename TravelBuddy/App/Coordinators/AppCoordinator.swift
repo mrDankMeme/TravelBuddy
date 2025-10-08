@@ -50,14 +50,30 @@ final class AppCoordinator: Coordinator {
 
     // MARK: - Start
     func start() {
-        window.makeKeyAndVisible()
+         window.makeKeyAndVisible()
 
-        if UserDefaults.standard.hasCompletedOnboarding {
-            showMainInterface()
-        } else {
-            showOnboarding()
-        }
-    }
+         // Theme
+         let themeService = DIContainer.shared.resolver.resolve(ThemeServiceProtocol.self)!
+         applyTheme(isDark: themeService.isDark) // начальное применение
+
+         themeService.changes
+             .receive(on: DispatchQueue.main)
+             .sink { [weak self] isDark in
+                 self?.applyTheme(isDark: isDark)
+             }
+             .store(in: &cancellables)
+
+         // дальше твой запуск
+         if UserDefaults.standard.hasCompletedOnboarding {
+             showMainInterface()
+         } else {
+             showOnboarding()
+         }
+     }
+
+     private func applyTheme(isDark: Bool) {
+         window.overrideUserInterfaceStyle = isDark ? .dark : .light
+     }
 
     // MARK: - Onboarding
     private func showOnboarding() {

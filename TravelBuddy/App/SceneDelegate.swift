@@ -17,8 +17,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let ws = (scene as? UIWindowScene) else { return }
         let window = UIWindow(windowScene: ws)
         self.window = window
-
+      
+        
+        
         coordinator = AppCoordinator(window: window)
+        
         coordinator?.start()
 
         // 🔗 обрабатываем диплинк при холодном старте

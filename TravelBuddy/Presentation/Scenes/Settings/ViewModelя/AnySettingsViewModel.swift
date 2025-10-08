@@ -18,7 +18,6 @@ final class AnySettingsViewModel: ObservableObject, SettingsViewModelProtocol {
 
     // Старые поля
     @Published private(set) var isDarkMode: Bool = false
-    @Published private(set) var notificationsEnabled: Bool = false
     @Published private(set) var premiumUnlocked: Bool = false
     @Published private(set) var errorMessage: String?
 
@@ -51,7 +50,6 @@ final class AnySettingsViewModel: ObservableObject, SettingsViewModelProtocol {
     private func syncProperties() {
         // Старые
         isDarkMode = wrapped.isDarkMode
-        notificationsEnabled = wrapped.notificationsEnabled
         premiumUnlocked = wrapped.premiumUnlocked
         errorMessage = wrapped.errorMessage
 
@@ -70,13 +68,6 @@ final class AnySettingsViewModel: ObservableObject, SettingsViewModelProtocol {
         wrapped.setDarkMode(isOn)      // источник истины
     }
 
-    func setNotifications(_ isOn: Bool) {
-        if notificationsEnabled != isOn {
-            notificationsEnabled = isOn
-            objectWillChange.send()
-        }
-        wrapped.setNotifications(isOn)
-    }
 
     func purchasePremium() { wrapped.purchasePremium() }
     func clearError()      { wrapped.clearError() }

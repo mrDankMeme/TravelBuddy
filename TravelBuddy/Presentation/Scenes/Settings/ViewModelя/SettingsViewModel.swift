@@ -14,11 +14,9 @@ public protocol SettingsViewModelProtocol: ObservableObject {
     
     // БЫЛО
     var isDarkMode: Bool { get }
-    var notificationsEnabled: Bool { get }
     var premiumUnlocked: Bool { get }
     var errorMessage: String? { get }
     func setDarkMode(_ isOn: Bool)
-    func setNotifications(_ isOn: Bool)
     func purchasePremium()
     func clearError()
 
@@ -39,12 +37,10 @@ public final class SettingsViewModel: SettingsViewModelProtocol {
     
     private enum Keys {
         static let darkMode = "settings.darkMode"
-        static let notificationsEnabled = "settings.notificationsEnabled"
     }
     
     // MARK: — Public state (старое)
     @Published public private(set) var isDarkMode = UserDefaults.standard.bool(forKey: Keys.darkMode)
-    @Published public private(set) var notificationsEnabled = UserDefaults.standard.bool(forKey: Keys.notificationsEnabled)
     @Published public private(set) var premiumUnlocked = false
     @Published public private(set) var errorMessage: String?
     
@@ -56,19 +52,19 @@ public final class SettingsViewModel: SettingsViewModelProtocol {
     // MARK: — Deps
     private let iapService: IAPServiceProtocol
     private let analytics: AnalyticsServiceProtocol
-    private let notification: NotificationServiceProtocol
-    private let push: PushServiceProtocol?   // <-- теперь приходит из DI
+    private let push: PushServiceProtocol?
+    private var theme: ThemeServiceProtocol
 
     private var bag = Set<AnyCancellable>()
     
     public init(iapService: IAPServiceProtocol,
                 analytics: AnalyticsServiceProtocol,
-                notification: NotificationServiceProtocol,
-                push: PushServiceProtocol?) {
+                push: PushServiceProtocol?,
+                theme: ThemeServiceProtocol) {
         self.iapService = iapService
         self.analytics  = analytics
-        self.notification = notification
         self.push = push
+        self.theme = theme
 
         // стартовая синхронизация push-состояния
         self.apnsToken = push?.apnsDeviceTokenHex
@@ -91,18 +87,8 @@ public final class SettingsViewModel: SettingsViewModelProtocol {
     public func setDarkMode(_ isOn: Bool) {
         guard isDarkMode != isOn else { return }
         isDarkMode = isOn
-        UserDefaults.standard.set(isOn, forKey: Keys.darkMode)
+        theme.isDark = isOn                    // ← источник истины теперь сервис
         analytics.logEvent(name: "settings_dark_mode_changed", parameters: ["value": isOn])
-    }
-    
-    public func setNotifications(_ isOn: Bool) {
-        guard notificationsEnabled != isOn else { return }
-        notificationsEnabled = isOn
-        UserDefaults.standard.set(isOn, forKey: Keys.notificationsEnabled )
-        analytics.logEvent(name: "settings_notifications_changed", parameters: ["value": isOn])
-        if isOn {
-            notification.requestAuthorization().sink { _ in }.store(in: &bag)
-        }
     }
 
     public func purchasePremium() {

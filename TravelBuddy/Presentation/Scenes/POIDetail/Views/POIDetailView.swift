@@ -5,7 +5,6 @@
 //  Created by Niiaz Khasanov on 7/11/25.
 //
 
-
 import SwiftUI
 import MapKit
 
@@ -22,33 +21,58 @@ public struct POIDetailView: View {
   }
 
   public var body: some View {
-    VStack(spacing: 16) {
-      HStack { Spacer()
-        Button(action: vm.didTapClose) {
-          Image(systemName: "xmark.circle.fill")
-            .font(.title2)
+    ScrollView {
+      VStack(spacing: 16) {
+
+        // Hero-image (локальные картинки из бандла уже читаются POIImageView)
+        POIImageView(imagePath: vm.model.poi.imageURL?.path)
+          .frame(height: 220)
+          .frame(maxWidth: .infinity)
+          .clipped()
+          .clipShape(RoundedRectangle(cornerRadius: 12))
+          .overlay(
+            RoundedRectangle(cornerRadius: 12)
+              .stroke(Color(.separator), lineWidth: 0.5)
+          )
+          .padding(.top, 8)
+
+        // Заголовок
+        Text(vm.model.poi.name)
+          .font(.title.bold())
+          .multilineTextAlignment(.center)
+          .frame(maxWidth: .infinity, alignment: .center)
+
+        // Адрес / загрузка / ошибка
+        Group {
+          if vm.isLoadingAddress {
+            ProgressView(L10n.detailLoadingAddress)
+          } else if let addr = vm.address {
+            Text(addr).italic().multilineTextAlignment(.center)
+          } else if let err = vm.errorMessage {
+            Text(err).foregroundColor(.red).multilineTextAlignment(.center)
+          }
         }
-        .accessibilityIdentifier("detail.close")
+        .padding(.horizontal)
+
+        // Действия
+        VStack(spacing: 12) {
+          Button(L10n.detailShare) { vm.didTapShare() }
+            .buttonStyle(.borderedProminent)
+
+          Button(L10n.detailOpenInMaps) { vm.didTapOpenInMaps() }
+        }
+        .padding(.top, 8)
+
+        Spacer(minLength: 8)
       }
-
-      Text(vm.model.poi.name).font(.largeTitle)
-
-      if vm.isLoadingAddress {
-        ProgressView(L10n.detailLoadingAddress)
-      } else if let addr = vm.address {
-        Text(addr).italic()
-      } else if let err = vm.errorMessage {
-        // Экранная подсветка + route-алерт прилетит из координатора
-        Text(err).foregroundColor(.red)
-      }
-
-      Button(L10n.detailShare,        action: vm.didTapShare)
-      Button(L10n.detailOpenInMaps,   action: vm.didTapOpenInMaps)
-      Spacer()
+      .padding(.horizontal)
+      .onAppear(perform: vm.onAppear)
     }
-    .padding()
-    .onAppear(perform: vm.onAppear)
+    // Навбар и системный back — push-навигация решает закрытие экрана
     .navigationTitle(vm.model.poi.name)
+    .navigationBarTitleDisplayMode(.inline)
+
+    // Лист для share (через координатор)
     .sheet(item: $sheetRoute) { route in
       switch route {
       case .share(let url):
@@ -60,22 +84,13 @@ public struct POIDetailView: View {
   }
 }
 
-
 // UIKit wrapper
 struct ActivityViewController: UIViewControllerRepresentable {
   let activityItems: [Any]
 
-  func makeUIViewController(
-    context: Context
-  ) -> UIActivityViewController {
-    UIActivityViewController(
-      activityItems: activityItems,
-      applicationActivities: nil
-    )
+  func makeUIViewController(context: Context) -> UIActivityViewController {
+    UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
   }
 
-  func updateUIViewController(
-    _ vc: UIActivityViewController,
-    context: Context
-  ) {}
+  func updateUIViewController(_ vc: UIActivityViewController, context: Context) {}
 }

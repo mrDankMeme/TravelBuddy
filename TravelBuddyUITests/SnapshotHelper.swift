@@ -127,7 +127,9 @@ open class Snapshot: NSObject {
         }
 
         let path = cacheDirectory.appendingPathComponent("snapshot-launch_arguments.txt")
-        app.launchArguments += ["-FASTLANE_SNAPSHOT", "YES", "-ui_testing"]
+        app.launchArguments += ["-FASTLANE_SNAPSHOT", "YES"]
+        // флаги -uiTesting / -uiMockData уже придут из Snapfile
+
 
         do {
             let launchArguments = try String(contentsOf: path, encoding: String.Encoding.utf8)

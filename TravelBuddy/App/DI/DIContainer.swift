@@ -33,6 +33,11 @@ public final class DIContainer {
         }.inObjectScope(.container)
 
         // 2) Services
+        container.register(ThemeServiceProtocol.self) { _ in
+            ThemeService()
+        }
+        
+        .inObjectScope(.container)
         container.register(AnalyticsServiceProtocol.self) { _ in AnalyticsService() }
             .inObjectScope(.container)
 
@@ -43,9 +48,6 @@ public final class DIContainer {
         container.register(IAPObserver.self) { r in
             IAPObserver(iap: r.resolve(IAPServiceProtocol.self)!)
         }.inObjectScope(.container)
-
-        container.register(NotificationServiceProtocol.self) { _ in NotificationService() }
-            .inObjectScope(.container)
 
         // 3) POI data stack
         container.register(RemotePOIService.self) { r in
@@ -108,8 +110,8 @@ public final class DIContainer {
             SettingsViewModel(
                 iapService:   r.resolve(IAPServiceProtocol.self)!,
                 analytics:    r.resolve(AnalyticsServiceProtocol.self)!,
-                notification: r.resolve(NotificationServiceProtocol.self)!,
-                push:         r.resolve(PushServiceProtocol.self) // <— передали зависимость
+                push:         r.resolve(PushServiceProtocol.self),
+                theme:        r.resolve(ThemeServiceProtocol.self)!
             )
         }
         .inObjectScope(.graph)

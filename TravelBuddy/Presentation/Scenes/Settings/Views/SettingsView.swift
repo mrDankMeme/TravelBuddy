@@ -24,15 +24,6 @@ public struct SettingsView<VM: SettingsViewModelProtocol>: View {
                     .accessibilityIdentifier("settings.darkmode.toggle")
                 }
 
-                // MARK: - Local Notifications (как было)
-                Section {
-                    Toggle(L10n.settingsNotifications, isOn: Binding(
-                        get:  { vm.notificationsEnabled },
-                        set:  { vm.setNotifications($0) }
-                    ))
-                    .accessibilityIdentifier("settings.notifications.toggle")
-                }
-
                 // MARK: - APNs / Push (НОВОЕ)
                 Section(header: Text("Push Notifications")) {
                     HStack {

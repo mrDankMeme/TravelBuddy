@@ -67,6 +67,7 @@ public final class PushService: NSObject, PushServiceProtocol {
         content.title = title
         content.body  = body
         content.sound = .default
+        content.userInfo = ["deeplink": "travelbuddy://poi/1"]
         content.categoryIdentifier = PushCategoryFactory.defaultCategoryId
 
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: max(0.1, seconds), repeats: false)

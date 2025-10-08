@@ -5,6 +5,13 @@
 //  Created by Niiaz Khasanov on 7/7/25.
 //
 
+//
+//  POIMapView.swift
+//  TravelBuddy
+//
+//  Created by Niiaz Khasanov on 7/7/25.
+//
+
 import SwiftUI
 import MapKit
 
@@ -17,6 +24,10 @@ public struct POIMapView: View {
 
     /// Прокидываем из `MapContainer` запросы центра/фокуса
     @Binding private var centerRequest: CLLocationCoordinate2D?
+
+    // ✅ Локальный буфер выбора пина.
+    // Карта пишет СЮДА, а мы уже ПОТОМ синхронизируем это с VM.
+    @State private var selectedId: Int? = nil
 
     public init(
         viewModel: AnyPOIMapViewModel,
@@ -32,29 +43,39 @@ public struct POIMapView: View {
         MapViewRepresentable(
             annotations: vm.annotations,
             defaultRegionMeters: defaultRegionMeters,
-            selectedId: Binding(
-                get: { vm.selectedPOI?.id },
-                set: { newId in
-                    vm.selectedPOI = newId.flatMap { id in
-                        vm.annotations.first(where: { $0.poi.id == id })?.poi
-                    }
-                }
-            ),
+            selectedId: $selectedId,
             centerRequest: $centerRequest,
             onSelect: { _ in }
         )
         .ignoresSafeArea()
-        .onAppear { vm.fetch() }
-        .sheet(item: Binding(
-            get: { vm.selectedPOI },
-            set: { vm.selectedPOI = $0 }
-        ), onDismiss: {
-            vm.selectedPOI = nil
-        }) { poi in
+        .onAppear {
+            vm.fetch()
+            selectedId = vm.selectedPOI?.id
+        }
+        .onChange(of: selectedId) { newId in
+            vm.selectedPOI = newId.flatMap { id in
+                vm.annotations.first(where: { $0.poi.id == id })?.poi
+            }
+        }
+        .onChange(of: vm.selectedPOI?.id) { id in
+            if selectedId != id { selectedId = id }
+        }
+        .sheet(
+            item: Binding(
+                get: { vm.selectedPOI },
+                set: { vm.selectedPOI = $0 }
+            ),
+            onDismiss: {
+                vm.selectedPOI = nil
+                selectedId = nil
+            }
+        ) { poi in
             POISnippetView(
                 poi: poi,
                 onDetails: {
                     vm.selectedPOI = nil
+                    selectedId = nil
+                    // Переход в детали — ассинхронно, чтобы не мешать закрытию шита.
                     DispatchQueue.main.async { router.goDetail(poi) }
                 },
                 onRoute: {
