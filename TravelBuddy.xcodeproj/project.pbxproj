@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A301D4492E85882500F67A76 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = A301D4482E85882500F67A76 /* README.md */; };
 		A301D4582E85887500F67A76 /* DeepLinkParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A301D4532E85887500F67A76 /* DeepLinkParser.swift */; };
 		A301D4592E85887500F67A76 /* DeepLinkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A301D4542E85887500F67A76 /* DeepLinkService.swift */; };
 		A301D4662E898ADC00F67A76 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = A301D4652E898ADC00F67A76 /* L10n.swift */; };
@@ -64,13 +63,11 @@
 		A323AE452E21421B0055264E /* POIListRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE442E21421B0055264E /* POIListRouter.swift */; };
 		A323AE4F2E2147630055264E /* POIDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE4E2E2147630055264E /* POIDetailView.swift */; };
 		A323AE522E21616B0055264E /* POIServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A323AE512E21616B0055264E /* POIServiceProtocol.swift */; };
-		A352EBFB2E9189890011B9D6 /* AppFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EBFA2E9189890011B9D6 /* AppFlags.swift */; };
 		A352EBFE2E93EE1A0011B9D6 /* PushPermissionStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EBFD2E93EE190011B9D6 /* PushPermissionStatus.swift */; };
 		A352EC022E9401950011B9D6 /* PushService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EC012E9401950011B9D6 /* PushService.swift */; };
 		A352EC042E9401B20011B9D6 /* PushCategoryFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EC032E9401B20011B9D6 /* PushCategoryFactory.swift */; };
 		A352EC062E9401DE0011B9D6 /* PushPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EC052E9401DE0011B9D6 /* PushPayload.swift */; };
 		A352EC102E9416E30011B9D6 /* NoopPushService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EC0F2E9416E30011B9D6 /* NoopPushService.swift */; };
-		A352EC142E953BF90011B9D6 /* UITestBoot.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EC132E953BF90011B9D6 /* UITestBoot.swift */; };
 		A352EC172E9558130011B9D6 /* ThemeServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EC162E9558130011B9D6 /* ThemeServiceProtocol.swift */; };
 		A352EC1A2E95583F0011B9D6 /* ThemeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A352EC192E95583F0011B9D6 /* ThemeService.swift */; };
 		A385D5912E37C4FE009C0251 /* POICacheProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385D5902E37C4FE009C0251 /* POICacheProtocol.swift */; };
@@ -116,7 +113,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		A301D4482E85882500F67A76 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		A301D4532E85887500F67A76 /* DeepLinkParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkParser.swift; sourceTree = "<group>"; };
 		A301D4542E85887500F67A76 /* DeepLinkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkService.swift; sourceTree = "<group>"; };
 		A301D4652E898ADC00F67A76 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
@@ -171,14 +167,12 @@
 		A323AE442E21421B0055264E /* POIListRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIListRouter.swift; sourceTree = "<group>"; };
 		A323AE4E2E2147630055264E /* POIDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIDetailView.swift; sourceTree = "<group>"; };
 		A323AE512E21616B0055264E /* POIServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POIServiceProtocol.swift; sourceTree = "<group>"; };
-		A352EBFA2E9189890011B9D6 /* AppFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFlags.swift; sourceTree = "<group>"; };
 		A352EBFD2E93EE190011B9D6 /* PushPermissionStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushPermissionStatus.swift; sourceTree = "<group>"; };
 		A352EC012E9401950011B9D6 /* PushService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushService.swift; sourceTree = "<group>"; };
 		A352EC032E9401B20011B9D6 /* PushCategoryFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushCategoryFactory.swift; sourceTree = "<group>"; };
 		A352EC052E9401DE0011B9D6 /* PushPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushPayload.swift; sourceTree = "<group>"; };
 		A352EC0F2E9416E30011B9D6 /* NoopPushService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoopPushService.swift; sourceTree = "<group>"; };
 		A352EC112E941C840011B9D6 /* TravelBuddy.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TravelBuddy.entitlements; sourceTree = "<group>"; };
-		A352EC132E953BF90011B9D6 /* UITestBoot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITestBoot.swift; sourceTree = "<group>"; };
 		A352EC162E9558130011B9D6 /* ThemeServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeServiceProtocol.swift; sourceTree = "<group>"; };
 		A352EC192E95583F0011B9D6 /* ThemeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeService.swift; sourceTree = "<group>"; };
 		A385D5902E37C4FE009C0251 /* POICacheProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POICacheProtocol.swift; sourceTree = "<group>"; };
@@ -397,7 +391,6 @@
 			isa = PBXGroup;
 			children = (
 				A352EC112E941C840011B9D6 /* TravelBuddy.entitlements */,
-				A301D4482E85882500F67A76 /* README.md */,
 				A385D5B12E37D0C6009C0251 /* App */,
 				A385D58D2E37A14F009C0251 /* Presentation */,
 				A3166E4C2E0589B600E6E1C2 /* Infrastructure */,
@@ -596,14 +589,6 @@
 			path = Domain;
 			sourceTree = "<group>";
 		};
-		A352EBF92E91897D0011B9D6 /* Helpers */ = {
-			isa = PBXGroup;
-			children = (
-				A352EBFA2E9189890011B9D6 /* AppFlags.swift */,
-			);
-			path = Helpers;
-			sourceTree = "<group>";
-		};
 		A352EBFC2E93EE000011B9D6 /* Push */ = {
 			isa = PBXGroup;
 			children = (
@@ -614,14 +599,6 @@
 				A352EBFD2E93EE190011B9D6 /* PushPermissionStatus.swift */,
 			);
 			path = Push;
-			sourceTree = "<group>";
-		};
-		A352EC122E953BF20011B9D6 /* Support */ = {
-			isa = PBXGroup;
-			children = (
-				A352EC132E953BF90011B9D6 /* UITestBoot.swift */,
-			);
-			path = Support;
 			sourceTree = "<group>";
 		};
 		A352EC152E9558070011B9D6 /* Theme */ = {
@@ -725,8 +702,6 @@
 			isa = PBXGroup;
 			children = (
 				A352EC152E9558070011B9D6 /* Theme */,
-				A352EC122E953BF20011B9D6 /* Support */,
-				A352EBF92E91897D0011B9D6 /* Helpers */,
 				A301D4572E85887500F67A76 /* Deeplink */,
 				A3166E4D2E0589B600E6E1C2 /* AppDelegate.swift */,
 				A3166E542E0589B600E6E1C2 /* SceneDelegate.swift */,
@@ -897,7 +872,6 @@
 				A3166E5E2E0589B600E6E1C2 /* Assets.xcassets in Resources */,
 				A3166E602E0589B600E6E1C2 /* LaunchScreen.storyboard in Resources */,
 				A3166F0A2E10396E00E6E1C2 /* mock_pois_local.json in Resources */,
-				A301D4492E85882500F67A76 /* README.md in Resources */,
 				A3166E612E0589B600E6E1C2 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -953,7 +927,6 @@
 				A323AE302E200E5D0055264E /* POIListCoordinator.swift in Sources */,
 				A3166F102E12AA7200E6E1C2 /* RealmPOICache.swift in Sources */,
 				A352EC172E9558130011B9D6 /* ThemeServiceProtocol.swift in Sources */,
-				A352EBFB2E9189890011B9D6 /* AppFlags.swift in Sources */,
 				A3166E592E0589B600E6E1C2 /* HTTPClientProtocol.swift in Sources */,
 				A3166E5A2E0589B600E6E1C2 /* DesignTokens.swift in Sources */,
 				A3166E5B2E0589B600E6E1C2 /* AppDelegate.swift in Sources */,
@@ -961,7 +934,6 @@
 				A385D5BA2E37D4AC009C0251 /* MapCoordinator.swift in Sources */,
 				A352EC102E9416E30011B9D6 /* NoopPushService.swift in Sources */,
 				A385D5BB2E37D4AC009C0251 /* MapRouter.swift in Sources */,
-				A352EC142E953BF90011B9D6 /* UITestBoot.swift in Sources */,
 				A385D5912E37C4FE009C0251 /* POICacheProtocol.swift in Sources */,
 				A301D46B2E8994E600F67A76 /* UITabBarController+Alert.swift in Sources */,
 				A3166F0C2E103ECC00E6E1C2 /* RemotePOIService.swift in Sources */,

@@ -138,33 +138,8 @@ public final class DIContainer {
         }
         .inObjectScope(.container)
 
-        container.registerUITestOverridesIfNeeded()
-
     }
 
     public var resolver: Resolver { container.synchronize() }
 }
 
-@MainActor
-private extension Container {
-    /// Вызывать ПОСЛЕ базовых регистраций, чтобы в режиме UI-тестов переопределить сервисы.
-    func registerUITestOverridesIfNeeded() {
-        let useLocalOnly = AppFlags.isUITesting || AppFlags.useMockData
-        guard useLocalOnly else { return }
-
-        // Локальный сервис вместо сети/кэша
-        self.register(POIServiceProtocol.self) { r in
-            // Если у тебя LocalPOIService требует конфиг — разрезолвим его
-            let config = r.resolve(AppConfig.self)!
-            return LocalPOIService(config: config)
-        }
-        .inObjectScope(.container)
-
-        
-        self.register(PushServiceProtocol.self) { _ in
-            NoopPushService()
-        }
-        .inObjectScope(.container)
-
-    }
-}
