@@ -14,9 +14,13 @@ TravelBuddy построен по принципам **Clean Architecture** и *
 
 App/
 ├ Presentation/ → View + ViewModel (Combine/async, Router/Coordinator)
+
 ├ Domain/       → контракты и модели (чистая логика)
+
 ├ Infrastructure/ → реализация контрактов (сеть, кэш, IAP, Push, Analytics)
+
 ├ Core/         → утилиты, DesignTokens, L10n, экстеншены
+
 └ Resources/    → локализация, моки, ассеты
 
 
